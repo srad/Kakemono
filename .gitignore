@@ -1,0 +1,52 @@
+# Elixir / Phoenix build output
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+kakemono-*.tar
+
+# Runtime data and local secrets
+/data/
+/tmp/
+/uploads/
+/backups/
+/priv/uploads/
+/priv/backups/
+/priv/secret.key
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+
+# Generated static assets
+/priv/static/assets/
+/priv/static/cache_manifest.json
+
+# JavaScript dependencies and build output
+/assets/node_modules/
+/assets/.vite/
+/assets/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local editor and tool state
+/.agents/
+/.claude/
+/.codex/
+/.elixir_ls/
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Local Docker overrides
+docker-compose.override.yml

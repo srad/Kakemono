@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kakemono:latest
+    container_name: kakemono
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      KAKEMONO_DATA_DIR: ${KAKEMONO_DATA_DIR:-/data}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      KAKEMONO_API_SECRET: ${KAKEMONO_API_SECRET:?set KAKEMONO_API_SECRET in .env}
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PHX_SERVER: "true"
+      PORT: "4000"
+    volumes:
+      - ./data:/data

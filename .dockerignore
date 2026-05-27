@@ -1,0 +1,62 @@
+# Git and repository metadata
+.git
+.gitignore
+.dockerignore
+
+# Local editor and agent state
+.agents/
+.claude/
+.codex/
+.elixir_ls/
+.idea/
+.vscode/
+
+# Elixir / Phoenix generated output
+_build/
+deps/
+cover/
+doc/
+.fetch
+erl_crash.dump
+*.ez
+kakemono-*.tar
+
+# Runtime data and secrets
+data/
+tmp/
+uploads/
+backups/
+priv/uploads/
+priv/backups/
+priv/secret.key
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
+
+# Generated frontend/static output
+assets/node_modules/
+assets/.vite/
+assets/coverage/
+priv/static/assets/
+priv/static/cache_manifest.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Files not needed for the production image build
+test/
+README.md
+docker-compose.yml
+kdev
+scripts/
+.docker/
+
+# OS/editor noise
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

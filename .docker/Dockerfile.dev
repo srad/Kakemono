@@ -1,0 +1,23 @@
+FROM hexpm/elixir:1.18.2-erlang-27.3.4.8-debian-bookworm-20260518
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git \
+      build-essential \
+      curl \
+      ca-certificates \
+      gnupg \
+      ffmpeg \
+      libvips-dev \
+      libvips-tools \
+      inotify-tools \
+      sqlite3 \
+      libsqlite3-dev \
+ && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN mix local.hex --force && mix local.rebar --force
+
+WORKDIR /work
