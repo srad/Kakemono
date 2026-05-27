@@ -430,12 +430,27 @@ defmodule KakemonoWeb.ScenesLive.Edit do
   defp coerce_value(_, %{type: :checkbox}), do: {:ok, false}
 
   defp coerce_value(nil, _field), do: {:ok, nil}
+  defp coerce_value("", %{blank: :empty_string}), do: {:ok, ""}
   defp coerce_value("", _field), do: {:ok, nil}
 
   defp coerce_value(v, %{type: :location_search}) when is_binary(v) do
     case String.trim(v) do
       "" -> {:ok, nil}
       s -> {:ok, s}
+    end
+  end
+
+  defp coerce_value(v, %{type: :timezone_search}) when is_binary(v) do
+    case String.trim(v) do
+      "" ->
+        {:ok, nil}
+
+      timezone ->
+        if Kakemono.TimeZones.valid?(timezone) do
+          {:ok, timezone}
+        else
+          {:error, "Invalid timezone"}
+        end
     end
   end
 
@@ -940,6 +955,32 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         </div>
         """
 
+      :timezone_search ->
+        list_id = "timezone-#{assigns.editing_id}-#{field.key}"
+
+        assigns =
+          assign(assigns,
+            field: field,
+            current: current,
+            list_id: list_id,
+            options: Map.get(field, :options, [])
+          )
+
+        ~H"""
+        <input
+          type="text"
+          name={"config[#{@field.key}]"}
+          value={@current || ""}
+          list={@list_id}
+          placeholder={Map.get(@field, :placeholder, "")}
+          autocomplete="off"
+          class="border rounded px-2 py-1 w-full text-sm"
+        />
+        <datalist id={@list_id}>
+          <option :for={timezone <- @options} value={timezone}>{timezone}</option>
+        </datalist>
+        """
+
       :playlist_select ->
         assigns = assign(assigns, field: field, current: current)
 
@@ -980,6 +1021,20 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           step={Map.get(@field, :step, "any")}
           value={@current}
           placeholder={Map.get(@field, :placeholder, "")}
+          class="border rounded px-2 py-1 w-full text-sm"
+        />
+        """
+
+      :password ->
+        assigns = assign(assigns, field: field, current: current)
+
+        ~H"""
+        <input
+          type="password"
+          name={"config[#{@field.key}]"}
+          value=""
+          placeholder={Map.get(@field, :placeholder, "")}
+          autocomplete="new-password"
           class="border rounded px-2 py-1 w-full text-sm"
         />
         """

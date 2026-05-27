@@ -9,6 +9,7 @@ defmodule Kakemono.Widgets.Instagram do
 
   Config:
     * `username`    (required, string) — IG handle without `@`
+    * `access_token` (optional, string) — token for Instagram's API
     * `max_items`   (optional, 1..20) — number of posts to keep
     * `interval_ms` (optional, >= 2000) — duration per slide
     * `fit_mode`    (optional, "contain" | "cover")
@@ -30,11 +31,15 @@ defmodule Kakemono.Widgets.Instagram do
       "required" => ["username"],
       "properties" => %{
         "username" => %{"type" => "string", "minLength" => 1},
+        "access_token" => %{"type" => "string", "minLength" => 1},
         "max_items" => %{"type" => "integer", "minimum" => 1, "maximum" => 20},
         "interval_ms" => %{"type" => "integer", "minimum" => 2000},
         "fit_mode" => %{"type" => "string", "enum" => ["contain", "cover"]},
         "cached_items" => %{"type" => "array"},
-        "last_error" => %{"type" => "string"}
+        "last_error" => %{"type" => "string"},
+        "last_error_at" => %{"type" => "string"},
+        "last_fetch_at" => %{"type" => "string"},
+        "next_fetch_at" => %{"type" => "string"}
       },
       "additionalProperties" => false
     }
@@ -48,7 +53,7 @@ defmodule Kakemono.Widgets.Instagram do
     username = cfg["username"]
     items = cfg["cached_items"]
 
-    if is_binary(username) and username != "" and (is_nil(items) or items == []) do
+    if configured_username?(username) and empty_items?(items) and fetch_due?(cfg) do
       %{instance_id: id}
       |> Kakemono.Widgets.InstagramFetchWorker.new()
       |> Oban.insert!()
@@ -66,6 +71,13 @@ defmodule Kakemono.Widgets.Instagram do
         type: :text,
         required: true,
         placeholder: "nasa"
+      },
+      %{
+        key: "access_token",
+        label: "Access token",
+        type: :password,
+        required: false,
+        placeholder: "Instagram API token"
       },
       %{
         key: "max_items",
@@ -125,6 +137,25 @@ defmodule Kakemono.Widgets.Instagram do
 
   def parse_profile(_), do: []
 
+  @doc """
+  Parse the JSON returned by Instagram's API media endpoint into the same
+  item maps used by the public-profile scraper.
+  """
+  def parse_graph_media(body) when is_binary(body) do
+    case Jason.decode(body) do
+      {:ok, decoded} -> parse_graph_media(decoded)
+      _ -> []
+    end
+  end
+
+  def parse_graph_media(%{"data" => data}) when is_list(data) do
+    data
+    |> Enum.map(&graph_media_to_item/1)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  def parse_graph_media(_), do: []
+
   defp node_to_item(node) when is_map(node) do
     src = node["display_url"] || node["thumbnail_src"]
 
@@ -152,6 +183,57 @@ defmodule Kakemono.Widgets.Instagram do
       _ -> ""
     end
   end
+
+  defp graph_media_to_item(media) when is_map(media) do
+    src = media["thumbnail_url"] || media["media_url"] || first_child_src(media)
+
+    if is_binary(src) and src != "" do
+      %{
+        "src" => src,
+        "type" => "image",
+        "permalink" => media["permalink"],
+        "caption" => media["caption"] || ""
+      }
+    end
+  end
+
+  defp graph_media_to_item(_), do: nil
+
+  defp first_child_src(%{"children" => %{"data" => children}}) when is_list(children) do
+    Enum.find_value(children, fn
+      child when is_map(child) -> child["thumbnail_url"] || child["media_url"]
+      _ -> nil
+    end)
+  end
+
+  defp first_child_src(_), do: nil
+
+  def fetch_due?(%Kakemono.Widgets.Instance{config: cfg}), do: fetch_due?(cfg)
+
+  def fetch_due?(cfg) when is_map(cfg) do
+    case parse_datetime(cfg["next_fetch_at"]) do
+      {:ok, next_fetch_at} -> DateTime.compare(next_fetch_at, DateTime.utc_now()) != :gt
+      :error -> true
+    end
+  end
+
+  def fetch_due?(_), do: true
+
+  defp parse_datetime(value) when is_binary(value) do
+    case DateTime.from_iso8601(value) do
+      {:ok, datetime, _offset} -> {:ok, datetime}
+      _ -> :error
+    end
+  end
+
+  defp parse_datetime(_), do: :error
+
+  defp configured_username?(username) when is_binary(username), do: String.trim(username) != ""
+  defp configured_username?(_), do: false
+
+  defp empty_items?(nil), do: true
+  defp empty_items?([]), do: true
+  defp empty_items?(_), do: false
 
   @impl true
   def render(assigns) do

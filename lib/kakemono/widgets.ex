@@ -72,7 +72,7 @@ defmodule Kakemono.Widgets do
 
       mod ->
         old_config = inst.config || %{}
-        merged = Map.merge(old_config, new_config || %{})
+        merged = merge_config_update(type, old_config, new_config || %{})
 
         with :ok <- validate_config(mod, merged),
              {:ok, updated} <- inst |> Instance.changeset(%{config: merged}) |> Repo.update() do
@@ -136,7 +136,46 @@ defmodule Kakemono.Widgets do
     :ok
   end
 
+  # Refetch Instagram when the account source changes. Worker writebacks keep
+  # the same source keys, so this doesn't loop on cached_items updates.
+  defp post_update(%Instance{widget_type: "instagram", id: id, config: cfg}, old_config) do
+    if instagram_source_changed?(cfg, old_config) and configured_instagram?(cfg) do
+      %{instance_id: id}
+      |> Kakemono.Widgets.InstagramFetchWorker.new()
+      |> Oban.insert!()
+    end
+
+    :ok
+  end
+
   defp post_update(_, _), do: :ok
+
+  defp merge_config_update("instagram", old_config, new_config) do
+    merged = Map.merge(old_config, new_config)
+
+    if instagram_source_changed?(merged, old_config) do
+      merged
+      |> Map.delete("cached_items")
+      |> Map.delete("last_error")
+      |> Map.delete("last_error_at")
+      |> Map.delete("last_fetch_at")
+      |> Map.delete("next_fetch_at")
+    else
+      merged
+    end
+  end
+
+  defp merge_config_update(_type, old_config, new_config), do: Map.merge(old_config, new_config)
+
+  defp instagram_source_changed?(cfg, old_config) do
+    cfg["username"] != old_config["username"] or cfg["access_token"] != old_config["access_token"]
+  end
+
+  defp configured_instagram?(%{"username" => username}) when is_binary(username) do
+    String.trim(username) != ""
+  end
+
+  defp configured_instagram?(_), do: false
 
   defp validate_config(mod, config) do
     schema = ExJsonSchema.Schema.resolve(mod.config_schema())

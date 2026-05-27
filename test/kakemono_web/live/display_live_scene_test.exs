@@ -29,7 +29,35 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
     assert html =~ "grid-column: 1 / span 6"
     assert html =~ "aspect-ratio: 9 / 16"
     assert html =~ "kw-shell-light"
+    refute html =~ "kw-clock-title"
     refute html =~ "phx-hook=\"Slideshow\""
+  end
+
+  test "renders optional clock title when configured", %{conn: conn} do
+    d = Fixtures.display!("clock-title-#{System.unique_integer([:positive])}")
+
+    {:ok, scene} =
+      Scenes.create(%{name: "Clock title", mode: "dashboard", layout: %{"cells" => []}})
+
+    {:ok, clock} =
+      Widgets.create_instance("clock", scene.id, %{
+        "title" => "Berlin",
+        "timezone" => "Europe/Berlin"
+      })
+
+    {:ok, scene} =
+      Scenes.update(scene, %{
+        layout: %{
+          "cells" => [%{"widget_instance_id" => clock.id, "x" => 0, "y" => 0, "w" => 6, "h" => 4}]
+        }
+      })
+
+    {:ok, _} = Displays.set_scene(d.id, scene.id)
+
+    {:ok, _view, html} = live(conn, "/d/#{d.id}")
+
+    assert html =~ "kw-clock-title"
+    assert html =~ "Berlin"
   end
 
   test "switches to scene view live on :scene_changed broadcast", %{conn: conn} do

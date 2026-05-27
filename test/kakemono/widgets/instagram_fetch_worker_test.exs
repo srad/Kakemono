@@ -39,6 +39,25 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
                     }
                   })
 
+  @sample_graph Jason.encode!(%{
+                  "data" => [
+                    %{
+                      "id" => "1",
+                      "media_type" => "IMAGE",
+                      "media_url" => "https://cdn.example.com/g1.jpg",
+                      "permalink" => "https://www.instagram.com/p/G1/",
+                      "caption" => "graph first"
+                    },
+                    %{
+                      "id" => "2",
+                      "media_type" => "VIDEO",
+                      "media_url" => "https://cdn.example.com/g2.mp4",
+                      "thumbnail_url" => "https://cdn.example.com/g2.jpg",
+                      "permalink" => "https://www.instagram.com/p/G2/"
+                    }
+                  ]
+                })
+
   setup do
     Application.put_env(:kakemono, :req_options, plug: {Req.Test, __MODULE__})
     on_exit(fn -> Application.delete_env(:kakemono, :req_options) end)
@@ -65,6 +84,16 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
     end
   end
 
+  describe "Instagram.parse_graph_media/1" do
+    test "extracts API media items" do
+      [first, second] = Instagram.parse_graph_media(@sample_graph)
+      assert first["src"] == "https://cdn.example.com/g1.jpg"
+      assert first["caption"] == "graph first"
+      assert first["permalink"] == "https://www.instagram.com/p/G1/"
+      assert second["src"] == "https://cdn.example.com/g2.jpg"
+    end
+  end
+
   describe "perform/1" do
     test "fetches profile and caches items on the instance", %{scene: scene} do
       {:ok, inst} = Widgets.create_instance("instagram", scene.id, %{"username" => "nasa"})
@@ -79,6 +108,27 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
       assert length(updated.config["cached_items"]) == 3
       assert hd(updated.config["cached_items"])["src"] == "https://cdn.example.com/1.jpg"
       refute Map.has_key?(updated.config, "last_error")
+      assert is_binary(updated.config["last_fetch_at"])
+    end
+
+    test "uses Instagram API media endpoint when access_token is configured", %{scene: scene} do
+      {:ok, inst} =
+        Widgets.create_instance("instagram", scene.id, %{
+          "username" => "nasa",
+          "access_token" => "token",
+          "max_items" => 1
+        })
+
+      Req.Test.stub(__MODULE__, fn conn ->
+        assert conn.request_path == "/me/media"
+        assert conn.query_string =~ "access_token=token"
+        Plug.Conn.send_resp(conn, 200, @sample_graph)
+      end)
+
+      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+
+      updated = Widgets.get_instance(inst.id)
+      assert [%{"src" => "https://cdn.example.com/g1.jpg"}] = updated.config["cached_items"]
     end
 
     test "respects max_items config", %{scene: scene} do
@@ -108,18 +158,38 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
       assert_receive {:widget_config_updated, %{instance_id: ^iid}}, 500
     end
 
-    test "stores last_error and returns error on non-200", %{scene: scene} do
+    test "stores last_error and backs off without retrying on rate limit", %{scene: scene} do
       {:ok, inst} = Widgets.create_instance("instagram", scene.id, %{"username" => "nasa"})
 
       Req.Test.stub(__MODULE__, fn conn ->
         Plug.Conn.send_resp(conn, 429, "rate limited")
       end)
 
-      assert {:error, {:http_status, 429}} =
-               perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert updated.config["last_error"] == "HTTP 429"
+      assert is_binary(updated.config["last_error_at"])
+
+      assert {:ok, next_fetch_at, _offset} =
+               DateTime.from_iso8601(updated.config["next_fetch_at"])
+
+      assert DateTime.compare(next_fetch_at, DateTime.utc_now()) == :gt
+    end
+
+    test "returns error for retryable server errors", %{scene: scene} do
+      {:ok, inst} = Widgets.create_instance("instagram", scene.id, %{"username" => "nasa"})
+
+      Req.Test.stub(__MODULE__, fn conn ->
+        Plug.Conn.send_resp(conn, 503, "unavailable")
+      end)
+
+      assert {:error, {:http_status, 503}} =
+               perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+
+      updated = Widgets.get_instance(inst.id)
+      assert updated.config["last_error"] == "HTTP 503"
+      refute Map.has_key?(updated.config, "next_fetch_at")
     end
 
     test "returns error for non-instagram instance", %{scene: scene} do
@@ -153,6 +223,22 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
       assert :ok = Kakemono.Widgets.Instagram.prefetch(inst)
       refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: inst.id})
     end
+
+    test "skips while rate-limit backoff is active", %{scene: scene} do
+      next_fetch_at =
+        DateTime.utc_now()
+        |> DateTime.add(3600, :second)
+        |> DateTime.to_iso8601()
+
+      {:ok, inst} =
+        Widgets.create_instance("instagram", scene.id, %{
+          "username" => "nasa",
+          "next_fetch_at" => next_fetch_at
+        })
+
+      assert :ok = Kakemono.Widgets.Instagram.prefetch(inst)
+      refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: inst.id})
+    end
   end
 
   describe "scheduler" do
@@ -165,6 +251,26 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
 
       assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: a.id})
       assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: b.id})
+    end
+
+    test "skips instances with active backoff", %{scene: scene} do
+      next_fetch_at =
+        DateTime.utc_now()
+        |> DateTime.add(3600, :second)
+        |> DateTime.to_iso8601()
+
+      {:ok, due} = Widgets.create_instance("instagram", scene.id, %{"username" => "due"})
+
+      {:ok, skipped} =
+        Widgets.create_instance("instagram", scene.id, %{
+          "username" => "skip",
+          "next_fetch_at" => next_fetch_at
+        })
+
+      assert {:ok, 1} = perform_job(InstagramScheduler, %{})
+
+      assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: due.id})
+      refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: skipped.id})
     end
   end
 end

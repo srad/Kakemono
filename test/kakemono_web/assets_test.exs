@@ -68,6 +68,11 @@ defmodule KakemonoWeb.AssetsTest do
       src = File.read!("assets/js/app.js")
       assert src =~ "ClockTick"
     end
+
+    test "clock title styles exist" do
+      css = File.read!("assets/css/app.css")
+      assert css =~ ".kw-clock-title"
+    end
   end
 
   describe "grid editor hook" do
@@ -88,6 +93,15 @@ defmodule KakemonoWeb.AssetsTest do
       assert css =~ ~s|[data-color-scheme="dark"]|
       assert css =~ ".dashboard-widget-preview"
       assert css =~ ".dashboard-editor-surface .grid-stack-item > .ui-resizable-handle"
+    end
+
+    test "dark widget borders use slate borders instead of white outlines" do
+      css = File.read!("assets/css/app.css")
+
+      assert css =~ "border: 1px solid rgba(51, 65, 85, 0.70)"
+      assert css =~ "border-color: rgba(51, 65, 85, 0.72) !important"
+      refute css =~ "border: 1px solid rgba(255, 255, 255, 0.08)"
+      refute css =~ "border-color: rgba(255, 255, 255, 0.10) !important"
     end
   end
 end

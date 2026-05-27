@@ -10,7 +10,7 @@ ENV MIX_ENV=prod \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git build-essential curl ca-certificates \
-      libvips-dev libsqlite3-dev \
+      libvips-dev libsqlite3-dev tzdata \
  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
  && apt-get install -y --no-install-recommends nodejs \
  && rm -rf /var/lib/apt/lists/*
@@ -26,7 +26,8 @@ COPY assets assets
 COPY priv priv
 COPY lib lib
 
-RUN cd assets && npm ci && npm run build
+RUN cd assets && npm install && npm run build
+RUN mix tailwind kakemono --minify
 RUN mix phx.digest
 RUN mix release
 
@@ -38,7 +39,7 @@ ENV LANG=C.UTF-8 \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates libstdc++6 openssl libncurses6 \
-      ffmpeg libvips42 sqlite3 \
+      ffmpeg libvips42 sqlite3 tzdata \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -51,4 +52,4 @@ COPY --from=builder --chown=kakemono:kakemono /app/_build/prod/rel/kakemono ./
 USER kakemono
 
 EXPOSE 4000
-CMD ["/app/bin/kakemono", "start"]
+CMD /app/bin/kakemono eval "Kakemono.Release.migrate()" && /app/bin/kakemono start

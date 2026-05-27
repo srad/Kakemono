@@ -141,6 +141,23 @@ defmodule KakemonoWeb.ScenesLiveTest do
       assert html =~ "Configure Weather"
       assert html =~ "Location *"
     end
+
+    test "creates clock without a timezone and opens its config form", %{conn: conn} do
+      {:ok, scene} =
+        Scenes.create(%{name: "Clock", mode: "dashboard", layout: %{"cells" => []}})
+
+      {:ok, view, _html} = live(conn, "/c/scenes/#{scene.id}")
+
+      html = render_click(view, "create_and_place", %{"type" => "clock"})
+
+      [inst] = Widgets.list_instances_for(scene.id)
+      assert inst.widget_type == "clock"
+      refute Map.has_key?(inst.config, "timezone")
+      assert html =~ "Configure Clock"
+      assert html =~ "Title"
+      assert html =~ "Timezone *"
+      assert html =~ "Europe/Berlin"
+    end
   end
 
   describe "/c/scenes/:id — cells_changed" do
@@ -301,6 +318,42 @@ defmodule KakemonoWeb.ScenesLiveTest do
       updated = Widgets.get_instance!(inst.id)
       assert updated.config["timezone"] == "Europe/Berlin"
       assert updated.config["format"] == "12h"
+    end
+
+    test "save_config can set and clear optional clock title", %{conn: conn} do
+      {:ok, scene} = Scenes.create(%{name: "Dash", mode: "dashboard", layout: %{"cells" => []}})
+      {:ok, inst} = Widgets.create_instance("clock", scene.id, %{"title" => "Berlin"})
+      {:ok, view, _html} = live(conn, "/c/scenes/#{scene.id}")
+
+      render_click(view, "open_config", %{"widget_instance_id" => "#{inst.id}"})
+
+      view
+      |> form("form[phx-submit=save_config]", %{
+        instance_id: inst.id,
+        config: %{title: "", timezone: "Europe/Berlin", format: "24h"}
+      })
+      |> render_submit()
+
+      updated = Widgets.get_instance!(inst.id)
+      assert updated.config["title"] == ""
+    end
+
+    test "save_config rejects invalid clock timezone", %{conn: conn} do
+      {:ok, scene} = Scenes.create(%{name: "Dash", mode: "dashboard", layout: %{"cells" => []}})
+      {:ok, inst} = Widgets.create_instance("clock", scene.id, %{})
+      {:ok, view, _html} = live(conn, "/c/scenes/#{scene.id}")
+
+      render_click(view, "open_config", %{"widget_instance_id" => "#{inst.id}"})
+
+      html =
+        view
+        |> form("form[phx-submit=save_config]", %{
+          instance_id: inst.id,
+          config: %{timezone: "Mars/Olympus", format: "12h"}
+        })
+        |> render_submit()
+
+      assert html =~ "Invalid timezone"
     end
 
     test "save_config persists weather location with coordinates", %{conn: conn} do

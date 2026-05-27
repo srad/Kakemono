@@ -1,19 +1,21 @@
 defmodule Kakemono.Widgets.InstagramScheduler do
   @moduledoc """
   Oban.Cron entry: once an hour (top of the hour), enqueues one
-  `InstagramFetchWorker` job per Instagram widget instance.
+  `InstagramFetchWorker` job per due Instagram widget instance.
   """
   use Oban.Worker, queue: :default, max_attempts: 1
 
   import Ecto.Query
   alias Kakemono.Repo
-  alias Kakemono.Widgets.{Instance, InstagramFetchWorker}
+  alias Kakemono.Widgets.{Instagram, InstagramFetchWorker, Instance}
 
   @impl Oban.Worker
   def perform(_job) do
     ids =
-      from(i in Instance, where: i.widget_type == "instagram", select: i.id)
+      from(i in Instance, where: i.widget_type == "instagram")
       |> Repo.all()
+      |> Enum.filter(&Instagram.fetch_due?/1)
+      |> Enum.map(& &1.id)
 
     Enum.each(ids, fn id ->
       %{instance_id: id}

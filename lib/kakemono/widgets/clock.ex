@@ -15,10 +15,11 @@ defmodule Kakemono.Widgets.Clock do
     %{
       "type" => "object",
       "properties" => %{
+        "title" => %{"type" => "string"},
         "style" => %{"type" => "string", "enum" => @styles},
         "format" => %{"type" => "string", "enum" => ["24h", "12h"]},
         "show_seconds" => %{"type" => "boolean"},
-        "timezone" => %{"type" => "string"}
+        "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()}
       },
       "additionalProperties" => false
     }
@@ -29,14 +30,21 @@ defmodule Kakemono.Widgets.Clock do
     %{
       "style" => "celestial",
       "format" => "24h",
-      "show_seconds" => false,
-      "timezone" => "Etc/UTC"
+      "show_seconds" => false
     }
   end
 
   @impl true
   def config_fields do
     [
+      %{
+        key: "title",
+        label: "Title",
+        type: :text,
+        required: false,
+        placeholder: "Berlin",
+        blank: :empty_string
+      },
       %{
         key: "style",
         label: "Style",
@@ -48,7 +56,14 @@ defmodule Kakemono.Widgets.Clock do
           {"minimal", "Minimal"}
         ]
       },
-      %{key: "timezone", label: "Timezone", type: :text, required: false, placeholder: "Etc/UTC"},
+      %{
+        key: "timezone",
+        label: "Timezone",
+        type: :timezone_search,
+        required: true,
+        placeholder: "Europe/Berlin",
+        options: Kakemono.TimeZones.list()
+      },
       %{
         key: "format",
         label: "Format",
@@ -64,13 +79,15 @@ defmodule Kakemono.Widgets.Clock do
   def render(assigns) do
     style = Map.get(assigns.instance.config, "style", "celestial")
     style = if style in @styles, do: style, else: "celestial"
+    title = assigns.instance.config |> Map.get("title") |> normalize_title()
 
     assigns =
       assigns
       |> Map.put(:style, style)
+      |> Map.put(:title, title)
       |> Map.put(:format, Map.get(assigns.instance.config, "format", "24h"))
       |> Map.put(:show_seconds, Map.get(assigns.instance.config, "show_seconds", false))
-      |> Map.put(:timezone, Map.get(assigns.instance.config, "timezone", "Etc/UTC"))
+      |> Map.put(:timezone, Map.get(assigns.instance.config, "timezone"))
       |> Map.put(:clock_id, "clock-" <> Integer.to_string(assigns.instance.id))
 
     ~H"""
@@ -96,6 +113,7 @@ defmodule Kakemono.Widgets.Clock do
             <div class="kw-clock-horizon"></div>
           </div>
           <div class="kw-clock-stack kw-clock-stack-celestial">
+            <div :if={@title} class="kw-clock-title">{@title}</div>
             <time
               phx-hook="ClockTick"
               id={@clock_id}
@@ -124,6 +142,7 @@ defmodule Kakemono.Widgets.Clock do
             </div>
           </div>
           <div class="kw-clock-stack kw-clock-stack-lunar">
+            <div :if={@title} class="kw-clock-title">{@title}</div>
             <time
               phx-hook="ClockTick"
               id={@clock_id}
@@ -140,17 +159,20 @@ defmodule Kakemono.Widgets.Clock do
         <% "minimal" -> %>
           <div class="kw-clock-stack kw-clock-stack-minimal">
             <div data-clock-weekday class="kw-clock-weekday"></div>
-            <time
-              phx-hook="ClockTick"
-              id={@clock_id}
-              data-style={@style}
-              data-format={@format}
-              data-show-seconds={to_string(@show_seconds)}
-              data-timezone={@timezone}
-              class="kw-clock-time"
-            >
-              --:--
-            </time>
+            <div class="kw-clock-main">
+              <div :if={@title} class="kw-clock-title">{@title}</div>
+              <time
+                phx-hook="ClockTick"
+                id={@clock_id}
+                data-style={@style}
+                data-format={@format}
+                data-show-seconds={to_string(@show_seconds)}
+                data-timezone={@timezone}
+                class="kw-clock-time"
+              >
+                --:--
+              </time>
+            </div>
             <div class="kw-clock-meta">
               <div data-clock-date class="kw-clock-date-pill"></div>
               <%= if @show_seconds do %>
@@ -166,6 +188,15 @@ defmodule Kakemono.Widgets.Clock do
     </div>
     """
   end
+
+  defp normalize_title(title) when is_binary(title) do
+    case String.trim(title) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+
+  defp normalize_title(_), do: nil
 
   defp style_class("lunar"), do: "kw-clock-style-lunar"
   defp style_class("minimal"), do: "kw-clock-style-minimal"

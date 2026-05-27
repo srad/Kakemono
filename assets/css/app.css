@@ -135,7 +135,7 @@ body { @apply bg-background text-foreground; }
     background:
       radial-gradient(circle at top left, rgba(255, 255, 255, 0.11), transparent 32%),
       linear-gradient(145deg, #121212 0%, #050505 58%, #101010 100%);
-    border-color: rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(51, 65, 85, 0.78) !important;
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
   }
 
@@ -477,7 +477,7 @@ body { @apply bg-background text-foreground; }
 
   .dashboard-editor-surface[data-color-scheme="dark"] .dashboard-widget-preview {
     background: rgba(24, 30, 42, 0.90);
-    border-color: rgba(255, 255, 255, 0.10) !important;
+    border-color: rgba(51, 65, 85, 0.72) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
     color: rgba(255, 255, 255, 0.88);
   }
@@ -499,7 +499,7 @@ body { @apply bg-background text-foreground; }
 
   .dashboard-editor-surface[data-color-scheme="dark"] .widget-action-btn {
     background: rgba(255, 255, 255, 0.10);
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(51, 65, 85, 0.80) !important;
     color: rgba(255, 255, 255, 0.65);
   }
 
@@ -604,7 +604,7 @@ body { @apply bg-background text-foreground; }
     background: rgba(24, 28, 40, 0.65);
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(51, 65, 85, 0.70);
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.50);
   }
 
@@ -752,6 +752,28 @@ body { @apply bg-background text-foreground; }
   }
   .kw-clock-time[data-show-seconds="true"] {
     font-size: clamp(2rem, min(21cqw, 49cqh), 11rem);
+  }
+
+  .kw-clock-main {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(5px, 1.1cqh, 12px);
+  }
+
+  .kw-clock-title {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-muted);
+    font-size: clamp(0.78rem, min(3cqw, 3.5cqh), 1.35rem);
+    font-weight: 800;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
   }
 
   .kw-clock-date,
@@ -1076,6 +1098,11 @@ body { @apply bg-background text-foreground; }
     text-align: center;
     justify-content: flex-end;
   }
+  .kw-clock-stack-lunar .kw-clock-main,
+  .kw-clock-stack-lunar .kw-clock-title {
+    align-items: center;
+    text-align: center;
+  }
   .kw-clock-stack-lunar .kw-clock-time {
     font-size: clamp(2rem, min(22cqw, 30cqh), 9rem);
   }
@@ -1108,6 +1135,17 @@ body { @apply bg-background text-foreground; }
     align-items: center;
     gap: clamp(8px, 2cqh, 24px);
     padding: clamp(20px, 4cqw, 44px);
+  }
+  .kw-clock-stack-minimal .kw-clock-main {
+    width: 100%;
+    align-items: center;
+    justify-self: center;
+    text-align: center;
+  }
+  .kw-clock-stack-minimal .kw-clock-title {
+    color: var(--clock-muted);
+    font-size: clamp(0.76rem, min(2.4cqw, 3.2cqh), 1.1rem);
+    text-shadow: none;
   }
   .kw-clock-weekday {
     align-self: start;
@@ -1206,15 +1244,20 @@ body { @apply bg-background text-foreground; }
 
   @container widget (max-width: 240px), widget (max-height: 170px) {
     .kw-clock-stack-celestial { align-items: center; text-align: center; }
+    .kw-clock-stack-celestial .kw-clock-title { text-align: center; }
     .kw-clock-weekday { display: none; }
     .kw-clock-progress { display: none; }
     .kw-clock-focal { width: min(56cqmin, 240px); }
+    .kw-clock-title {
+      font-size: clamp(0.66rem, min(3.2cqw, 3.4cqh), 0.9rem);
+    }
   }
 
   @container widget (max-width: 170px), widget (max-height: 130px) {
     .kw-clock-stars,
     .kw-clock-date,
     .kw-clock-date-pill,
+    .kw-clock-title,
     .kw-clock-horizon,
     .kw-clock-badge {
       display: none;
