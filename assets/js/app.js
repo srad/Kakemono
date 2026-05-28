@@ -30,6 +30,7 @@ import SortableHook from "./hooks/sortable.js"
 import ClockTick from "../../lib/kakemono/widgets/clock/clock_tick.js"
 import GridEditor from "./hooks/grid_editor.js"
 import LocationSearch from "../../lib/kakemono/widgets/weather/location_search.js"
+import WakeLock from "./hooks/wake_lock.js"
 
 const Hooks = {
   Sortable: SortableHook,
@@ -37,6 +38,7 @@ const Hooks = {
   ClockTick: ClockTick,
   GridEditor: GridEditor,
   LocationSearch: LocationSearch,
+  WakeLock: WakeLock,
 }
 
 let liveSocket = new LiveSocket("/live", Socket, {

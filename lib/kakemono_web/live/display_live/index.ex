@@ -141,6 +141,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
     <div
       id={"scene-" <> @display_id}
       class={scene_shell_class(@scene)}
+      phx-hook="WakeLock"
     >
       <div
         class={scene_board_class(@scene)}
@@ -181,6 +182,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
     <div
       id={"display-" <> @display_id}
       class="fixed inset-0 bg-black overflow-hidden text-white flex items-center justify-center p-8"
+      phx-hook="WakeLock"
     >
       <div class="max-w-2xl w-full text-center space-y-4 bg-white/5 border border-white/10 rounded-2xl p-10">
         <div class="text-sm uppercase tracking-widest text-white/50">Kakemono Display</div>
