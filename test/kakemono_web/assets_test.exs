@@ -18,8 +18,8 @@ defmodule KakemonoWeb.AssetsTest do
     assert src =~ "Slideshow",
            "assets/js/app.js no longer references the Slideshow hook"
 
-    assert src =~ "from \"./hooks/slideshow.js\"",
-           "assets/js/app.js no longer imports ./hooks/slideshow.js"
+    assert src =~ "lib/kakemono/widgets/slideshow/slideshow.js",
+           "assets/js/app.js no longer imports the co-located slideshow hook"
 
     assert src =~ "hooks: Hooks",
            "assets/js/app.js LiveSocket is not initialised with `hooks: Hooks`"
@@ -70,7 +70,7 @@ defmodule KakemonoWeb.AssetsTest do
     end
 
     test "clock title styles exist" do
-      css = File.read!("assets/css/app.css")
+      css = File.read!("lib/kakemono/widgets/clock/clock.css")
       assert css =~ ".kw-clock-title"
     end
   end
@@ -87,7 +87,7 @@ defmodule KakemonoWeb.AssetsTest do
     end
 
     test "dashboard editor CSS includes surface and dot handle styles" do
-      css = File.read!("assets/css/app.css")
+      css = File.read!("assets/css/editor.css")
 
       assert css =~ ".dashboard-editor-surface"
       assert css =~ ~s|[data-color-scheme="dark"]|
@@ -96,12 +96,13 @@ defmodule KakemonoWeb.AssetsTest do
     end
 
     test "dark widget borders use slate borders instead of white outlines" do
-      css = File.read!("assets/css/app.css")
+      layout = File.read!("assets/css/layout.css")
+      editor = File.read!("assets/css/editor.css")
 
-      assert css =~ "border: 1px solid rgba(51, 65, 85, 0.70)"
-      assert css =~ "border-color: rgba(51, 65, 85, 0.72) !important"
-      refute css =~ "border: 1px solid rgba(255, 255, 255, 0.08)"
-      refute css =~ "border-color: rgba(255, 255, 255, 0.10) !important"
+      assert layout =~ "border: 1px solid rgba(51, 65, 85, 0.55)"
+      assert editor =~ "border-color: rgba(51, 65, 85, 0.72) !important"
+      refute layout =~ "border: 1px solid rgba(255, 255, 255, 0.08)"
+      refute editor =~ "border-color: rgba(255, 255, 255, 0.10) !important"
     end
   end
 end

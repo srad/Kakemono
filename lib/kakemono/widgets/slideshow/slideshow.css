@@ -1,0 +1,9 @@
+@layer components {
+  /* ── Slideshow ─────────────────────────────────────────────── */
+  .kakemono-widget-slideshow {
+    padding: 0;
+    gap: 0;
+    border-radius: inherit;
+  }
+
+}

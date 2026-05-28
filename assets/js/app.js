@@ -25,11 +25,11 @@ import topbar from "topbar"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
 // ---- Kakemono hooks ----
-import Slideshow from "./hooks/slideshow.js"
+import Slideshow from "../../lib/kakemono/widgets/slideshow/slideshow.js"
 import SortableHook from "./hooks/sortable.js"
-import ClockTick from "./hooks/clock_tick.js"
+import ClockTick from "../../lib/kakemono/widgets/clock/clock_tick.js"
 import GridEditor from "./hooks/grid_editor.js"
-import LocationSearch from "./hooks/location_search.js"
+import LocationSearch from "../../lib/kakemono/widgets/weather/location_search.js"
 
 const Hooks = {
   Sortable: SortableHook,

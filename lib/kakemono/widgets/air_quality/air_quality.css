@@ -1,0 +1,394 @@
+@layer components {
+  /* ══════════════════════════════════════════════════════════════
+     Air Quality widget
+     - Gradient background per AQI level (matches weather scene system)
+     - Soft radial halo via ::before (same pattern as weather)
+     - Hero with icon + AQI value (mirrors weather hero layout)
+     - Chip-style PM2.5/PM10 details (matches weather chips)
+     - SVG icons for pollen (replaces emojis for visual consistency)
+     ══════════════════════════════════════════════════════════════ */
+
+  .kakemono-widget-air-quality,
+  .kw-shell-light .kakemono-widget-air-quality {
+    color: #f8fafc;
+    padding: 0;
+    gap: 0;
+    display: block;
+    background: linear-gradient(165deg, #22c55e 0%, #15803d 60%, #052e16 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* AQI-level gradient backgrounds */
+  .kakemono-widget-air-quality[data-aqi="good"]      { background: linear-gradient(165deg, #4ade80 0%, #16a34a 60%, #052e16 100%); }
+  .kakemono-widget-air-quality[data-aqi="fair"]      { background: linear-gradient(165deg, #facc15 0%, #ca8a04 60%, #422006 100%); }
+  .kakemono-widget-air-quality[data-aqi="moderate"]  { background: linear-gradient(165deg, #fb923c 0%, #c2410c 60%, #431407 100%); }
+  .kakemono-widget-air-quality[data-aqi="poor"]      { background: linear-gradient(165deg, #f87171 0%, #b91c1c 60%, #450a0a 100%); }
+  .kakemono-widget-air-quality[data-aqi="very-poor"] { background: linear-gradient(165deg, #c084fc 0%, #7c3aed 60%, #2e1065 100%); }
+  .kakemono-widget-air-quality[data-aqi="hazardous"] { background: linear-gradient(165deg, #991b1b 0%, #7f1d1d 60%, #1c0404 100%); }
+  .kakemono-widget-air-quality[data-aqi="unknown"]   { background: linear-gradient(165deg, #64748b 0%, #334155 60%, #0f172a 100%); }
+
+  /* Soft halo (atmospheric glow) — matches weather ::before */
+  .kakemono-widget-air-quality::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle, rgba(134, 239, 172, 0.85) 0%, rgba(134, 239, 172, 0) 65%);
+  }
+  .kakemono-widget-air-quality[data-aqi="good"]::before {
+    background: radial-gradient(circle, rgba(134, 239, 172, 0.85) 0%, rgba(134, 239, 172, 0) 65%);
+  }
+  .kakemono-widget-air-quality[data-aqi="fair"]::before {
+    background: radial-gradient(circle, rgba(253, 224, 71, 0.85) 0%, rgba(253, 224, 71, 0) 65%);
+  }
+  .kakemono-widget-air-quality[data-aqi="moderate"]::before {
+    background: radial-gradient(circle, rgba(251, 146, 60, 0.75) 0%, rgba(251, 146, 60, 0) 65%);
+  }
+  .kakemono-widget-air-quality[data-aqi="poor"]::before,
+  .kakemono-widget-air-quality[data-aqi="very-poor"]::before,
+  .kakemono-widget-air-quality[data-aqi="hazardous"]::before {
+    background: radial-gradient(circle, rgba(248, 113, 113, 0.65) 0%, rgba(248, 113, 113, 0) 65%);
+    opacity: 0.45;
+  }
+  .kakemono-widget-air-quality[data-aqi="unknown"]::before {
+    background: radial-gradient(circle, rgba(248, 250, 252, 0.30) 0%, rgba(248, 250, 252, 0) 70%);
+    opacity: 0.35;
+  }
+
+  /* ── Foreground content — grid layout matching weather ─────── */
+  .kw-aq-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: clamp(20px, 4cqw, 44px);
+    display: grid;
+    grid-template-rows:
+      auto           /* header */
+      1fr            /* hero   */
+      auto           /* chips  */
+      auto;          /* pollen */
+    row-gap: clamp(10px, 2cqh, 22px);
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Header: "Air Quality" eyebrow over the location name, centered */
+  .kw-aq-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    row-gap: clamp(1px, 0.4cqh, 4px);
+  }
+  .kw-aq-eyebrow {
+    font-size: clamp(0.6rem, 2cqw, 0.85rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
+  }
+  .kw-aq-loc {
+    font-size: clamp(0.9rem, 3.4cqw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
+  }
+
+  .kw-aq-empty {
+    font-size: clamp(0.85rem, min(3cqw, 3.5cqh), 1.1rem);
+    opacity: 0.65;
+    text-align: center;
+    align-self: center;
+  }
+
+  /* Hero: icon + AQI value (mirrors weather hero layout) */
+  .kw-aq-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 4cqw, 36px);
+    margin-block: clamp(4px, 1cqh, 12px);
+  }
+  .kw-aq-hero-icon {
+    flex-shrink: 0;
+    width: min(clamp(56px, 22cqw, 200px), 32cqh);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+  .kw-aq-hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 0.6cqh, 6px);
+    min-width: 0;
+  }
+  .kw-aq-value {
+    font-size: clamp(2.4rem, min(20cqw, 26cqh), 8rem);
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+  .kw-aq-label {
+    font-size: clamp(0.95rem, 3.4cqw, 1.5rem);
+    font-weight: 600;
+    opacity: 0.95;
+  }
+  .kw-aq-caption {
+    font-size: clamp(0.6rem, 1.9cqw, 0.85rem);
+    font-weight: 500;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* SVG icon styling (Lucide conventions — matches weather icons) */
+  .kw-aq-icon {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: #f1f5f9;
+    filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.35));
+  }
+
+  /* Icon color per AQI level */
+  .kakemono-widget-air-quality[data-aqi="good"]      .kw-aq-icon { color: #bbf7d0; }
+  .kakemono-widget-air-quality[data-aqi="fair"]      .kw-aq-icon { color: #fef08a; }
+  .kakemono-widget-air-quality[data-aqi="moderate"]  .kw-aq-icon { color: #fed7aa; }
+  .kakemono-widget-air-quality[data-aqi="poor"]      .kw-aq-icon { color: #fecaca; }
+  .kakemono-widget-air-quality[data-aqi="very-poor"] .kw-aq-icon { color: #e9d5ff; }
+  .kakemono-widget-air-quality[data-aqi="hazardous"] .kw-aq-icon { color: #fca5a5; }
+
+  /* Chip row (PM2.5 / PM10), centered — matches weather chips */
+  .kw-aq-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(6px, 1.2cqw, 12px);
+  }
+  .kw-aq-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: clamp(4px, 0.8cqh, 8px) clamp(10px, 1.4cqw, 14px);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-size: clamp(0.75rem, 2cqw, 0.95rem);
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-aq-chip-name {
+    font-weight: 600;
+  }
+  .kw-aq-chip-abbr {
+    opacity: 0.6;
+    font-weight: 500;
+    font-size: 0.85em;
+  }
+  .kw-aq-chip-value {
+    font-weight: 700;
+  }
+  .kw-aq-chip-unit {
+    opacity: 0.6;
+    font-weight: 500;
+    font-size: 0.85em;
+    margin-left: 3px;
+  }
+
+  /* Pollen section */
+  .kw-aq-pollen {
+    display: flex;
+    justify-content: center;
+    gap: clamp(4px, 1cqw, 10px);
+    flex-wrap: wrap;
+  }
+
+  .kw-aq-pollen-row {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(4px, 0.8cqw, 8px);
+    padding: clamp(4px, 0.6cqh, 6px) clamp(8px, 1.2cqw, 12px);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    font-size: clamp(0.7rem, min(1.8cqw, 2.4cqh), 0.85rem);
+  }
+  .kw-aq-pollen-icon {
+    width: clamp(14px, 2.5cqw, 18px);
+    height: clamp(14px, 2.5cqw, 18px);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+  .kw-aq-pollen-type {
+    opacity: 0.75;
+    font-weight: 500;
+  }
+  .kw-aq-pollen-value {
+    font-weight: 600;
+  }
+
+  /* Pollen level colors */
+  .kw-aq-pollen-row[data-level="low"]       .kw-aq-pollen-value { color: #86efac; }
+  .kw-aq-pollen-row[data-level="moderate"]  .kw-aq-pollen-value { color: #fde047; }
+  .kw-aq-pollen-row[data-level="high"]      .kw-aq-pollen-value { color: #fb923c; }
+  .kw-aq-pollen-row[data-level="very-high"] .kw-aq-pollen-value { color: #f87171; }
+
+  /* ─── Responsive tiers (largest → smallest, cascading) ──── */
+
+  /* M: drop the AQI caption when space is tight (names stay visible) */
+  @container widget (max-width: 420px), widget (max-height: 320px) {
+    .kw-aq-caption { display: none; }
+  }
+
+  /* Drop pollen when space is tight */
+  @container widget (max-width: 340px), widget (max-height: 280px) {
+    .kw-aq-pollen { display: none; }
+    .kw-aq-content { grid-template-rows: auto 1fr auto; }
+  }
+
+  /* S: drop chips, keep hero */
+  @container widget (max-width: 280px), widget (max-height: 200px) {
+    .kw-aq-chips { display: none; }
+    .kw-aq-content {
+      padding: clamp(14px, 3cqw, 24px);
+      grid-template-rows: auto 1fr;
+      row-gap: clamp(6px, 1.2cqh, 12px);
+    }
+    .kw-aq-hero-icon { width: clamp(56px, 28cqw, 120px); }
+    .kw-aq-value { font-size: clamp(2.4rem, 22cqw, 5rem); }
+  }
+
+  /* XS: compact icon + value + label row */
+  @container widget (max-width: 180px), widget (max-height: 140px) {
+    .kw-aq-content {
+      padding: clamp(10px, 3cqw, 18px);
+      grid-template-rows: 1fr;
+      row-gap: 0;
+    }
+    .kw-aq-header { display: none; }
+    .kw-aq-hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-block: 0;
+      height: 100%;
+    }
+    .kw-aq-hero-icon { width: clamp(36px, 40cqh, 64px); }
+    .kw-aq-hero-text { gap: 2px; }
+    .kw-aq-value { font-size: clamp(1.4rem, 30cqw, 2.4rem); }
+    .kw-aq-label { font-size: clamp(0.6rem, 5cqw, 0.85rem); }
+  }
+
+  /* On a light shell, give dark AQI levels a faint inner border
+     so they don't look like a void cut into the dashboard. */
+  .kw-shell-light .kakemono-widget-air-quality[data-aqi="very-poor"],
+  .kw-shell-light .kakemono-widget-air-quality[data-aqi="hazardous"] {
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.10);
+  }
+
+  /* ── Pollen particle field animation ─────────────────────────── */
+  .kw-aq-pollen-field {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
+    contain: strict;
+  }
+
+  .kw-aq-particles {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .kw-aq-particle {
+    fill: rgba(253, 224, 71, 0.7);
+    animation: kw-aq-twinkle 8s ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .kw-aq-particle-sm { fill: rgba(254, 240, 138, 0.5); }
+  .kw-aq-particle-md { fill: rgba(253, 224, 71, 0.6); }
+  .kw-aq-particle-lg { fill: rgba(251, 191, 36, 0.7); }
+
+  @keyframes kw-aq-twinkle {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 1; }
+  }
+
+  /* Pollen severity controls visibility and animation speed */
+  .kakemono-widget-air-quality[data-pollen="none"] .kw-aq-pollen-field {
+    opacity: 0;
+  }
+  .kakemono-widget-air-quality[data-pollen="low"] .kw-aq-pollen-field {
+    opacity: 0.4;
+  }
+  .kakemono-widget-air-quality[data-pollen="low"] .kw-aq-particle {
+    animation-duration: 12s;
+  }
+  .kakemono-widget-air-quality[data-pollen="moderate"] .kw-aq-pollen-field {
+    opacity: 0.6;
+  }
+  .kakemono-widget-air-quality[data-pollen="moderate"] .kw-aq-particle {
+    animation-duration: 8s;
+  }
+  .kakemono-widget-air-quality[data-pollen="high"] .kw-aq-pollen-field {
+    opacity: 0.8;
+  }
+  .kakemono-widget-air-quality[data-pollen="high"] .kw-aq-particle {
+    animation-duration: 5s;
+  }
+  .kakemono-widget-air-quality[data-pollen="very-high"] .kw-aq-pollen-field {
+    opacity: 1;
+  }
+  .kakemono-widget-air-quality[data-pollen="very-high"] .kw-aq-particle {
+    animation-duration: 3s;
+  }
+
+  /* Tint particles based on AQI background for better contrast */
+  .kakemono-widget-air-quality[data-aqi="good"] .kw-aq-particle { fill: rgba(254, 249, 195, 0.8); }
+  .kakemono-widget-air-quality[data-aqi="fair"] .kw-aq-particle { fill: rgba(255, 255, 255, 0.6); }
+  .kakemono-widget-air-quality[data-aqi="moderate"] .kw-aq-particle { fill: rgba(254, 243, 199, 0.7); }
+  .kakemono-widget-air-quality[data-aqi="poor"] .kw-aq-particle,
+  .kakemono-widget-air-quality[data-aqi="very-poor"] .kw-aq-particle,
+  .kakemono-widget-air-quality[data-aqi="hazardous"] .kw-aq-particle {
+    fill: rgba(254, 249, 195, 0.6);
+  }
+
+  /* Hide particles on very small widgets to avoid clutter */
+  @container widget (max-width: 180px), widget (max-height: 140px) {
+    .kw-aq-pollen-field { display: none; }
+  }
+}

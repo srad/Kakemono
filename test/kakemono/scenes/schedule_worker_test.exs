@@ -1,6 +1,6 @@
 defmodule Kakemono.Scenes.ScheduleWorkerTest do
   use Kakemono.DataCase, async: false
-  use Oban.Testing, repo: Kakemono.Repo
+  use Oban.Testing, repo: Kakemono.Repo, engine: Oban.Engines.Lite, notifier: Oban.Notifiers.PG
 
   alias Kakemono.{Displays, Scenes}
   alias Kakemono.Scenes.ScheduleWorker

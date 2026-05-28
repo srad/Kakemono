@@ -1,0 +1,139 @@
+@layer components {
+  /* ── RSS / Feed ────────────────────────────────────────────── */
+  .kakemono-widget-rss {
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: clamp(10px, 2cqw, 20px);
+    gap: clamp(6px, 1.4cqh, 14px);
+    min-height: 0;
+    min-block-size: 0;
+  }
+
+  .kw-rss-header {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .kw-rss-feed-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(18px, 4cqw, 24px);
+    min-width: clamp(18px, 4cqw, 24px);
+    height: clamp(18px, 4cqw, 24px);
+    min-height: clamp(18px, 4cqw, 24px);
+    border-radius: 6px;
+    background: #f97316;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .kw-shell-light .kw-rss-feed-icon { background: #ea580c; }
+  .kw-rss-updated {
+    flex-shrink: 0;
+    font-size: clamp(0.65rem, min(2cqw, 3cqh), 0.85rem);
+    font-weight: 500;
+    opacity: 0.5;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-rss-title {
+    flex: 1;
+    min-width: 0;
+    font-size: clamp(0.85rem, min(2.6cqw, 4cqh), 1.05rem);
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* List fills remaining height. Each row takes its natural content
+     height; rows that don't fit are clipped at row boundaries rather
+     than mid-text. */
+  .kw-rss-list {
+    flex: 1;
+    min-height: 0;
+    min-block-size: 0;
+    display: grid;
+    grid-auto-rows: min-content;
+    align-content: start;
+    overflow: hidden;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .kw-rss-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+  .kw-shell-light .kw-rss-row { border-top-color: rgba(15, 23, 42, 0.06); }
+  .kw-rss-row:first-child { border-top: none; }
+
+  .kw-rss-link {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: clamp(8px, 1.6cqw, 14px);
+    padding-block: clamp(5px, 0.8cqh, 10px);
+    color: inherit;
+    text-decoration: none;
+    transition: opacity 100ms ease;
+    min-width: 0;
+  }
+  .kw-rss-link:hover { opacity: 0.70; }
+
+  .kw-rss-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: clamp(0.9rem, min(2.4cqw, 3.4cqh), 1.05rem);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.005em;
+  }
+  .kw-rss-date {
+    flex-shrink: 0;
+    display: none;
+    font-size: clamp(0.7rem, min(1.8cqw, 2.4cqh), 0.78rem);
+    font-weight: 500;
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kw-rss-empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(0.8rem, min(2.6cqw, 3cqh), 0.95rem);
+    opacity: 0.4;
+  }
+
+  /* ─── Responsive tiers (largest → smallest) ─── */
+
+  /* Show the date only when the cell is comfortably large (both dims). */
+  @container widget (min-width: 560px) and (min-height: 420px) {
+    .kw-rss-date { display: inline; }
+  }
+
+  /* S: drop the header so the list claims the full height */
+  @container widget (max-height: 180px),
+             widget (max-width: 200px) {
+    .kw-rss-header { display: none; }
+  }
+
+  /* XS: ultra-compact — show only the most recent headline */
+  @container widget (max-height: 100px) {
+    .kw-rss-row + .kw-rss-row { display: none; }
+    .kw-rss-row { border-top: none; }
+    .kakemono-widget-rss { padding: clamp(6px, 2cqw, 12px); }
+  }
+}

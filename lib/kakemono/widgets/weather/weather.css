@@ -1,0 +1,422 @@
+@layer components {
+  /* ── Location search (weather widget config) ───────────────── */
+  .kw-loc-wrap { position: relative; }
+  .kw-loc-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px -10px rgba(15, 23, 42, 0.25);
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+  }
+  .kw-loc-results.kw-loc-open { display: block; }
+  .kw-loc-item {
+    padding: 6px 10px;
+    font-size: 0.875rem;
+    color: #1f2937;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kw-loc-item:hover { background: rgba(59, 130, 246, 0.08); }
+  .kw-loc-error { color: #b91c1c; cursor: default; }
+  .kw-loc-error:hover { background: transparent; }
+
+  /* ══════════════════════════════════════════════════════════════
+     Weather widget
+     - Gradient background per scene (day/night aware via data-is-day).
+     - Soft radial halo via ::before to suggest sun/moon without an SVG
+       overlay that can collide with content.
+     - Hero icon does all the "what's the weather" lifting.
+     - Four responsive tiers (L / M / S / XS) drive what's shown.
+     ══════════════════════════════════════════════════════════════ */
+
+  .kakemono-widget-weather,
+  .kw-shell-light .kakemono-widget-weather {
+    color: #f8fafc;
+    padding: 0;
+    gap: 0;
+    /* Override the base widget's flex column so .kw-w-content's
+       height: 100% / flex: 1 resolves against a known box. */
+    display: block;
+    background: linear-gradient(165deg, #1d3a8a 0%, #0b1f4d 60%, #050d24 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Scene-tinted gradients (day variants) */
+  .kakemono-widget-weather[data-cond="clear_day"]   { background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%); }
+  .kakemono-widget-weather[data-cond="partly"]      { background: linear-gradient(165deg, #60a5fa 0%, #1e40af 70%, #0b1e4a 100%); }
+  .kakemono-widget-weather[data-cond="cloudy"]      { background: linear-gradient(165deg, #64748b 0%, #334155 60%, #0f172a 100%); }
+  .kakemono-widget-weather[data-cond="fog"]         { background: linear-gradient(165deg, #94a3b8 0%, #475569 60%, #1e293b 100%); }
+  .kakemono-widget-weather[data-cond="drizzle"]     { background: linear-gradient(165deg, #3b82f6 0%, #1e3a8a 60%, #0b1d4a 100%); }
+  .kakemono-widget-weather[data-cond="rain"]        { background: linear-gradient(165deg, #475569 0%, #1e3a8a 60%, #0c1d3f 100%); }
+  .kakemono-widget-weather[data-cond="showers"]     { background: linear-gradient(165deg, #38bdf8 0%, #1e3a8a 65%, #0c1d3f 100%); }
+  .kakemono-widget-weather[data-cond="snow"]        { background: linear-gradient(165deg, #cbd5e1 0%, #64748b 55%, #1e293b 100%); }
+  .kakemono-widget-weather[data-cond="thunder"]     { background: linear-gradient(165deg, #334155 0%, #1e1b4b 55%, #020617 100%); }
+  /* Night variants */
+  .kakemono-widget-weather[data-is-day="0"]         { background: linear-gradient(165deg, #1e293b 0%, #0f172a 60%, #020617 100%); }
+  .kakemono-widget-weather[data-cond="clear_night"] { background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%); }
+
+  /* Soft halo (sun/moon glow) — no shape edges to overlap content */
+  .kakemono-widget-weather::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle, rgba(253, 230, 138, 0.85) 0%, rgba(253, 230, 138, 0) 65%);
+  }
+  .kakemono-widget-weather[data-cond="clear_night"]::before,
+  .kakemono-widget-weather[data-is-day="0"]::before {
+    background: radial-gradient(circle, rgba(226, 232, 240, 0.55) 0%, rgba(226, 232, 240, 0) 65%);
+    opacity: 0.45;
+  }
+  .kakemono-widget-weather[data-cond="cloudy"]::before,
+  .kakemono-widget-weather[data-cond="fog"]::before,
+  .kakemono-widget-weather[data-cond="rain"]::before,
+  .kakemono-widget-weather[data-cond="drizzle"]::before,
+  .kakemono-widget-weather[data-cond="showers"]::before,
+  .kakemono-widget-weather[data-cond="snow"]::before,
+  .kakemono-widget-weather[data-cond="thunder"]::before {
+    background: radial-gradient(circle, rgba(248, 250, 252, 0.30) 0%, rgba(248, 250, 252, 0) 70%);
+    opacity: 0.5;
+  }
+
+  /* ── Foreground content ────────────────────────────────────── */
+  /* Grid layout with minmax(0, …) rows so the forecast strips claim
+     whatever height remains AND can shrink to fit. Combined with
+     overflow: hidden on the container they clip cleanly instead of
+     overflowing the widget. */
+  .kw-w-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: clamp(20px, 4cqw, 44px);
+    display: grid;
+    grid-template-rows:
+      auto                /* header */
+      auto                /* hero   */
+      auto                /* chips  */
+      minmax(0, 1fr)      /* hourly */
+      minmax(0, 1.2fr);   /* daily  */
+    row-gap: clamp(10px, 2cqh, 22px);
+    overflow: hidden;
+    min-height: 0;
+    min-block-size: 0;
+  }
+
+  /* Header: "Location · Mon, May 22" on a single line, centered */
+  .kw-w-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+  .kw-w-loc {
+    font-size: clamp(0.9rem, 3.4cqw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
+  }
+  .kw-w-sep {
+    font-size: clamp(0.85rem, 2.4cqw, 1.1rem);
+    opacity: 0.55;
+  }
+  .kw-w-day {
+    font-size: clamp(0.7rem, 2.2cqw, 1rem);
+    font-weight: 500;
+    opacity: 0.75;
+    letter-spacing: 0.04em;
+  }
+
+  /* Hero: icon + temp/cond/hi-lo, centered horizontally as a group */
+  .kw-w-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 4cqw, 36px);
+    margin-block: clamp(4px, 1cqh, 12px);
+  }
+  .kw-w-hero-icon {
+    flex-shrink: 0;
+    /* Cap by both container width and height so the icon never eats the
+       row budget on short widgets. */
+    width: min(clamp(56px, 22cqw, 200px), 32cqh);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+  .kw-w-hero-icon .kw-w-icon {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 22px rgba(0, 0, 0, 0.35));
+  }
+  .kw-w-hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 0.6cqh, 6px);
+    min-width: 0;
+  }
+  .kw-w-temp {
+    font-size: clamp(2.4rem, min(20cqw, 26cqh), 8rem);
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.30);
+  }
+  .kw-w-cond {
+    font-size: clamp(0.95rem, 3.4cqw, 1.5rem);
+    font-weight: 600;
+    opacity: 0.95;
+  }
+  .kw-w-hilo {
+    display: flex;
+    gap: clamp(8px, 1.6cqw, 14px);
+    font-size: clamp(0.8rem, 2.2cqw, 1.05rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-w-hi { color: #fde68a; }
+  .kw-w-lo { color: #bae6fd; }
+  .kw-w-feels {
+    font-size: clamp(0.7rem, 2cqw, 0.95rem);
+    opacity: 0.65;
+  }
+
+  /* Lucide-style stroke icons — fill: none by default, color drives stroke
+     and any explicit fill="currentColor" in the SVG (e.g. sun/moon centres). */
+  .kw-w-icon {
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: #f1f5f9;
+  }
+
+  /* Per-scene tint, applied to the SVG via inherited `color`. */
+  .kakemono-widget-weather[data-cond="clear_day"]   .kw-w-icon { color: #fde68a; }
+  .kakemono-widget-weather[data-cond="clear_night"] .kw-w-icon { color: #e2e8f0; }
+  .kakemono-widget-weather[data-cond="partly"]      .kw-w-icon { color: #fde68a; }
+  .kakemono-widget-weather[data-cond="cloudy"]      .kw-w-icon { color: #f1f5f9; }
+  .kakemono-widget-weather[data-cond="fog"]         .kw-w-icon { color: #cbd5e1; }
+  .kakemono-widget-weather[data-cond="drizzle"]     .kw-w-icon { color: #bae6fd; }
+  .kakemono-widget-weather[data-cond="rain"]        .kw-w-icon { color: #bae6fd; }
+  .kakemono-widget-weather[data-cond="showers"]     .kw-w-icon { color: #bae6fd; }
+  .kakemono-widget-weather[data-cond="snow"]        .kw-w-icon { color: #f8fafc; }
+  .kakemono-widget-weather[data-cond="thunder"]     .kw-w-icon { color: #fde047; }
+
+  /* Per-scene icon tinting also for forecast cells (use data-scene on the SVG). */
+  .kw-w-icon[data-scene="clear_day"]   { color: #fde68a; }
+  .kw-w-icon[data-scene="clear_night"] { color: #e2e8f0; }
+  .kw-w-icon[data-scene="partly"]      { color: #fde68a; }
+  .kw-w-icon[data-scene="cloudy"]      { color: #f1f5f9; }
+  .kw-w-icon[data-scene="fog"]         { color: #cbd5e1; }
+  .kw-w-icon[data-scene="drizzle"]     { color: #bae6fd; }
+  .kw-w-icon[data-scene="rain"]        { color: #bae6fd; }
+  .kw-w-icon[data-scene="showers"]     { color: #bae6fd; }
+  .kw-w-icon[data-scene="snow"]        { color: #f8fafc; }
+  .kw-w-icon[data-scene="thunder"]     { color: #fde047; }
+
+  /* Chip row (humidity / wind / sun window), centered */
+  .kw-w-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(6px, 1.2cqw, 12px);
+  }
+  .kw-w-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: clamp(4px, 0.8cqh, 8px) clamp(10px, 1.4cqw, 14px);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    font-size: clamp(0.75rem, 2cqw, 0.95rem);
+    font-weight: 600;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-w-chip-icon { font-size: 0.95em; opacity: 0.9; }
+
+  /* Hourly strip (next 12 hours) — direct child grid, no inner wrapper.
+     Cells size to their allotted row height so they never overflow. */
+  .kw-w-hourly {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: clamp(4px, 1cqw, 12px);
+    min-height: 0;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+  .kw-w-hourly-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2px, 0.4cqh, 5px);
+    min-width: 0;
+    min-height: 0;
+    min-block-size: 0;
+    text-align: center;
+    overflow: hidden;
+  }
+  .kw-w-hourly-time {
+    font-size: clamp(0.65rem, min(1.4cqw, 2cqh), 0.85rem);
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-w-hourly-icon {
+    height: clamp(18px, min(4cqw, 6cqh), 38px);
+    width: auto;
+    aspect-ratio: 1;
+  }
+  .kw-w-hourly-icon .kw-w-icon { width: 100%; height: 100%; }
+  .kw-w-hourly-temp {
+    font-size: clamp(0.78rem, min(2cqw, 2.4cqh), 1.05rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Daily strip (next N days) with range bar — elastic rows */
+  .kw-w-daily {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: clamp(2px, 0.4cqh, 5px);
+    min-height: 0;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+  .kw-w-daily-row {
+    display: grid;
+    grid-template-columns:
+      clamp(36px, 7cqw, 56px)
+      clamp(24px, 4.5cqw, 36px)
+      clamp(32px, 5.5cqw, 48px)
+      1fr
+      clamp(32px, 5.5cqw, 48px);
+    align-items: center;
+    gap: clamp(8px, 1.6cqw, 14px);
+    padding-block: clamp(1px, 0.4cqh, 4px);
+    min-height: 0;
+    min-block-size: 0;
+    overflow: hidden;
+  }
+  .kw-w-daily-day {
+    font-size: clamp(0.78rem, min(2cqw, 2.6cqh), 1rem);
+    font-weight: 600;
+  }
+  .kw-w-daily-icon {
+    height: clamp(20px, min(4cqw, 6cqh), 36px);
+    width: auto;
+    aspect-ratio: 1;
+  }
+  .kw-w-daily-icon .kw-w-icon { width: 100%; height: 100%; }
+  .kw-w-daily-lo {
+    font-size: clamp(0.75rem, min(2cqw, 2.4cqh), 0.95rem);
+    opacity: 0.65;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-w-daily-hi {
+    font-size: clamp(0.78rem, min(2cqw, 2.6cqh), 1rem);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .kw-w-daily-bar {
+    position: relative;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.10);
+  }
+  .kw-w-daily-bar-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #60a5fa 0%, #fbbf24 100%);
+  }
+
+  /* ─── Responsive tiers (largest → smallest, cascading) ──── */
+
+  /* Drop hourly strip when there's not enough width OR vertical room
+     to render it without crowding the daily strip. */
+  @container widget (max-width: 480px),
+             widget (max-height: 480px) {
+    .kw-w-hourly { display: none; }
+    .kw-w-content { grid-template-rows: auto auto auto minmax(0, 1fr); }
+  }
+
+  /* Drop the daily strip too on shorter cells. */
+  @container widget (max-height: 340px) {
+    .kw-w-daily { display: none; }
+    .kw-w-content { grid-template-rows: auto auto auto; }
+  }
+
+  /* S: drop chips and date. Hero stays. */
+  @container widget (max-width: 320px), widget (max-height: 220px) {
+    .kw-w-chips { display: none; }
+    .kw-w-sep,
+    .kw-w-day,
+    .kw-w-feels { display: none; }
+    .kw-w-content {
+      padding: clamp(14px, 3cqw, 24px);
+      grid-template-rows: auto auto;
+      row-gap: clamp(6px, 1.2cqh, 12px);
+    }
+    .kw-w-hero-icon { width: clamp(56px, 28cqw, 120px); }
+    .kw-w-temp { font-size: clamp(2.4rem, 22cqw, 5rem); }
+  }
+
+  /* XS: compact icon + temp + condition row */
+  @container widget (max-width: 200px), widget (max-height: 140px) {
+    .kw-w-content {
+      padding: clamp(10px, 3cqw, 18px);
+      grid-template-rows: 1fr;
+      row-gap: 0;
+    }
+    .kw-w-header,
+    .kw-w-hilo { display: none; }
+    .kw-w-hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-block: 0;
+      height: 100%;
+    }
+    .kw-w-hero-icon { width: clamp(36px, 40cqh, 64px); }
+    .kw-w-hero-text { gap: 2px; }
+    .kw-w-temp { font-size: clamp(1.4rem, 30cqw, 2.4rem); }
+    .kw-w-cond { font-size: clamp(0.6rem, 5cqw, 0.85rem); }
+  }
+
+}

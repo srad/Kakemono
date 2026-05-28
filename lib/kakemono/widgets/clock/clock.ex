@@ -1,6 +1,5 @@
 defmodule Kakemono.Widgets.Clock do
-  @behaviour Kakemono.Widget
-  use Phoenix.Component
+  use Kakemono.Widget
 
   @styles ~w(celestial lunar minimal)
 
@@ -11,31 +10,10 @@ defmodule Kakemono.Widgets.Clock do
   def name, do: "Clock"
 
   @impl true
-  def config_schema do
-    %{
-      "type" => "object",
-      "properties" => %{
-        "title" => %{"type" => "string"},
-        "style" => %{"type" => "string", "enum" => @styles},
-        "format" => %{"type" => "string", "enum" => ["24h", "12h"]},
-        "show_seconds" => %{"type" => "boolean"},
-        "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()}
-      },
-      "additionalProperties" => false
-    }
-  end
+  def icon, do: "🕐"
 
   @impl true
-  def default_config do
-    %{
-      "style" => "celestial",
-      "format" => "24h",
-      "show_seconds" => false
-    }
-  end
-
-  @impl true
-  def config_fields do
+  def fields do
     [
       %{
         key: "title",
@@ -50,6 +28,7 @@ defmodule Kakemono.Widgets.Clock do
         label: "Style",
         type: :select,
         required: false,
+        default: "celestial",
         options: [
           {"celestial", "Celestial"},
           {"lunar", "Lunar"},
@@ -61,6 +40,7 @@ defmodule Kakemono.Widgets.Clock do
         label: "Timezone",
         type: :timezone_search,
         required: true,
+        schema_optional: true,
         placeholder: "Europe/Berlin",
         options: Kakemono.TimeZones.list()
       },
@@ -69,9 +49,16 @@ defmodule Kakemono.Widgets.Clock do
         label: "Format",
         type: :select,
         required: false,
+        default: "24h",
         options: [{"24h", "24h"}, {"12h", "12h"}]
       },
-      %{key: "show_seconds", label: "Show seconds", type: :checkbox, required: false}
+      %{
+        key: "show_seconds",
+        label: "Show seconds",
+        type: :checkbox,
+        required: false,
+        default: false
+      }
     ]
   end
 

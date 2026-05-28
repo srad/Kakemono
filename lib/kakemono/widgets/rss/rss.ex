@@ -1,6 +1,7 @@
 defmodule Kakemono.Widgets.Rss do
-  @behaviour Kakemono.Widget
-  use Phoenix.Component
+  use Kakemono.Widget
+
+  alias Kakemono.Widgets.{FetchWorker, Instance}
 
   @impl true
   def type, do: "rss"
@@ -9,48 +10,22 @@ defmodule Kakemono.Widgets.Rss do
   def name, do: "Feed"
 
   @impl true
-  def config_schema do
-    %{
-      "type" => "object",
-      "required" => ["url"],
-      "properties" => %{
-        "url" => %{"type" => "string", "minLength" => 1},
-        "title" => %{"type" => "string"},
-        "max_items" => %{"type" => "integer", "minimum" => 1, "maximum" => 20},
-        "cached_items" => %{"type" => "array"},
-        "feed_title" => %{"type" => "string"},
-        "fetched_at" => %{"type" => "string"}
-      },
-      "additionalProperties" => false
-    }
+  def icon, do: "📰"
+
+  @impl true
+  def cache_fields do
+    [{"cached_items", "array"}, {"feed_title", "string"}, {"fetched_at", "string"}]
   end
 
   @impl true
-  def default_config, do: %{"max_items" => 5}
-
-  @impl true
-  def prefetch(%Kakemono.Widgets.Instance{id: id, config: cfg}) do
-    url = cfg["url"]
-    items = cfg["cached_items"]
-    needs_fetch = is_nil(items) or items == [] or is_nil(cfg["fetched_at"])
-
-    if is_binary(url) and url != "" and needs_fetch do
-      %{instance_id: id}
-      |> Kakemono.Widgets.RssFetchWorker.new()
-      |> Oban.insert!()
-    end
-
-    :ok
-  end
-
-  @impl true
-  def config_fields do
+  def fields do
     [
       %{
         key: "url",
         label: "Feed URL",
         type: :text,
         required: true,
+        min_length: 1,
         placeholder: "https://feeds.example.com/rss"
       },
       %{
@@ -69,9 +44,68 @@ defmodule Kakemono.Widgets.Rss do
         min: 1,
         max: 20,
         step: "1",
+        default: 5,
         placeholder: "5"
       }
     ]
+  end
+
+  @impl true
+  def prefetch(%Instance{id: id, config: cfg}) do
+    url = cfg["url"]
+    needs_fetch = empty_items?(cfg["cached_items"]) or is_nil(cfg["fetched_at"])
+    if is_binary(url) and url != "" and needs_fetch, do: enqueue_fetch(id)
+    :ok
+  end
+
+  @impl true
+  def on_config_change(%Instance{id: id, config: %{"url" => url}}, old_config)
+      when is_binary(url) and url != "" do
+    if old_config["url"] != url, do: enqueue_fetch(id)
+    :ok
+  end
+
+  def on_config_change(_instance, _old_config), do: :ok
+
+  @impl true
+  def fetch(%Instance{config: cfg}) do
+    with {:ok, body} <- http_get(cfg["url"]) do
+      {feed_title, items} = parse_feed(body)
+      max = cfg["max_items"] || 5
+
+      {:ok,
+       %{
+         "cached_items" => Enum.take(items, max),
+         "feed_title" => feed_title,
+         "fetched_at" => NaiveDateTime.local_now() |> NaiveDateTime.to_iso8601()
+       }}
+    end
+  end
+
+  defp empty_items?(nil), do: true
+  defp empty_items?([]), do: true
+  defp empty_items?(_), do: false
+
+  defp enqueue_fetch(id) do
+    %{instance_id: id} |> FetchWorker.new() |> Oban.insert!()
+  end
+
+  defp http_get(url) do
+    opts = Application.get_env(:kakemono, :req_options, [])
+
+    case Req.get(url, opts) do
+      {:ok, %Req.Response{status: 200, body: body}} when is_binary(body) ->
+        {:ok, body}
+
+      {:ok, %Req.Response{status: 200, body: body}} when is_map(body) ->
+        {:error, {:unexpected_content_type, body}}
+
+      {:ok, %Req.Response{status: status}} ->
+        {:error, {:http_status, status}}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @doc "Parse RSS or Atom XML bytes into a list of item maps."

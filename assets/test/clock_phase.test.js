@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { moonPhase, sunPosition, moonPosition, timeOfDay } from "../js/hooks/clock_tick.js"
+import { moonPhase, sunPosition, moonPosition, timeOfDay } from "../../lib/kakemono/widgets/clock/clock_tick.js"
 
 describe("moonPhase", () => {
   it("returns ~0 at the new moon epoch", () => {

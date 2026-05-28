@@ -1,0 +1,91 @@
+@layer components {
+  /* ═══════════════════════════════════════════════════════════
+     Display-side widget rendering  (/d/<id>)
+     Subtle-rounded frosted cards, Apple/iOS-style interiors.
+     ═══════════════════════════════════════════════════════════ */
+
+  /* ── Wallpaper (scene shell) ───────────────────────────────── */
+
+  .kw-shell-dark  { background: linear-gradient(160deg, #1a2030 0%, #0e1320 100%); }
+  .kw-shell-light { background: linear-gradient(160deg, #e2e8f0 0%, #cbd5e1 100%); }
+
+  .kw-board {
+    padding: clamp(12px, 1.6vmin, 22px);
+    gap: clamp(10px, 1.4vmin, 20px);
+    background: transparent;
+    color: inherit;
+  }
+
+  /* ── Widget card (subtle rounding) ─────────────────────────── */
+
+  .kw-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    background: rgba(24, 28, 40, 0.65);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(51, 65, 85, 0.55);
+    /* !important to beat the global `* { border-color: var(--border) }` rule,
+       which resolves to a near-white value outside the `.dark` class scope. */
+    border-color: rgba(51, 65, 85, 0.55) !important;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.50);
+  }
+
+  .kw-shell-light .kw-card {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(15, 23, 42, 0.08) !important;
+    box-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.22);
+  }
+
+  .kw-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .kw-card-fullscreen {
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* Widgets that paint their own gradient (weather, clock, air_quality) — let the
+     painted background bleed to the card edge by suppressing the
+     translucent card surface. */
+  .kw-card-weather,
+  .kw-card-clock,
+  .kw-card-air_quality {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* ── Widget body base ──────────────────────────────────────── */
+
+  .kakemono-widget {
+    container-type: size;
+    container-name: widget;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: clamp(20px, 4cqw, 40px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: clamp(8px, 1.6cqh, 16px);
+    color: rgba(255, 255, 255, 0.95);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+      "Segoe UI", system-ui, sans-serif;
+  }
+  .kw-shell-light .kakemono-widget { color: rgba(15, 23, 42, 0.95); }
+
+  @container widget (max-width: 180px), widget (max-height: 140px) {
+    .kakemono-widget { padding: clamp(12px, 3cqw, 20px); }
+  }
+}

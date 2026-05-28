@@ -1,9 +1,9 @@
 defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
   use Kakemono.DataCase, async: false
-  use Oban.Testing, repo: Kakemono.Repo
+  use Oban.Testing, repo: Kakemono.Repo, engine: Oban.Engines.Lite, notifier: Oban.Notifiers.PG
 
   alias Kakemono.Widgets
-  alias Kakemono.Widgets.{Instagram, InstagramFetchWorker, InstagramScheduler}
+  alias Kakemono.Widgets.{FetchWorker, Instagram, RefreshScheduler}
   import Kakemono.Fixtures
 
   @sample_profile Jason.encode!(%{
@@ -102,7 +102,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         Plug.Conn.send_resp(conn, 200, @sample_profile)
       end)
 
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert length(updated.config["cached_items"]) == 3
@@ -125,7 +125,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         Plug.Conn.send_resp(conn, 200, @sample_graph)
       end)
 
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert [%{"src" => "https://cdn.example.com/g1.jpg"}] = updated.config["cached_items"]
@@ -139,7 +139,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         Plug.Conn.send_resp(conn, 200, @sample_profile)
       end)
 
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert length(updated.config["cached_items"]) == 2
@@ -153,7 +153,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
       end)
 
       Phoenix.PubSub.subscribe(Kakemono.PubSub, "widgets")
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
       iid = inst.id
       assert_receive {:widget_config_updated, %{instance_id: ^iid}}, 500
     end
@@ -165,7 +165,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         Plug.Conn.send_resp(conn, 429, "rate limited")
       end)
 
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert updated.config["last_error"] == "HTTP 429"
@@ -185,22 +185,39 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
       end)
 
       assert {:error, {:http_status, 503}} =
-               perform_job(InstagramFetchWorker, %{"instance_id" => inst.id})
+               perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert updated.config["last_error"] == "HTTP 503"
       refute Map.has_key?(updated.config, "next_fetch_at")
     end
 
-    test "returns error for non-instagram instance", %{scene: scene} do
+    test "no-op for a non-fetching widget instance", %{scene: scene} do
       {:ok, clock} = Widgets.create_instance("clock", scene.id, %{})
 
-      assert {:error, {:wrong_type, "clock"}} =
-               perform_job(InstagramFetchWorker, %{"instance_id" => clock.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => clock.id})
     end
 
     test "no-op for missing instance" do
-      assert :ok = perform_job(InstagramFetchWorker, %{"instance_id" => 99_999})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => 99_999})
+    end
+
+    test "is a no-op while a rate-limit backoff is active", %{scene: scene} do
+      next_fetch_at =
+        DateTime.utc_now() |> DateTime.add(3600, :second) |> DateTime.to_iso8601()
+
+      {:ok, inst} =
+        Widgets.create_instance("instagram", scene.id, %{
+          "username" => "nasa",
+          "next_fetch_at" => next_fetch_at
+        })
+
+      # No Req stub: if it attempted a fetch it would error; instead it skips.
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
+
+      updated = Widgets.get_instance(inst.id)
+      refute Map.has_key?(updated.config, "cached_items")
+      refute Map.has_key?(updated.config, "last_error")
     end
   end
 
@@ -210,7 +227,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         Widgets.create_instance("instagram", scene.id, %{"username" => "nasa"})
 
       assert :ok = Kakemono.Widgets.Instagram.prefetch(inst)
-      assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: inst.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
 
     test "skips when items are already cached", %{scene: scene} do
@@ -221,7 +238,7 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         })
 
       assert :ok = Kakemono.Widgets.Instagram.prefetch(inst)
-      refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: inst.id})
+      refute_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
 
     test "skips while rate-limit backoff is active", %{scene: scene} do
@@ -237,40 +254,20 @@ defmodule Kakemono.Widgets.InstagramFetchWorkerTest do
         })
 
       assert :ok = Kakemono.Widgets.Instagram.prefetch(inst)
-      refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: inst.id})
+      refute_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
   end
 
   describe "scheduler" do
-    test "enqueues one InstagramFetchWorker per instagram instance", %{scene: scene} do
+    test "enqueues one FetchWorker per instagram instance", %{scene: scene} do
       {:ok, a} = Widgets.create_instance("instagram", scene.id, %{"username" => "a"})
       {:ok, b} = Widgets.create_instance("instagram", scene.id, %{"username" => "b"})
       {:ok, _c} = Widgets.create_instance("clock", scene.id, %{})
 
-      assert {:ok, 2} = perform_job(InstagramScheduler, %{})
+      assert {:ok, 2} = perform_job(RefreshScheduler, %{"types" => ["instagram"]})
 
-      assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: a.id})
-      assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: b.id})
-    end
-
-    test "skips instances with active backoff", %{scene: scene} do
-      next_fetch_at =
-        DateTime.utc_now()
-        |> DateTime.add(3600, :second)
-        |> DateTime.to_iso8601()
-
-      {:ok, due} = Widgets.create_instance("instagram", scene.id, %{"username" => "due"})
-
-      {:ok, skipped} =
-        Widgets.create_instance("instagram", scene.id, %{
-          "username" => "skip",
-          "next_fetch_at" => next_fetch_at
-        })
-
-      assert {:ok, 1} = perform_job(InstagramScheduler, %{})
-
-      assert_enqueued(worker: InstagramFetchWorker, args: %{instance_id: due.id})
-      refute_enqueued(worker: InstagramFetchWorker, args: %{instance_id: skipped.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: a.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: b.id})
     end
   end
 end

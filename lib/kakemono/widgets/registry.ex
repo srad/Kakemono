@@ -1,19 +1,28 @@
 defmodule Kakemono.Widgets.Registry do
   @moduledoc """
-  Compile-time list of widget modules. Adding a new widget is two edits:
-  implement `Kakemono.Widget` in a new module, then append it here.
+  Discovers widget modules at runtime — any module that `use Kakemono.Widget`
+  (and therefore exports the `__widget__/0` marker) is a widget. Adding a widget
+  is just creating the module; there is no list to maintain here.
   """
 
-  alias Kakemono.Widgets.{AirQuality, Clock, Instagram, Rss, Slideshow, Weather}
+  @doc "All widget modules, sorted by display name."
+  def all do
+    {:ok, mods} = :application.get_key(:kakemono, :modules)
 
-  @widgets [AirQuality, Clock, Instagram, Rss, Slideshow, Weather]
+    mods
+    |> Enum.filter(&widget?/1)
+    |> Enum.sort_by(& &1.name())
+  end
 
-  def all, do: @widgets
-
-  def types, do: Enum.map(@widgets, & &1.type())
-
-  @doc "Return the widget module for a given type string, or nil."
+  @doc "The widget module for a given type string, or nil."
   def fetch(type) when is_binary(type) do
-    Enum.find(@widgets, fn mod -> mod.type() == type end)
+    Enum.find(all(), fn mod -> mod.type() == type end)
+  end
+
+  @doc "All widget type strings."
+  def types, do: Enum.map(all(), & &1.type())
+
+  defp widget?(mod) do
+    Code.ensure_loaded?(mod) and function_exported?(mod, :__widget__, 0)
   end
 end

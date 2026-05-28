@@ -1,0 +1,613 @@
+@layer components {
+  /* ══════════════════════════════════════════════════════════════
+     Clock widget — three motif styles built around Lucide-style SVG
+     suns and moons, blurred halos, and 165deg gradient skies that
+     match the weather widget's visual language.
+     CSS custom properties from the ClockTick hook:
+       --sun-x/-y/-visible (0..1)   sun position + presence
+       --moon-x/-y/-visible (0..1)  moon position + presence
+       --phase (0..1)               lunar phase, 0 = new, 0.5 = full
+       --lit-side (0|1)             1 = waxing, 0 = waning
+       --in-crescent (0|1)          1 = crescent half of cycle
+       --terminator-scale (0..1)    width of terminator ellipse
+       --hour-frac (0..1)           hour of day / 24
+       --progress (0..1)            seconds-of-minute
+     ══════════════════════════════════════════════════════════════ */
+
+  .kakemono-widget-clock {
+    --clock-fg: #f8fafc;
+    --clock-muted: rgba(248, 250, 252, 0.78);
+    --clock-accent: #fde68a;
+    --clock-line: rgba(248, 250, 252, 0.18);
+    --moon-lit-color: #e2e8f0;
+    --moon-shadow-color: #0c1330;
+    --halo-color: rgba(253, 230, 138, 0.85);
+    --sun-x: 0.5;
+    --sun-y: 0;
+    --sun-visible: 0;
+    --moon-x: 0.5;
+    --moon-y: 0;
+    --moon-visible: 0;
+    --phase: 0;
+    --lit-side: 1;
+    --phase-distance: 1;
+    --in-crescent: 1;
+    --terminator-scale: 0;
+    --hour-frac: 0;
+    --progress: 0;
+    isolation: isolate;
+    justify-content: stretch;
+    align-items: stretch;
+    text-align: left;
+    padding: 0;
+    color: var(--clock-fg);
+    background: linear-gradient(165deg, #1d3a8a 0%, #0b1f4d 60%, #050d24 100%);
+  }
+
+  /* Scene wrapper for celestial + lunar styles */
+  .kw-clock-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .kw-clock-sky {
+    position: absolute;
+    inset: 0;
+    transition: background 12s ease;
+  }
+
+  .kw-clock-horizon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 26%;
+    background: linear-gradient(180deg, transparent 0%, rgba(2, 6, 23, 0.42) 100%);
+  }
+
+  /* ── Time + date typography — borrowed from .kw-w-temp/.kw-w-chip ── */
+
+  .kw-clock-time {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-fg);
+    font-size: clamp(2.4rem, min(28cqw, 56cqh), 15rem);
+    font-weight: 200;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+    text-overflow: clip;
+    white-space: nowrap;
+    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.30);
+  }
+  .kw-clock-time[data-show-seconds="true"] {
+    font-size: clamp(2rem, min(21cqw, 49cqh), 11rem);
+  }
+
+  .kw-clock-main {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(5px, 1.1cqh, 12px);
+  }
+
+  .kw-clock-title {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-muted);
+    font-size: clamp(0.78rem, min(3cqw, 3.5cqh), 1.35rem);
+    font-weight: 800;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  }
+
+  .kw-clock-date,
+  .kw-clock-date-pill {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-fg);
+    font-size: clamp(0.78rem, min(2.6cqw, 3.4cqh), 1.1rem);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .kw-clock-date {
+    padding: clamp(6px, 1.1cqh, 10px) clamp(11px, 2.4cqw, 18px);
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* ── Halo — blurred radial gradient, same pattern as
+        .kakemono-widget-weather::before (app.css ~1405) ── */
+
+  .kw-clock-halo {
+    position: absolute;
+    inset: -40%;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.85;
+    pointer-events: none;
+    background: radial-gradient(circle, var(--halo-color) 0%, rgba(253, 230, 138, 0) 65%);
+    transition: opacity 1.6s ease, background 2s ease;
+    will-change: transform, opacity;
+  }
+  .kw-clock-halo-moon {
+    background: radial-gradient(circle, rgba(226, 232, 240, 0.55) 0%, rgba(226, 232, 240, 0) 65%);
+    opacity: 0.55;
+  }
+
+  /* ── Lucide-style SVG icon conventions (mirrors .kw-w-icon) ── */
+
+  .kw-clock-sun {
+    width: 100%;
+    height: 100%;
+    color: #fde68a;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 4.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+    filter: drop-shadow(0 6px 22px rgba(253, 191, 36, 0.45));
+  }
+  .kw-clock-sun .kw-sun-rays {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kw-sun-spin 110s linear infinite;
+  }
+  .kw-clock-sun .kw-sun-rays-short {
+    animation: kw-sun-spin-rev 90s linear infinite;
+    stroke-width: 3.5;
+    stroke: #fbbf24;
+  }
+  .kw-clock-sun .kw-sun-glow {
+    fill: currentColor;
+    fill-opacity: 0.20;
+    stroke: none;
+  }
+  .kw-clock-sun .kw-sun-core {
+    fill: currentColor;
+    stroke: none;
+  }
+  .kw-clock-sun .kw-sun-spec {
+    fill: #fffbeb;
+    fill-opacity: 0.55;
+    stroke: none;
+  }
+
+  @keyframes kw-sun-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes kw-sun-spin-rev {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+
+  .kw-clock-moon {
+    width: 100%;
+    height: 100%;
+    color: var(--moon-lit-color);
+    overflow: visible;
+    filter: drop-shadow(0 6px 22px rgba(15, 23, 42, 0.45));
+  }
+  .kw-clock-moon .kw-moon-body {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scaleX(calc(var(--lit-side, 1) * 2 - 1));
+  }
+  .kw-clock-moon .kw-moon-lit {
+    fill: currentColor;
+    stroke: none;
+  }
+  .kw-clock-moon .kw-moon-craters circle {
+    fill: rgba(15, 23, 42, 0.22);
+    stroke: none;
+  }
+  .kw-clock-moon .kw-moon-shadow {
+    fill: var(--moon-shadow-color);
+    stroke: none;
+  }
+  .kw-clock-moon .kw-moon-terminator {
+    fill: color-mix(
+      in srgb,
+      var(--moon-shadow-color) calc(var(--in-crescent, 1) * 100%),
+      var(--moon-lit-color)
+    );
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scaleX(var(--terminator-scale, 0));
+  }
+  .kw-clock-moon .kw-moon-rim {
+    fill: none;
+    stroke: rgba(15, 23, 42, 0.18);
+    stroke-width: 1.5;
+  }
+
+  /* ── Star field ──────────────────────────────────────────────── */
+
+  .kw-clock-stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 4s ease;
+    pointer-events: none;
+  }
+  .kw-clock-star {
+    fill: #f8fafc;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: kw-clock-twinkle 4.2s ease-in-out infinite alternate;
+  }
+  @keyframes kw-clock-twinkle {
+    0%   { opacity: 0.3; transform: scale(0.8); }
+    100% { opacity: 1.0; transform: scale(1.15); }
+  }
+
+  /* ── Clouds (JS-animated) ─────────────────────────────────────── */
+
+  .kw-clock-clouds {
+    position: absolute;
+    inset: 0;
+    opacity: 1;
+    transition: opacity 4s ease;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .kw-cloud-dynamic svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     Style 1 · Celestial — full sky with arc-tracked sun & moon
+     ════════════════════════════════════════════════════════════════ */
+
+  .kw-clock-style-celestial {
+    background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%);
+  }
+  .kw-clock-style-celestial[data-tod="dawn"] .kw-clock-sky {
+    background: linear-gradient(165deg, #f59e0b 0%, #7c3aed 55%, #1e1b4b 100%);
+  }
+  .kw-clock-style-celestial[data-tod="day"] .kw-clock-sky {
+    background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%);
+  }
+  .kw-clock-style-celestial[data-tod="dusk"] .kw-clock-sky {
+    background: linear-gradient(165deg, #fb7185 0%, #4f46e5 55%, #0c1330 100%);
+  }
+  .kw-clock-style-celestial[data-tod="night"] .kw-clock-sky {
+    background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%);
+  }
+
+  .kw-clock-style-celestial[data-tod="night"] .kw-clock-stars,
+  .kw-clock-style-celestial[data-tod="dusk"] .kw-clock-stars { opacity: 0.95; }
+  .kw-clock-style-celestial[data-tod="night"] .kw-clock-clouds,
+  .kw-clock-style-celestial[data-tod="dusk"] .kw-clock-clouds { opacity: 0.18; }
+
+  .kw-clock-sun-wrap,
+  .kw-clock-moon-wrap {
+    position: absolute;
+    width: min(28cqw, 34cqh, 220px);
+    aspect-ratio: 1;
+    z-index: 2;
+    will-change: transform, opacity;
+  }
+  .kw-clock-sun-wrap {
+    left: calc(var(--sun-x) * 100% - min(14cqw, 17cqh, 110px));
+    bottom: calc(28% + var(--sun-y) * 50%);
+    opacity: var(--sun-visible, 0);
+    transition: opacity 2s ease;
+  }
+  .kw-clock-moon-wrap {
+    left: calc(var(--moon-x) * 100% - min(12cqw, 15cqh, 90px));
+    bottom: calc(28% + var(--moon-y) * 50%);
+    width: min(22cqw, 28cqh, 170px);
+    opacity: var(--moon-visible, 0);
+    transition: opacity 2s ease;
+  }
+
+  /* Halo behind the body — pulses gently */
+  .kw-clock-halo-sun,
+  .kw-clock-halo-moon {
+    animation: kw-clock-halo-pulse 9s ease-in-out infinite;
+  }
+  @keyframes kw-clock-halo-pulse {
+    0%, 100% { transform: scale(1);    opacity: var(--halo-opacity, 0.85); }
+    50%      { transform: scale(1.08); opacity: calc(var(--halo-opacity, 0.85) * 1.1); }
+  }
+
+  /* The sun's halo flips to silver during dawn/dusk for a subtler vibe,
+     and the moon halo stays cool silver always. */
+  .kw-clock-style-celestial[data-tod="dawn"] {
+    --halo-color: rgba(251, 191, 36, 0.55);
+  }
+  .kw-clock-style-celestial[data-tod="day"] {
+    --halo-color: rgba(253, 230, 138, 0.85);
+  }
+  .kw-clock-style-celestial[data-tod="dusk"] {
+    --halo-color: rgba(251, 113, 133, 0.55);
+  }
+  .kw-clock-style-celestial[data-tod="night"] {
+    --halo-color: rgba(226, 232, 240, 0.45);
+  }
+
+  /* Text stack overlay */
+  .kw-clock-stack {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: clamp(20px, 4cqw, 44px);
+    gap: clamp(8px, 1.8cqh, 22px);
+  }
+  .kw-clock-stack-celestial {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .kw-clock-stack-celestial .kw-clock-time {
+    font-size: clamp(2.6rem, min(30cqw, 56cqh), 16rem);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     Style 2 · Lunar — one focal celestial body, time below
+     ════════════════════════════════════════════════════════════════ */
+
+  .kw-clock-style-lunar {
+    background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%);
+  }
+  .kw-clock-style-lunar[data-tod="dawn"] .kw-clock-sky {
+    background: linear-gradient(165deg, #f59e0b 0%, #7c3aed 55%, #1e1b4b 100%);
+  }
+  .kw-clock-style-lunar[data-tod="day"] .kw-clock-sky {
+    background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%);
+  }
+  .kw-clock-style-lunar[data-tod="dusk"] .kw-clock-sky {
+    background: linear-gradient(165deg, #fb7185 0%, #4f46e5 55%, #0c1330 100%);
+  }
+  .kw-clock-style-lunar[data-tod="night"] .kw-clock-sky {
+    background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%);
+  }
+  .kw-clock-style-lunar[data-tod="day"]   { --halo-color: rgba(253, 230, 138, 0.85); }
+  .kw-clock-style-lunar[data-tod="dawn"]  { --halo-color: rgba(251, 191, 36, 0.55); }
+  .kw-clock-style-lunar[data-tod="dusk"]  { --halo-color: rgba(251, 113, 133, 0.55); }
+  .kw-clock-style-lunar[data-tod="night"] { --halo-color: rgba(226, 232, 240, 0.45); }
+
+  .kw-clock-style-lunar[data-tod="night"] .kw-clock-stars,
+  .kw-clock-style-lunar[data-tod="dusk"] .kw-clock-stars { opacity: 0.9; }
+
+  .kw-clock-focal {
+    position: absolute;
+    left: 50%;
+    top: calc(34% + (1 - var(--hour-frac, 0.5)) * 4%);
+    transform: translate(-50%, -50%);
+    width: min(46cqmin, 360px);
+    aspect-ratio: 1;
+  }
+  .kw-clock-halo-focal {
+    position: absolute;
+    inset: -34%;
+    border-radius: 50%;
+    filter: blur(48px);
+    opacity: 0.85;
+    background: radial-gradient(circle, var(--halo-color) 0%, rgba(253, 230, 138, 0) 65%);
+    animation: kw-clock-halo-pulse 10s ease-in-out infinite;
+  }
+
+  /* During day, show the sun and hide the moon; vice versa at night.
+     At dawn/dusk show whichever is visible per --sun-visible / --moon-visible. */
+  .kw-clock-focal-sun,
+  .kw-clock-focal-moon {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    transition: opacity 1.8s ease;
+  }
+  .kw-clock-focal-sun  { opacity: var(--sun-visible, 0); }
+  .kw-clock-focal-moon { opacity: var(--moon-visible, 0); }
+
+  .kw-clock-stack-lunar {
+    align-items: center;
+    text-align: center;
+    justify-content: flex-end;
+  }
+  .kw-clock-stack-lunar .kw-clock-main,
+  .kw-clock-stack-lunar .kw-clock-title {
+    align-items: center;
+    text-align: center;
+  }
+  .kw-clock-stack-lunar .kw-clock-time {
+    font-size: clamp(2rem, min(22cqw, 30cqh), 9rem);
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     Style 3 · Minimal — typographic, theme-aware
+     ════════════════════════════════════════════════════════════════ */
+
+  .kw-clock-style-minimal {
+    --clock-fg: #0f172a;
+    --clock-muted: rgba(15, 23, 42, 0.66);
+    --clock-line: rgba(15, 23, 42, 0.10);
+    --clock-accent: #0f172a;
+    background: linear-gradient(160deg, #fafaf9 0%, #f5f5f4 100%);
+    color: var(--clock-fg);
+  }
+  .kw-shell-dark .kw-clock-style-minimal {
+    --clock-fg: #f1f5f9;
+    --clock-muted: rgba(241, 245, 249, 0.66);
+    --clock-line: rgba(241, 245, 249, 0.14);
+    --clock-accent: #f1f5f9;
+    background: linear-gradient(160deg, #0b1220 0%, #050912 100%);
+  }
+
+  .kw-clock-stack-minimal {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-template-rows: min-content minmax(0, 1fr) min-content;
+    align-items: center;
+    gap: clamp(8px, 2cqh, 24px);
+    padding: clamp(20px, 4cqw, 44px);
+  }
+  .kw-clock-stack-minimal .kw-clock-main {
+    width: 100%;
+    align-items: center;
+    justify-self: center;
+    text-align: center;
+  }
+  .kw-clock-stack-minimal .kw-clock-title {
+    color: var(--clock-muted);
+    font-size: clamp(0.76rem, min(2.4cqw, 3.2cqh), 1.1rem);
+    text-shadow: none;
+  }
+  .kw-clock-weekday {
+    align-self: start;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-muted);
+    font-size: clamp(0.78rem, min(2.6cqw, 4cqh), 1.2rem);
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .kw-clock-style-minimal .kw-clock-time {
+    align-self: center;
+    color: var(--clock-fg);
+    font-size: clamp(2.6rem, min(31cqw, 56cqh), 15rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-shadow: none;
+  }
+  .kw-clock-meta {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: clamp(10px, 3cqw, 24px);
+  }
+  .kw-clock-date-pill {
+    padding: clamp(6px, 1.1cqh, 10px) clamp(11px, 2.4cqw, 18px);
+    border-radius: 9999px;
+    background: var(--clock-line);
+    color: var(--clock-fg);
+  }
+  .kw-clock-progress {
+    position: relative;
+    height: clamp(4px, 0.8cqh, 7px);
+    min-width: 44px;
+    flex: 1 1 auto;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: var(--clock-line);
+  }
+  .kw-clock-progress::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--clock-fg);
+    border-radius: inherit;
+    transform: scaleX(var(--progress, 0));
+    transform-origin: left center;
+    transition: transform 0.25s linear;
+  }
+
+  /* Small SVG sun/moon badge in the corner — same SVG components as the
+     bigger styles, but scaled down and drifting subtly with the day. */
+  .kw-clock-badge {
+    position: absolute;
+    top: clamp(12px, 2cqh, 24px);
+    right: clamp(12px, 2cqw, 24px);
+    width: min(18cqmin, 80px);
+    aspect-ratio: 1;
+    z-index: 2;
+    transform: translateX(calc((var(--sun-x, 0.5) - 0.5) * -28%));
+    pointer-events: none;
+  }
+  .kw-clock-badge-sun,
+  .kw-clock-badge-moon {
+    position: absolute;
+    inset: 0;
+    transition: opacity 1.8s ease;
+  }
+  .kw-clock-badge-sun  { opacity: var(--sun-visible, 0); }
+  .kw-clock-badge-moon { opacity: var(--moon-visible, 0); }
+  .kw-clock-style-minimal .kw-clock-sun {
+    color: #f59e0b;
+    filter: drop-shadow(0 4px 14px rgba(245, 158, 11, 0.45));
+  }
+  .kw-clock-style-minimal .kw-clock-moon {
+    color: #64748b;
+    filter: drop-shadow(0 4px 14px rgba(15, 23, 42, 0.25));
+  }
+  .kw-shell-dark .kw-clock-style-minimal .kw-clock-moon {
+    color: #cbd5e1;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     Responsive tiers
+     ════════════════════════════════════════════════════════════════ */
+
+  @container widget (max-width: 320px), widget (max-height: 220px) {
+    .kw-clock-cloud-c { display: none; }
+    .kw-sun-rays-short { display: none; }
+    .kw-moon-craters circle:nth-child(4) { display: none; }
+  }
+
+  @container widget (max-width: 240px), widget (max-height: 170px) {
+    .kw-clock-stack-celestial { align-items: center; text-align: center; }
+    .kw-clock-stack-celestial .kw-clock-title { text-align: center; }
+    .kw-clock-weekday { display: none; }
+    .kw-clock-progress { display: none; }
+    .kw-clock-focal { width: min(56cqmin, 240px); }
+    .kw-clock-title {
+      font-size: clamp(0.66rem, min(3.2cqw, 3.4cqh), 0.9rem);
+    }
+  }
+
+  @container widget (max-width: 170px), widget (max-height: 130px) {
+    .kw-clock-stars,
+    .kw-clock-date,
+    .kw-clock-date-pill,
+    .kw-clock-title,
+    .kw-clock-horizon,
+    .kw-clock-badge {
+      display: none;
+    }
+    .kw-clock-stack-celestial { justify-content: center; }
+    .kakemono-widget-clock { padding: 0; }
+    .kw-clock-stack { padding: clamp(10px, 3cqw, 18px); }
+  }
+
+  /* On a light shell, give the dark night-sky styles a faint inner border
+     so they don't look like a void cut into the dashboard. */
+  .kw-shell-light .kw-clock-style-celestial[data-tod="night"],
+  .kw-shell-light .kw-clock-style-celestial[data-tod="dusk"],
+  .kw-shell-light .kw-clock-style-lunar[data-tod="night"],
+  .kw-shell-light .kw-clock-style-lunar[data-tod="dusk"] {
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.10);
+  }
+}

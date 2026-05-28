@@ -1,6 +1,7 @@
 defmodule Kakemono.Widgets.Weather do
-  @behaviour Kakemono.Widget
-  use Phoenix.Component
+  use Kakemono.Widget
+
+  alias Kakemono.Widgets.{FetchWorker, Instance}
 
   @impl true
   def type, do: "weather"
@@ -9,58 +10,95 @@ defmodule Kakemono.Widgets.Weather do
   def name, do: "Weather"
 
   @impl true
-  def config_schema do
-    %{
-      "type" => "object",
-      "required" => ["latitude", "longitude"],
-      "properties" => %{
-        "latitude" => %{"type" => "number", "minimum" => -90, "maximum" => 90},
-        "longitude" => %{"type" => "number", "minimum" => -180, "maximum" => 180},
-        "label" => %{"type" => "string"},
-        "cached" => %{"type" => "object"}
-      },
-      "additionalProperties" => false
-    }
-  end
-
-  @impl true
-  def default_config do
-    %{"latitude" => 0.0, "longitude" => 0.0, "label" => "Weather"}
-  end
+  def icon, do: "🌤"
 
   @impl true
   def draft_config, do: %{}
 
   @impl true
-  def config_fields do
+  def cache_fields, do: [{"cached", "object"}]
+
+  @impl true
+  def fields do
     [
       %{
         key: "label",
         label: "Location",
         type: :location_search,
         required: true,
+        schema_optional: true,
+        default: "Weather",
         placeholder: "Search a city…"
       },
-      %{key: "latitude", type: :number, hidden: true, required: true, step: "any"},
-      %{key: "longitude", type: :number, hidden: true, required: true, step: "any"}
+      %{
+        key: "latitude",
+        type: :number,
+        hidden: true,
+        required: true,
+        step: "any",
+        min: -90,
+        max: 90,
+        default: 0.0
+      },
+      %{
+        key: "longitude",
+        type: :number,
+        hidden: true,
+        required: true,
+        step: "any",
+        min: -180,
+        max: 180,
+        default: 0.0
+      }
     ]
   end
 
   @impl true
-  def prefetch(%Kakemono.Widgets.Instance{id: id, config: cfg}) do
-    cached = cfg["cached"]
+  def prefetch(%Instance{id: id, config: cfg}) do
+    if has_location?(cfg) and empty_cache?(cfg), do: enqueue_fetch(id)
+    :ok
+  end
+
+  @impl true
+  def on_config_change(%Instance{id: id, config: cfg}, old_config) do
+    if has_location?(cfg) and location_changed?(cfg, old_config), do: enqueue_fetch(id)
+    :ok
+  end
+
+  @impl true
+  def fetch(%Instance{config: cfg}) do
+    with {:ok, body} <- http_get(cfg["latitude"], cfg["longitude"]) do
+      {:ok, %{"cached" => body}}
+    end
+  end
+
+  defp has_location?(cfg) do
     lat = cfg["latitude"]
     lon = cfg["longitude"]
-    has_location? = is_number(lat) and is_number(lon) and not (lat == 0.0 and lon == 0.0)
-    empty? = is_nil(cached) or cached == %{}
+    is_number(lat) and is_number(lon) and not (lat == 0.0 and lon == 0.0)
+  end
 
-    if has_location? and empty? do
-      %{instance_id: id}
-      |> Kakemono.Widgets.WeatherFetchWorker.new()
-      |> Oban.insert!()
+  defp empty_cache?(cfg) do
+    cached = cfg["cached"]
+    is_nil(cached) or cached == %{}
+  end
+
+  defp location_changed?(cfg, old_config) do
+    old_config["latitude"] != cfg["latitude"] or old_config["longitude"] != cfg["longitude"]
+  end
+
+  defp enqueue_fetch(id) do
+    %{instance_id: id} |> FetchWorker.new() |> Oban.insert!()
+  end
+
+  defp http_get(lat, lon) do
+    opts = Application.get_env(:kakemono, :req_options, [])
+
+    case Req.get(open_meteo_url(lat, lon), opts) do
+      {:ok, %Req.Response{status: 200, body: body}} when is_map(body) -> {:ok, body}
+      {:ok, %Req.Response{status: status}} -> {:error, {:http_status, status}}
+      {:error, reason} -> {:error, reason}
     end
-
-    :ok
   end
 
   def open_meteo_url(lat, lon) do

@@ -1,9 +1,9 @@
 defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
   use Kakemono.DataCase, async: false
-  use Oban.Testing, repo: Kakemono.Repo
+  use Oban.Testing, repo: Kakemono.Repo, engine: Oban.Engines.Lite, notifier: Oban.Notifiers.PG
 
   alias Kakemono.Widgets
-  alias Kakemono.Widgets.{WeatherFetchWorker, WeatherScheduler}
+  alias Kakemono.Widgets.{FetchWorker, RefreshScheduler}
   import Kakemono.Fixtures
 
   setup do
@@ -46,7 +46,7 @@ defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
         })
       end)
 
-      assert :ok = perform_job(WeatherFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
 
       updated = Widgets.get_instance(inst.id)
       assert updated.config["cached"]["current"]["temperature_2m"] == 18.5
@@ -63,20 +63,19 @@ defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
       end)
 
       Phoenix.PubSub.subscribe(Kakemono.PubSub, "widgets")
-      assert :ok = perform_job(WeatherFetchWorker, %{"instance_id" => inst.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => inst.id})
       iid = inst.id
       assert_receive {:widget_config_updated, %{instance_id: ^iid}}, 500
     end
 
-    test "returns error for non-weather instance", %{scene: scene} do
+    test "no-op for a non-fetching widget instance", %{scene: scene} do
       {:ok, clock} = Widgets.create_instance("clock", scene.id, %{})
 
-      assert {:error, {:wrong_type, "clock"}} =
-               perform_job(WeatherFetchWorker, %{"instance_id" => clock.id})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => clock.id})
     end
 
     test "no-op for missing instance" do
-      assert :ok = perform_job(WeatherFetchWorker, %{"instance_id" => 99999})
+      assert :ok = perform_job(FetchWorker, %{"instance_id" => 99999})
     end
   end
 
@@ -86,7 +85,7 @@ defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
         Widgets.create_instance("weather", scene.id, %{"latitude" => 48.1, "longitude" => 11.5})
 
       assert :ok = Kakemono.Widgets.Weather.prefetch(inst)
-      assert_enqueued(worker: WeatherFetchWorker, args: %{instance_id: inst.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
 
     test "skips when cache is already populated", %{scene: scene} do
@@ -98,19 +97,19 @@ defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
         })
 
       assert :ok = Kakemono.Widgets.Weather.prefetch(inst)
-      refute_enqueued(worker: WeatherFetchWorker, args: %{instance_id: inst.id})
+      refute_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
 
     test "skips when location is unconfigured (0.0/0.0)", %{scene: scene} do
       {:ok, inst} = Widgets.create_instance("weather", scene.id, %{})
 
       assert :ok = Kakemono.Widgets.Weather.prefetch(inst)
-      refute_enqueued(worker: WeatherFetchWorker, args: %{instance_id: inst.id})
+      refute_enqueued(worker: FetchWorker, args: %{instance_id: inst.id})
     end
   end
 
   describe "scheduler" do
-    test "enqueues one WeatherFetchWorker per weather instance", %{scene: scene} do
+    test "enqueues one FetchWorker per instance of the given types", %{scene: scene} do
       {:ok, w1} =
         Widgets.create_instance("weather", scene.id, %{"latitude" => 1.0, "longitude" => 2.0})
 
@@ -119,10 +118,11 @@ defmodule Kakemono.Widgets.WeatherFetchWorkerTest do
 
       {:ok, _c} = Widgets.create_instance("clock", scene.id, %{})
 
-      assert {:ok, 2} = perform_job(WeatherScheduler, %{})
+      assert {:ok, 2} =
+               perform_job(RefreshScheduler, %{"types" => ["weather", "air_quality", "rss"]})
 
-      assert_enqueued(worker: WeatherFetchWorker, args: %{instance_id: w1.id})
-      assert_enqueued(worker: WeatherFetchWorker, args: %{instance_id: w2.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: w1.id})
+      assert_enqueued(worker: FetchWorker, args: %{instance_id: w2.id})
     end
   end
 end

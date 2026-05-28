@@ -1,9 +1,9 @@
 defmodule KakemonoWeb.DisplayLiveSceneTest do
   use KakemonoWeb.ConnCase, async: false
-  use Oban.Testing, repo: Kakemono.Repo
+  use Oban.Testing, repo: Kakemono.Repo, engine: Oban.Engines.Lite, notifier: Oban.Notifiers.PG
   import Phoenix.LiveViewTest
   alias Kakemono.{Scenes, Widgets, Displays, Fixtures}
-  alias Kakemono.Widgets.WeatherFetchWorker
+  alias Kakemono.Widgets.FetchWorker
 
   test "renders the dashboard scene grid with widgets when set", %{conn: conn} do
     d = Fixtures.display!("dash-#{System.unique_integer([:positive])}")
@@ -108,11 +108,11 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
 
     {:ok, _} = Displays.set_scene(d.id, scene.id)
 
-    refute_enqueued(worker: WeatherFetchWorker, args: %{instance_id: weather.id})
+    refute_enqueued(worker: FetchWorker, args: %{instance_id: weather.id})
 
     {:ok, _view, _html} = live(conn, "/d/#{d.id}")
 
-    assert_enqueued(worker: WeatherFetchWorker, args: %{instance_id: weather.id})
+    assert_enqueued(worker: FetchWorker, args: %{instance_id: weather.id})
   end
 
   test "fullscreen_widget mode renders a single widget filling the grid", %{conn: conn} do

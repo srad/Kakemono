@@ -633,7 +633,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               class="flex items-center gap-2 px-3 py-2 text-sm border rounded hover:bg-gray-50
                      text-gray-700 font-medium"
             >
-              <span>{widget_icon(t.type)}</span>
+              <span>{t.icon}</span>
               <span class="truncate">{t.name}</span>
             </button>
           </div>
@@ -687,7 +687,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               class="flex items-center gap-1 text-sm py-1"
             >
               <span class="flex-1 truncate text-gray-700">
-                {widget_icon(inst_type(@instances, cell["widget_instance_id"]))}
+                {icon_for(@types, inst_type(@instances, cell["widget_instance_id"]))}
                 {type_label(@types, inst_type(@instances, cell["widget_instance_id"]))}
                 <span class="text-gray-400 text-xs">#{cell["widget_instance_id"]}</span>
               </span>
@@ -838,7 +838,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         <div :if={@scene.mode == "fullscreen_widget"} class="flex items-center justify-center h-full">
           <div class="text-center space-y-2">
             <p class="text-2xl">
-              {widget_icon(inst_type(@instances, @scene.layout["widget_instance_id"]))}
+              {icon_for(@types, inst_type(@instances, @scene.layout["widget_instance_id"]))}
             </p>
             <p class="text-gray-600">
               {type_label(@types, inst_type(@instances, @scene.layout["widget_instance_id"]))}
@@ -1061,9 +1061,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
     end
   end
 
-  defp widget_icon("clock"), do: "🕐"
-  defp widget_icon("weather"), do: "🌤"
-  defp widget_icon("slideshow"), do: "🖼"
-  defp widget_icon("rss"), do: "📰"
-  defp widget_icon(_), do: "▪"
+  defp icon_for(types, type) do
+    Enum.find_value(types, "▪", fn t -> if t.type == type, do: t.icon end)
+  end
 end

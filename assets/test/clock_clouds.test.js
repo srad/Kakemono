@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import ClockTick from "../js/hooks/clock_tick.js"
+import ClockTick from "../../lib/kakemono/widgets/clock/clock_tick.js"
 
 // Regression tests for the cloud-maintenance loop in ClockTick.cloudLoop().
 //

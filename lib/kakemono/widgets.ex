@@ -6,7 +6,10 @@ defmodule Kakemono.Widgets do
 
   def list_types,
     do:
-      Registry.all() |> Enum.map(fn mod -> %{type: mod.type(), name: mod.name(), module: mod} end)
+      Registry.all()
+      |> Enum.map(fn mod ->
+        %{type: mod.type(), name: mod.name(), icon: mod.icon(), module: mod}
+      end)
 
   def list_instances, do: Repo.all(from i in Instance, order_by: [asc: i.id])
 
@@ -56,12 +59,7 @@ defmodule Kakemono.Widgets do
     end
   end
 
-  defp initial_config(mod, :draft) do
-    if function_exported?(mod, :draft_config, 0),
-      do: mod.draft_config(),
-      else: mod.default_config()
-  end
-
+  defp initial_config(mod, :draft), do: mod.draft_config()
   defp initial_config(mod, :default), do: mod.default_config()
 
   @doc "Update an instance's config (re-validated against its schema)."
@@ -72,14 +70,23 @@ defmodule Kakemono.Widgets do
 
       mod ->
         old_config = inst.config || %{}
-        merged = merge_config_update(type, old_config, new_config || %{})
+        merged = mod.merge_config(old_config, new_config || %{})
 
         with :ok <- validate_config(mod, merged),
              {:ok, updated} <- inst |> Instance.changeset(%{config: merged}) |> Repo.update() do
-          post_update(updated, old_config)
+          mod.on_config_change(updated, old_config)
           {:ok, updated}
         end
     end
+  end
+
+  @doc "Broadcast a widget config update so displays/editors refresh."
+  def broadcast_config_updated(instance_id) do
+    Phoenix.PubSub.broadcast(
+      Kakemono.PubSub,
+      "widgets",
+      {:widget_config_updated, %{instance_id: instance_id}}
+    )
   end
 
   def delete_instance(%Instance{} = i), do: Repo.delete(i)
@@ -91,91 +98,10 @@ defmodule Kakemono.Widgets do
   """
   def prefetch_instance(%Instance{widget_type: type} = inst) do
     case Registry.fetch(type) do
-      nil ->
-        :ok
-
-      mod ->
-        if function_exported?(mod, :prefetch, 1) do
-          mod.prefetch(inst)
-        else
-          :ok
-        end
+      nil -> :ok
+      mod -> mod.prefetch(inst)
     end
   end
-
-  # Only enqueue an immediate fetch when the URL actually changes (user edit),
-  # not when the worker writes cached_items back — otherwise we loop forever.
-  defp post_update(%Instance{widget_type: "rss", id: id, config: %{"url" => url}}, old_config)
-       when is_binary(url) and url != "" do
-    if old_config["url"] != url do
-      %{instance_id: id}
-      |> Kakemono.Widgets.RssFetchWorker.new()
-      |> Oban.insert!()
-    end
-
-    :ok
-  end
-
-  # Refetch weather immediately when the user picks a new location.
-  # Skip when only the cached payload changed (worker writeback).
-  defp post_update(
-         %Instance{
-           widget_type: "weather",
-           id: id,
-           config: %{"latitude" => lat, "longitude" => lon}
-         },
-         old_config
-       )
-       when is_number(lat) and is_number(lon) do
-    if old_config["latitude"] != lat or old_config["longitude"] != lon do
-      %{instance_id: id}
-      |> Kakemono.Widgets.WeatherFetchWorker.new()
-      |> Oban.insert!()
-    end
-
-    :ok
-  end
-
-  # Refetch Instagram when the account source changes. Worker writebacks keep
-  # the same source keys, so this doesn't loop on cached_items updates.
-  defp post_update(%Instance{widget_type: "instagram", id: id, config: cfg}, old_config) do
-    if instagram_source_changed?(cfg, old_config) and configured_instagram?(cfg) do
-      %{instance_id: id}
-      |> Kakemono.Widgets.InstagramFetchWorker.new()
-      |> Oban.insert!()
-    end
-
-    :ok
-  end
-
-  defp post_update(_, _), do: :ok
-
-  defp merge_config_update("instagram", old_config, new_config) do
-    merged = Map.merge(old_config, new_config)
-
-    if instagram_source_changed?(merged, old_config) do
-      merged
-      |> Map.delete("cached_items")
-      |> Map.delete("last_error")
-      |> Map.delete("last_error_at")
-      |> Map.delete("last_fetch_at")
-      |> Map.delete("next_fetch_at")
-    else
-      merged
-    end
-  end
-
-  defp merge_config_update(_type, old_config, new_config), do: Map.merge(old_config, new_config)
-
-  defp instagram_source_changed?(cfg, old_config) do
-    cfg["username"] != old_config["username"] or cfg["access_token"] != old_config["access_token"]
-  end
-
-  defp configured_instagram?(%{"username" => username}) when is_binary(username) do
-    String.trim(username) != ""
-  end
-
-  defp configured_instagram?(_), do: false
 
   defp validate_config(mod, config) do
     schema = ExJsonSchema.Schema.resolve(mod.config_schema())

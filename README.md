@@ -3,7 +3,7 @@
 <p align="center">
   <img alt="Elixir" src="https://img.shields.io/badge/Elixir-1.18-4B275F?logo=elixir&logoColor=white">
   <img alt="Phoenix" src="https://img.shields.io/badge/Phoenix-1.7-FD4F00?logo=phoenixframework&logoColor=white">
-  <img alt="LiveView" src="https://img.shields.io/badge/Phoenix%20LiveView-1.0-FD4F00">
+  <img alt="LiveView" src="https://img.shields.io/badge/Phoenix%20LiveView-1.1-FD4F00">
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-backed-003B57?logo=sqlite&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
 </p>
@@ -33,9 +33,10 @@ proxy, VPN, or access-control layer before exposing it outside a LAN.
 ## Project Layout
 
 ```text
-assets/          Frontend JavaScript, CSS, Vite, and Vitest tests
+assets/          Frontend build (Vite/esbuild), global CSS, shared JS hooks, Vitest tests
 config/          Phoenix and runtime configuration
-lib/             Elixir application and web modules
+lib/             Elixir application and web modules; each widget co-locates its
+                 module, CSS, and JS hook under lib/kakemono/widgets/<name>/
 priv/            Migrations, static files, and gettext files
 test/            ExUnit tests and support modules
 .docker/         Development container image
@@ -220,6 +221,67 @@ mix kakemono.purge --yes
 mix test
 cd assets && npm test
 ```
+
+## Adding a Widget
+
+A widget is a self-describing module that does `use Kakemono.Widget`
+(`lib/kakemono/widget.ex`). It is **auto-discovered** — there is no registry list
+to edit. All of a widget's files are co-located in one folder:
+
+```text
+lib/kakemono/widgets/<name>/
+  <name>.ex     Widget module (use Kakemono.Widget)
+  <name>.css    Optional styles (omit if the widget needs none)
+  <name>.js     Optional LiveView JS hook
+```
+
+1. **Implement the module.** Create `lib/kakemono/widgets/<name>/<name>.ex`:
+
+   ```elixir
+   defmodule Kakemono.Widgets.Foo do
+     use Kakemono.Widget
+
+     @impl true
+     def type, do: "foo"
+     @impl true
+     def name, do: "Foo"
+     @impl true
+     def icon, do: "✨"
+     @impl true
+     def fields do
+       [%{key: "label", label: "Label", type: :text, required: true, default: "Foo"}]
+     end
+     @impl true
+     def render(assigns), do: ~H"<div class=\"kakemono-widget\">{@instance.config[\"label\"]}</div>"
+   end
+   ```
+
+   Only `type/0`, `name/0`, and `render/1` are required. The `fields/0` list is the
+   **single source of config truth**: the JSON Schema (`config_schema/0`), the
+   defaults (`default_config/0`), and the scene-editor form are all derived from it
+   (see `Kakemono.Widget.Config`). `icon/0` supplies the picker glyph. Use an
+   existing widget such as `lib/kakemono/widgets/clock/clock.ex` as a template.
+
+2. **Add styles (optional).** Put `<name>.css` in the widget folder, wrap rules in
+   `@layer components { … }`, and import it from `assets/css/app.css`:
+
+   ```css
+   @import "../../lib/kakemono/widgets/<name>/<name>.css";
+   ```
+
+3. **Add a JS hook (optional).** Put `<name>.js` in the widget folder, import it in
+   `assets/js/app.js`, and add it to the `Hooks` map.
+
+4. **Add remote data (optional).** Implement `fetch/1` (returns `{:ok, patch}` to
+   cache, `:skip`, or `{:error, reason}`) and list the cached keys in
+   `cache_fields/0` so they pass schema validation. Implement `prefetch/1` to fetch
+   lazily on first display mount and `on_config_change/2` to refetch when a source
+   field changes. The generic `Kakemono.Widgets.FetchWorker` runs `fetch/1`; add the
+   widget's `type` to a `RefreshScheduler` line in `config/config.exs` to refresh it
+   on a cron cadence. See the `weather` or `rss` widgets for the pattern.
+
+Run `mix compile && mix assets.build` and the new widget appears in the scene
+editor's widget picker.
 
 ## Updating Dependencies
 

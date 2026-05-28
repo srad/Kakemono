@@ -14,8 +14,7 @@ defmodule Kakemono.Widgets.Slideshow do
     * `fit_mode`    (optional, "contain" | "cover") — overrides playlist default
   """
 
-  @behaviour Kakemono.Widget
-  use Phoenix.Component
+  use Kakemono.Widget
 
   alias Kakemono.{Playlists, Media}
 
@@ -26,24 +25,10 @@ defmodule Kakemono.Widgets.Slideshow do
   def name, do: "Slideshow"
 
   @impl true
-  def config_schema do
-    %{
-      "type" => "object",
-      "required" => ["playlist_id"],
-      "properties" => %{
-        "playlist_id" => %{"type" => "integer", "minimum" => 1},
-        "interval_ms" => %{"type" => "integer", "minimum" => 2000},
-        "fit_mode" => %{"type" => "string", "enum" => ["contain", "cover"]}
-      },
-      "additionalProperties" => false
-    }
-  end
+  def icon, do: "🖼"
 
   @impl true
-  def default_config, do: %{}
-
-  @impl true
-  def config_fields do
+  def fields do
     [
       %{key: "playlist_id", label: "Playlist", type: :playlist_select, required: true},
       %{

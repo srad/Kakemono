@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
-import Slideshow from "../js/hooks/slideshow.js"
+import Slideshow from "../../lib/kakemono/widgets/slideshow/slideshow.js"
 
 function makeHost({ items = [], fitMode = "contain" } = {}) {
   document.body.innerHTML = `
