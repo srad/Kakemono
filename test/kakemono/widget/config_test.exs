@@ -33,6 +33,11 @@ defmodule Kakemono.Widget.ConfigTest do
                  "latitude" => %{"type" => "number", "minimum" => -90, "maximum" => 90},
                  "longitude" => %{"type" => "number", "minimum" => -180, "maximum" => 180},
                  "label" => %{"type" => "string"},
+                 "source" => %{
+                   "type" => "string",
+                   "enum" => ["open_meteo", "met_no", "bright_sky"]
+                 },
+                 "api_key" => %{"type" => "string"},
                  "cached" => %{"type" => "object"}
                }
              }
@@ -114,7 +119,8 @@ defmodule Kakemono.Widget.ConfigTest do
       assert Weather.default_config() == %{
                "latitude" => 0.0,
                "longitude" => 0.0,
-               "label" => "Weather"
+               "label" => "Weather",
+               "source" => "open_meteo"
              }
 
       assert AirQuality.default_config() == %{

@@ -1,6 +1,53 @@
 defmodule Kakemono.Widgets.WeatherTest do
-  use ExUnit.Case, async: true
+  # async: false — the fetch/1 dispatch tests mutate the global :req_options env.
+  use ExUnit.Case, async: false
   alias Kakemono.Widgets.Weather
+  alias Kakemono.Widgets.Instance
+
+  describe "fetch/1 source dispatch" do
+    setup do
+      Application.put_env(:kakemono, :req_options, plug: {Req.Test, __MODULE__})
+      on_exit(fn -> Application.delete_env(:kakemono, :req_options) end)
+      :ok
+    end
+
+    defp instance(source) do
+      %Instance{config: %{"latitude" => 52.5, "longitude" => 13.4, "source" => source}}
+    end
+
+    test "routes to Open-Meteo by default and wraps the body under \"cached\"" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        assert conn.host == "api.open-meteo.com"
+        Req.Test.json(conn, %{"current" => %{"temperature_2m" => 1.0}})
+      end)
+
+      assert {:ok, %{"cached" => %{"current" => %{"temperature_2m" => 1.0}}}} =
+               Weather.fetch(instance(nil))
+    end
+
+    test "routes to MET Norway when source is met_no" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        assert conn.host == "api.met.no"
+        Req.Test.json(conn, %{"properties" => %{"timeseries" => []}})
+      end)
+
+      assert {:ok, %{"cached" => %{"hourly" => _}}} = Weather.fetch(instance("met_no"))
+    end
+
+    test "routes to Bright Sky when source is bright_sky" do
+      Req.Test.stub(__MODULE__, fn conn ->
+        assert conn.host == "api.brightsky.dev"
+
+        if String.contains?(conn.request_path, "current_weather") do
+          Req.Test.json(conn, %{"weather" => %{"timestamp" => "2026-05-28T12:00:00Z"}})
+        else
+          Req.Test.json(conn, %{"weather" => []})
+        end
+      end)
+
+      assert {:ok, %{"cached" => %{"current" => _}}} = Weather.fetch(instance("bright_sky"))
+    end
+  end
 
   describe "is_day_for/4 (pure)" do
     setup do

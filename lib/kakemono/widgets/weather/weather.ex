@@ -2,6 +2,7 @@ defmodule Kakemono.Widgets.Weather do
   use Kakemono.Widget
 
   alias Kakemono.Widgets.{FetchWorker, Instance}
+  alias Kakemono.Widgets.Weather.Source
 
   @impl true
   def type, do: "weather"
@@ -49,6 +50,22 @@ defmodule Kakemono.Widgets.Weather do
         min: -180,
         max: 180,
         default: 0.0
+      },
+      %{
+        key: "source",
+        label: "Data source",
+        type: :select,
+        required: false,
+        default: Source.default_id(),
+        options: Source.options()
+      },
+      %{
+        key: "api_key",
+        label: "API key (optional)",
+        type: :text,
+        required: false,
+        schema_optional: true,
+        placeholder: "Only needed for key-based sources"
       }
     ]
   end
@@ -60,14 +77,22 @@ defmodule Kakemono.Widgets.Weather do
   end
 
   @impl true
+  def merge_config(old, new) do
+    merged = Map.merge(old, new)
+    if provider_input_changed?(old, merged), do: Map.delete(merged, "cached"), else: merged
+  end
+
+  @impl true
   def on_config_change(%Instance{id: id, config: cfg}, old_config) do
-    if has_location?(cfg) and location_changed?(cfg, old_config), do: enqueue_fetch(id)
+    if has_location?(cfg) and provider_input_changed?(old_config, cfg), do: enqueue_fetch(id)
     :ok
   end
 
   @impl true
   def fetch(%Instance{config: cfg}) do
-    with {:ok, body} <- http_get(cfg["latitude"], cfg["longitude"]) do
+    source = Source.module(cfg["source"])
+
+    with {:ok, body} <- source.fetch(cfg["latitude"], cfg["longitude"], api_key: cfg["api_key"]) do
       {:ok, %{"cached" => body}}
     end
   end
@@ -83,31 +108,21 @@ defmodule Kakemono.Widgets.Weather do
     is_nil(cached) or cached == %{}
   end
 
-  defp location_changed?(cfg, old_config) do
-    old_config["latitude"] != cfg["latitude"] or old_config["longitude"] != cfg["longitude"]
+  # True when the fields that determine the upstream response (source, key, or
+  # coordinates) differ between two configs. Drives cache invalidation + refetch.
+  defp provider_input_changed?(old, new) do
+    norm(old["source"]) != norm(new["source"]) or
+      norm(old["api_key"]) != norm(new["api_key"]) or
+      old["latitude"] != new["latitude"] or
+      old["longitude"] != new["longitude"]
   end
+
+  defp norm(nil), do: nil
+  defp norm(""), do: nil
+  defp norm(v), do: v
 
   defp enqueue_fetch(id) do
     %{instance_id: id} |> FetchWorker.new() |> Oban.insert!()
-  end
-
-  defp http_get(lat, lon) do
-    opts = Application.get_env(:kakemono, :req_options, [])
-
-    case Req.get(open_meteo_url(lat, lon), opts) do
-      {:ok, %Req.Response{status: 200, body: body}} when is_map(body) -> {:ok, body}
-      {:ok, %Req.Response{status: status}} -> {:error, {:http_status, status}}
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  def open_meteo_url(lat, lon) do
-    "https://api.open-meteo.com/v1/forecast" <>
-      "?latitude=#{lat}&longitude=#{lon}" <>
-      "&current=temperature_2m,weather_code,apparent_temperature,relative_humidity_2m,wind_speed_10m,is_day" <>
-      "&hourly=temperature_2m,weather_code,is_day" <>
-      "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset" <>
-      "&forecast_days=7&timezone=auto"
   end
 
   @impl true
@@ -125,6 +140,11 @@ defmodule Kakemono.Widgets.Weather do
       Map.merge(assigns, %{
         scene: Atom.to_string(scene),
         is_day: if(is_day?, do: "1", else: "0"),
+        tod: if(is_day?, do: "day", else: "night"),
+        weather_id: "weather-" <> Integer.to_string(assigns.instance.id),
+        latitude: cfg["latitude"],
+        longitude: cfg["longitude"],
+        utc_offset: cached["utc_offset_seconds"] || 0,
         label: cfg["label"] || "Weather",
         temp: format_temperature(current["temperature_2m"]),
         feels_like: format_temperature(current["apparent_temperature"]),
@@ -141,9 +161,15 @@ defmodule Kakemono.Widgets.Weather do
 
     ~H"""
     <div
+      id={@weather_id}
+      phx-hook="WeatherSky"
       class="kakemono-widget kakemono-widget-weather"
       data-cond={@scene}
       data-is-day={@is_day}
+      data-tod={@tod}
+      data-latitude={@latitude}
+      data-longitude={@longitude}
+      data-utc-offset={@utc_offset}
     >
       <div class="kw-w-content">
         <div class="kw-w-header">
@@ -224,55 +250,65 @@ defmodule Kakemono.Widgets.Weather do
     >
       <%= case @scene do %>
         <% "clear_day" -> %>
-          <circle cx="12" cy="12" r="4" fill="currentColor" />
-          <path d="M12 2v2" />
-          <path d="M12 20v2" />
-          <path d="m4.93 4.93 1.41 1.41" />
-          <path d="m17.66 17.66 1.41 1.41" />
-          <path d="M2 12h2" />
-          <path d="M20 12h2" />
-          <path d="m6.34 17.66-1.41 1.41" />
-          <path d="m19.07 4.93-1.41 1.41" />
+          <circle class="kw-w-sun-core" cx="12" cy="12" r="4" fill="currentColor" />
+          <g class="kw-w-sun-rays">
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </g>
         <% "clear_night" -> %>
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" fill-opacity="0.85" />
+          <path class="kw-w-moon" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" fill-opacity="0.85" />
         <% "partly" -> %>
           <path d="M12 2v2" />
           <path d="m4.93 4.93 1.41 1.41" />
           <path d="M20 12h2" />
           <path d="m19.07 4.93-1.41 1.41" />
           <path d="M15.947 12.65a4 4 0 0 0-5.925-4.128" />
-          <path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" />
+          <path class="kw-w-cloud" d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" />
         <% "cloudy" -> %>
-          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+          <path class="kw-w-cloud" d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
         <% "fog" -> %>
           <path d="M16 17H7a5 5 0 1 1 4.9-6H17a3 3 0 0 1 0 6h-1" />
-          <path d="M16 21H7" />
-          <path d="M19 21h-3" />
-          <path d="M11 13H3" />
+          <g class="kw-w-fog-lines">
+            <path d="M16 21H7" />
+            <path d="M19 21h-3" />
+            <path d="M11 13H3" />
+          </g>
         <% "drizzle" -> %>
           <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-          <path d="M8 19v1" />
-          <path d="M8 14v1" />
-          <path d="M16 19v1" />
-          <path d="M16 14v1" />
-          <path d="M12 21v1" />
-          <path d="M12 16v1" />
+          <g class="kw-w-rain">
+            <path d="M8 19v1" />
+            <path d="M8 14v1" />
+            <path d="M16 19v1" />
+            <path d="M16 14v1" />
+            <path d="M12 21v1" />
+            <path d="M12 16v1" />
+          </g>
         <% s when s in ["rain", "showers"] -> %>
           <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-          <path d="M16 14v6" />
-          <path d="M8 14v6" />
-          <path d="M12 16v6" />
+          <g class="kw-w-rain">
+            <path d="M16 14v6" />
+            <path d="M8 14v6" />
+            <path d="M12 16v6" />
+          </g>
         <% "snow" -> %>
           <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-          <path d="M8 15h.01" />
-          <path d="M8 19h.01" />
-          <path d="M12 17h.01" />
-          <path d="M12 21h.01" />
-          <path d="M16 15h.01" />
-          <path d="M16 19h.01" />
+          <g class="kw-w-snow">
+            <path d="M8 15h.01" />
+            <path d="M8 19h.01" />
+            <path d="M12 17h.01" />
+            <path d="M12 21h.01" />
+            <path d="M16 15h.01" />
+            <path d="M16 19h.01" />
+          </g>
         <% "thunder" -> %>
           <path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973" />
-          <path d="m13 12-3 5h4l-3 5" />
+          <path class="kw-w-bolt" d="m13 12-3 5h4l-3 5" />
         <% _ -> %>
           <circle cx="12" cy="12" r="4" fill="currentColor" />
       <% end %>

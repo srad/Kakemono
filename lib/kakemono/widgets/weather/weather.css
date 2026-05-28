@@ -101,6 +101,47 @@
     opacity: 0.5;
   }
 
+  /* ── Time-of-day sky tint ──────────────────────────────────────
+     A full-cover wash driven by data-tod (set live by the WeatherSky
+     hook from the location's local time). Sits above the scene gradient
+     but below content, so the same weather scene reads as warm at
+     dawn/dusk and genuinely dark at night. */
+  .kakemono-widget-weather::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: transparent;
+    opacity: 1;
+    transition: background 2s ease;
+  }
+  .kakemono-widget-weather[data-tod="dawn"]::after {
+    background: linear-gradient(
+      0deg,
+      rgba(251, 146, 60, 0.34) 0%,
+      rgba(244, 114, 182, 0.16) 38%,
+      rgba(56, 189, 248, 0.04) 70%,
+      transparent 100%
+    );
+  }
+  .kakemono-widget-weather[data-tod="dusk"]::after {
+    background: linear-gradient(
+      0deg,
+      rgba(190, 24, 93, 0.30) 0%,
+      rgba(249, 115, 22, 0.22) 32%,
+      rgba(76, 29, 149, 0.18) 66%,
+      rgba(15, 23, 42, 0.20) 100%
+    );
+  }
+  .kakemono-widget-weather[data-tod="night"]::after {
+    background: linear-gradient(
+      180deg,
+      rgba(2, 6, 23, 0.42) 0%,
+      rgba(2, 6, 23, 0.56) 100%
+    );
+  }
+
   /* ── Foreground content ────────────────────────────────────── */
   /* Grid layout with minmax(0, …) rows so the forecast strips claim
      whatever height remains AND can shrink to fit. Combined with
@@ -421,6 +462,110 @@
     .kw-w-hero-text { gap: 2px; }
     .kw-w-temp { font-size: clamp(1.4rem, 30cqw, 2.4rem); }
     .kw-w-cond { font-size: clamp(0.6rem, 5cqw, 0.85rem); }
+  }
+
+  /* ── Hero icon animation ───────────────────────────────────────
+     Subtle, scene-specific motion. Scoped to the hero icon only so the
+     compact forecast icons stay still. Animated parts use transform-box:
+     view-box so transforms pivot inside the 24×24 SVG coordinate space. */
+  @media (prefers-reduced-motion: no-preference) {
+    .kw-w-hero-icon .kw-w-icon [class^="kw-w-"],
+    .kw-w-hero-icon .kw-w-sun-rays,
+    .kw-w-hero-icon .kw-w-sun-core,
+    .kw-w-hero-icon .kw-w-moon,
+    .kw-w-hero-icon .kw-w-bolt,
+    .kw-w-hero-icon .kw-w-cloud {
+      transform-box: view-box;
+    }
+
+    /* Sun: rays rotate slowly, core breathes. */
+    .kw-w-hero-icon .kw-w-sun-rays {
+      transform-origin: 12px 12px;
+      animation: kw-w-spin 36s linear infinite;
+    }
+    .kw-w-hero-icon .kw-w-sun-core {
+      transform-origin: 12px 12px;
+      animation: kw-w-pulse 4s ease-in-out infinite;
+    }
+
+    /* Moon: gentle glow breathing. */
+    .kw-w-hero-icon .kw-w-moon {
+      transform-origin: 12px 12px;
+      animation: kw-w-pulse 6s ease-in-out infinite;
+    }
+
+    /* Clouds drift side to side. */
+    .kw-w-hero-icon .kw-w-cloud {
+      animation: kw-w-drift 6s ease-in-out infinite;
+    }
+
+    /* Rain / drizzle drops fall and fade, staggered. */
+    .kw-w-hero-icon .kw-w-rain path {
+      transform-box: view-box;
+      animation: kw-w-rainfall 1.4s ease-in infinite;
+    }
+    .kw-w-hero-icon .kw-w-rain path:nth-child(2) { animation-delay: 0.35s; }
+    .kw-w-hero-icon .kw-w-rain path:nth-child(3) { animation-delay: 0.7s; }
+    .kw-w-hero-icon .kw-w-rain path:nth-child(4) { animation-delay: 0.5s; }
+    .kw-w-hero-icon .kw-w-rain path:nth-child(5) { animation-delay: 0.9s; }
+    .kw-w-hero-icon .kw-w-rain path:nth-child(6) { animation-delay: 1.1s; }
+
+    /* Snow flakes twinkle and settle, staggered. */
+    .kw-w-hero-icon .kw-w-snow path {
+      transform-box: view-box;
+      animation: kw-w-snowfall 2.6s ease-in-out infinite;
+    }
+    .kw-w-hero-icon .kw-w-snow path:nth-child(2) { animation-delay: 0.5s; }
+    .kw-w-hero-icon .kw-w-snow path:nth-child(3) { animation-delay: 1.0s; }
+    .kw-w-hero-icon .kw-w-snow path:nth-child(4) { animation-delay: 1.5s; }
+    .kw-w-hero-icon .kw-w-snow path:nth-child(5) { animation-delay: 0.8s; }
+    .kw-w-hero-icon .kw-w-snow path:nth-child(6) { animation-delay: 2.0s; }
+
+    /* Lightning bolt flickers. */
+    .kw-w-hero-icon .kw-w-bolt {
+      animation: kw-w-flash 2.4s steps(1, end) infinite;
+    }
+
+    /* Fog lines slide gently. */
+    .kw-w-hero-icon .kw-w-fog-lines path {
+      transform-box: view-box;
+      animation: kw-w-fog 3.5s ease-in-out infinite;
+    }
+    .kw-w-hero-icon .kw-w-fog-lines path:nth-child(2) { animation-delay: 0.6s; }
+    .kw-w-hero-icon .kw-w-fog-lines path:nth-child(3) { animation-delay: 1.2s; }
+  }
+
+  @keyframes kw-w-spin {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes kw-w-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.88; }
+  }
+  @keyframes kw-w-drift {
+    0%, 100% { transform: translateX(-0.6px); }
+    50% { transform: translateX(0.6px); }
+  }
+  @keyframes kw-w-rainfall {
+    0% { transform: translateY(-1.5px); opacity: 0.15; }
+    35% { opacity: 1; }
+    100% { transform: translateY(3px); opacity: 0.1; }
+  }
+  @keyframes kw-w-snowfall {
+    0% { transform: translateY(-1px); opacity: 0.2; }
+    50% { transform: translateY(1px); opacity: 1; }
+    100% { transform: translateY(2.5px); opacity: 0.2; }
+  }
+  @keyframes kw-w-flash {
+    0%, 100% { opacity: 1; }
+    8% { opacity: 0.2; }
+    16% { opacity: 1; }
+    24% { opacity: 0.35; }
+    32% { opacity: 1; }
+  }
+  @keyframes kw-w-fog {
+    0%, 100% { transform: translateX(-0.8px); }
+    50% { transform: translateX(0.8px); }
   }
 
 }
