@@ -13,7 +13,10 @@ config :kakemono,
   data_dir: data_dir,
   uploads_dir: System.get_env("KAKEMONO_UPLOADS_DIR") || Path.join(data_dir, "uploads"),
   backups_dir: System.get_env("KAKEMONO_BACKUPS_DIR") || Path.join(data_dir, "backups"),
-  api_secret_file: System.get_env("KAKEMONO_API_SECRET_FILE") || Path.join(data_dir, "secret.key")
+  api_secret_file: System.get_env("KAKEMONO_API_SECRET_FILE") || Path.join(data_dir, "secret.key"),
+  backend_password_file:
+    System.get_env("KAKEMONO_BACKEND_PASSWORD_FILE") ||
+      Path.join(data_dir, "backend_password.hash")
 
 # Configure your database
 config :kakemono, Kakemono.Repo,

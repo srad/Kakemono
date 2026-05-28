@@ -1,0 +1,49 @@
+<div class="min-h-screen flex items-center justify-center p-6">
+  <%= if @configured or @allow_setup do %>
+    <form
+      action={~p"/login"}
+      method="post"
+      class="w-full max-w-sm space-y-4 bg-white border rounded-lg shadow-sm p-6"
+    >
+      <input type="hidden" name="_csrf_token" value={get_csrf_token()} />
+
+      <div class="space-y-1">
+        <h1 class="text-xl font-bold">
+          {if @configured, do: "Backend login", else: "Set backend password"}
+        </h1>
+        <p class="text-sm text-gray-600">
+          {if @configured,
+            do: "Enter the password to access the control panel.",
+            else: "No password is set yet. Choose one to protect the backend."}
+        </p>
+      </div>
+
+      <div class="space-y-1">
+        <label for="password" class="block text-sm font-medium">Password</label>
+        <input
+          type="password"
+          name="password"
+          id="password"
+          autofocus
+          autocomplete={if @configured, do: "current-password", else: "new-password"}
+          class="w-full border rounded px-3 py-2 text-sm"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="w-full bg-primary text-primary-foreground rounded px-3 py-2 text-sm font-medium"
+      >
+        {if @configured, do: "Log in", else: "Set password"}
+      </button>
+    </form>
+  <% else %>
+    <div class="w-full max-w-sm space-y-2 bg-white border rounded-lg shadow-sm p-6 text-center">
+      <h1 class="text-xl font-bold">Backend not provisioned</h1>
+      <p class="text-sm text-gray-600">
+        No backend password is configured. Provision one at deploy
+        (<code class="font-mono text-xs">KAKEMONO_BACKEND_PASSWORD</code>) and restart.
+      </p>
+    </div>
+  <% end %>
+</div>

@@ -38,10 +38,43 @@ if data_dir do
     uploads_dir: System.get_env("KAKEMONO_UPLOADS_DIR") || Path.join(data_dir, "uploads"),
     backups_dir: System.get_env("KAKEMONO_BACKUPS_DIR") || Path.join(data_dir, "backups"),
     api_secret_file:
-      System.get_env("KAKEMONO_API_SECRET_FILE") || Path.join(data_dir, "secret.key")
+      System.get_env("KAKEMONO_API_SECRET_FILE") || Path.join(data_dir, "secret.key"),
+    backend_password_file:
+      System.get_env("KAKEMONO_BACKEND_PASSWORD_FILE") ||
+        Path.join(data_dir, "backend_password.hash")
 end
 
 if config_env() == :prod do
+  # Fail closed: refuse to boot a public deploy that would run on the guessable
+  # default API secret. The secret file is loaded later at boot
+  # (Kakemono.Application.load_secret_from_file/0), so accept either the env var
+  # or an already-provisioned file.
+  api_secret_file =
+    System.get_env("KAKEMONO_API_SECRET_FILE") || Path.join(data_dir, "secret.key")
+
+  unless System.get_env("KAKEMONO_API_SECRET") || File.exists?(api_secret_file) do
+    raise """
+    No API secret configured for production.
+    Set KAKEMONO_API_SECRET, or provision a secret file at #{api_secret_file}.
+    Generate one with: mix phx.gen.secret
+    """
+  end
+
+  # Fail closed: never allow an anonymous web first-run to seize the backend.
+  # The password is seeded from the env var at boot
+  # (Kakemono.Application.bootstrap_backend_password/0), so accept either the
+  # env var or an already-provisioned hash file.
+  backend_password_file =
+    System.get_env("KAKEMONO_BACKEND_PASSWORD_FILE") ||
+      Path.join(data_dir, "backend_password.hash")
+
+  unless System.get_env("KAKEMONO_BACKEND_PASSWORD") || File.exists?(backend_password_file) do
+    raise """
+    No backend password configured for production.
+    Set KAKEMONO_BACKEND_PASSWORD, or provision a hash file at #{backend_password_file}.
+    """
+  end
+
   database_path =
     System.get_env("DATABASE_PATH") ||
       Path.join(data_dir, "kakemono.db")
@@ -75,8 +108,9 @@ if config_env() == :prod do
   config :kakemono, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :kakemono, KakemonoWeb.Endpoint,
-    url: [host: host, port: port, scheme: "http"],
-    check_origin: false,
+    url: [host: host, port: 443, scheme: "https"],
+    check_origin: ["https://#{host}"],
+    force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.

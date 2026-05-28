@@ -21,6 +21,14 @@ defmodule Kakemono.DataDir do
     end
   end
 
+  def backend_password_file do
+    case Application.get_env(:kakemono, :backend_password_file, :default) do
+      nil -> nil
+      :default -> path("backend_password.hash")
+      configured -> Path.expand(configured)
+    end
+  end
+
   defp configured_path(key, fallback) do
     :kakemono
     |> Application.get_env(key)

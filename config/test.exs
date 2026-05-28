@@ -17,7 +17,8 @@ config :kakemono,
   data_dir: data_dir,
   uploads_dir: System.get_env("KAKEMONO_UPLOADS_DIR") || Path.join(data_dir, "uploads"),
   backups_dir: System.get_env("KAKEMONO_BACKUPS_DIR") || Path.join(data_dir, "backups"),
-  api_secret_file: nil
+  api_secret_file: nil,
+  backend_password_file: nil
 
 # Configure your database
 #
@@ -55,3 +56,7 @@ config :phoenix_live_view,
 config :kakemono, Oban, testing: :manual
 
 config :kakemono, :api_secret, "test-secret"
+
+# Backend password protection is disabled in tests; covered by dedicated tests
+# that re-enable it explicitly.
+config :kakemono, :backend_auth, false

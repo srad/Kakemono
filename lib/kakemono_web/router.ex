@@ -27,23 +27,38 @@ defmodule KakemonoWeb.Router do
     plug KakemonoWeb.Plugs.ApiAuth
   end
 
+  pipeline :backend_auth do
+    plug KakemonoWeb.Plugs.BackendAuth
+  end
+
   scope "/", KakemonoWeb do
     pipe_through :browser
+
+    get "/login", SessionController, :new
+    post "/login", SessionController, :create
+    delete "/logout", SessionController, :delete
+  end
+
+  scope "/", KakemonoWeb do
+    pipe_through [:browser, :backend_auth]
 
     get "/", PageController, :home
   end
 
   scope "/c", KakemonoWeb do
-    pipe_through :browser
+    pipe_through [:browser, :backend_auth]
 
-    live "/", ControlLive.Index, :index
-    live "/media", MediaLive.Index, :index
-    live "/playlists", PlaylistsLive.Index, :index
-    live "/playlists/:id", PlaylistsLive.Edit, :edit
-    live "/scenes", ScenesLive.Index, :index
-    live "/scenes/:id", ScenesLive.Edit, :edit
-    live "/settings", ControlLive.Settings, :index
-    live "/backups", ControlLive.Backups, :index
+    live_session :authenticated, on_mount: {KakemonoWeb.BackendAuth, :ensure_authed} do
+      live "/", ControlLive.Index, :index
+      live "/media", MediaLive.Index, :index
+      live "/playlists", PlaylistsLive.Index, :index
+      live "/playlists/:id", PlaylistsLive.Edit, :edit
+      live "/scenes", ScenesLive.Index, :index
+      live "/scenes/:id", ScenesLive.Edit, :edit
+      live "/settings", ControlLive.Settings, :index
+      live "/backups", ControlLive.Backups, :index
+    end
+
     get "/backups/:filename/download", BackupController, :download
   end
 

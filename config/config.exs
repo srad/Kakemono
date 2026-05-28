@@ -71,6 +71,10 @@ config :phoenix, :json_library, Jason
 
 config :kakemono, :api_secret, System.get_env("KAKEMONO_API_SECRET") || "dev-secret-change-me"
 
+# Allow setting the backend password through the web UI when none is configured.
+# Disabled in prod (see config/prod.exs) so a fresh public deploy cannot be seized.
+config :kakemono, :allow_web_password_setup, true
+
 config :kakemono, Oban,
   repo: Kakemono.Repo,
   notifier: Oban.Notifiers.PG,

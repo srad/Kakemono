@@ -8,6 +8,7 @@ defmodule Kakemono.Application do
   @impl true
   def start(_type, _args) do
     load_secret_from_file()
+    bootstrap_backend_password()
 
     children = [
       # Start TwMerge cache
@@ -19,6 +20,7 @@ defmodule Kakemono.Application do
       {DNSCluster, query: Application.get_env(:kakemono, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Kakemono.PubSub},
       KakemonoWeb.Presence,
+      KakemonoWeb.LoginThrottle,
       # Start the Finch HTTP client for sending emails
       {Finch, name: Kakemono.Finch},
       # Start a worker by calling: Kakemono.Worker.start_link(arg)
@@ -39,6 +41,25 @@ defmodule Kakemono.Application do
       case File.read(path) do
         {:ok, secret} -> Application.put_env(:kakemono, :api_secret, String.trim(secret))
         _ -> :ok
+      end
+    end
+  end
+
+  defp bootstrap_backend_password do
+    if Kakemono.BackendAuth.enabled?() and not Kakemono.BackendAuth.configured?() do
+      case System.get_env("KAKEMONO_BACKEND_PASSWORD") do
+        password when is_binary(password) and password != "" ->
+          case Kakemono.BackendAuth.set_password(password) do
+            {:error, :too_short} ->
+              raise "KAKEMONO_BACKEND_PASSWORD must be at least " <>
+                      "#{Kakemono.BackendAuth.min_password_length()} characters"
+
+            _ ->
+              :ok
+          end
+
+        _ ->
+          :ok
       end
     end
   end

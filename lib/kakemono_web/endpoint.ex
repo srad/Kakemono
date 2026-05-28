@@ -8,7 +8,8 @@ defmodule KakemonoWeb.Endpoint do
     store: :cookie,
     key: "_kakemono_key",
     signing_salt: "MRAbyBAw",
-    same_site: "Lax"
+    same_site: "Lax",
+    secure: Application.compile_env(:kakemono, :secure_cookies, false)
   ]
 
   socket "/live", Phoenix.LiveView.Socket,

@@ -16,5 +16,10 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Behind an HTTPS-terminating reverse proxy: mark the session cookie Secure and
+# refuse to let an anonymous visitor set the backend password over the web.
+config :kakemono, :secure_cookies, true
+config :kakemono, :allow_web_password_setup, false
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
