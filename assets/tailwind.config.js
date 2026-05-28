@@ -18,9 +18,11 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/typography"),
+    // NOTE: @tailwindcss/typography and @tailwindcss/forms are loaded via the
+    // `@plugin` directive in css/app.css — under the Tailwind v4 engine the
+    // first-party plugins must be loaded that way (loading them through this JS
+    // `plugins` array crashes the v4 standalone CLI).
     require("./vendor/tailwindcss-animate"),
-    require("@tailwindcss/forms"),
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //

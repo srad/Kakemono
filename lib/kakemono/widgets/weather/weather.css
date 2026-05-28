@@ -369,8 +369,7 @@
 
   /* Drop hourly strip when there's not enough width OR vertical room
      to render it without crowding the daily strip. */
-  @container widget (max-width: 480px),
-             widget (max-height: 480px) {
+  @container widget (max-width: 480px) or (max-height: 480px) {
     .kw-w-hourly { display: none; }
     .kw-w-content { grid-template-rows: auto auto auto minmax(0, 1fr); }
   }
@@ -382,7 +381,7 @@
   }
 
   /* S: drop chips and date. Hero stays. */
-  @container widget (max-width: 320px), widget (max-height: 220px) {
+  @container widget (max-width: 320px) or (max-height: 220px) {
     .kw-w-chips { display: none; }
     .kw-w-sep,
     .kw-w-day,
@@ -397,7 +396,7 @@
   }
 
   /* XS: compact icon + temp + condition row */
-  @container widget (max-width: 200px), widget (max-height: 140px) {
+  @container widget (max-width: 200px) or (max-height: 140px) {
     .kw-w-content {
       padding: clamp(10px, 3cqw, 18px);
       grid-template-rows: 1fr;

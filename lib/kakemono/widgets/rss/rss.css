@@ -125,8 +125,7 @@
   }
 
   /* S: drop the header so the list claims the full height */
-  @container widget (max-height: 180px),
-             widget (max-width: 200px) {
+  @container widget (max-height: 180px) or (max-width: 200px) {
     .kw-rss-header { display: none; }
   }
 

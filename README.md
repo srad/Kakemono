@@ -2,7 +2,7 @@
 
 <p align="center">
   <img alt="Elixir" src="https://img.shields.io/badge/Elixir-1.18-4B275F?logo=elixir&logoColor=white">
-  <img alt="Phoenix" src="https://img.shields.io/badge/Phoenix-1.7-FD4F00?logo=phoenixframework&logoColor=white">
+  <img alt="Phoenix" src="https://img.shields.io/badge/Phoenix-1.8-FD4F00?logo=phoenixframework&logoColor=white">
   <img alt="LiveView" src="https://img.shields.io/badge/Phoenix%20LiveView-1.1-FD4F00">
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-backed-003B57?logo=sqlite&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
@@ -68,7 +68,7 @@ enough for all persistent state.
 ## Requirements
 
 - Elixir 1.18 and Erlang/OTP 25 or newer
-- Node.js 20 or newer
+- Node.js 22 or newer (Vite 8 requires Node 20.19+ or 22.12+)
 - SQLite 3
 - `ffmpeg`
 - `libvips`

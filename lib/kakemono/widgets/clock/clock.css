@@ -571,13 +571,13 @@
      Responsive tiers
      ════════════════════════════════════════════════════════════════ */
 
-  @container widget (max-width: 320px), widget (max-height: 220px) {
+  @container widget (max-width: 320px) or (max-height: 220px) {
     .kw-clock-cloud-c { display: none; }
     .kw-sun-rays-short { display: none; }
     .kw-moon-craters circle:nth-child(4) { display: none; }
   }
 
-  @container widget (max-width: 240px), widget (max-height: 170px) {
+  @container widget (max-width: 240px) or (max-height: 170px) {
     .kw-clock-stack-celestial { align-items: center; text-align: center; }
     .kw-clock-stack-celestial .kw-clock-title { text-align: center; }
     .kw-clock-weekday { display: none; }
@@ -588,7 +588,7 @@
     }
   }
 
-  @container widget (max-width: 170px), widget (max-height: 130px) {
+  @container widget (max-width: 170px) or (max-height: 130px) {
     .kw-clock-stars,
     .kw-clock-date,
     .kw-clock-date-pill,

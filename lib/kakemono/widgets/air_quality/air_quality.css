@@ -263,18 +263,18 @@
   /* ─── Responsive tiers (largest → smallest, cascading) ──── */
 
   /* M: drop the AQI caption when space is tight (names stay visible) */
-  @container widget (max-width: 420px), widget (max-height: 320px) {
+  @container widget (max-width: 420px) or (max-height: 320px) {
     .kw-aq-caption { display: none; }
   }
 
   /* Drop pollen when space is tight */
-  @container widget (max-width: 340px), widget (max-height: 280px) {
+  @container widget (max-width: 340px) or (max-height: 280px) {
     .kw-aq-pollen { display: none; }
     .kw-aq-content { grid-template-rows: auto 1fr auto; }
   }
 
   /* S: drop chips, keep hero */
-  @container widget (max-width: 280px), widget (max-height: 200px) {
+  @container widget (max-width: 280px) or (max-height: 200px) {
     .kw-aq-chips { display: none; }
     .kw-aq-content {
       padding: clamp(14px, 3cqw, 24px);
@@ -286,7 +286,7 @@
   }
 
   /* XS: compact icon + value + label row */
-  @container widget (max-width: 180px), widget (max-height: 140px) {
+  @container widget (max-width: 180px) or (max-height: 140px) {
     .kw-aq-content {
       padding: clamp(10px, 3cqw, 18px);
       grid-template-rows: 1fr;
@@ -388,7 +388,7 @@
   }
 
   /* Hide particles on very small widgets to avoid clutter */
-  @container widget (max-width: 180px), widget (max-height: 140px) {
+  @container widget (max-width: 180px) or (max-height: 140px) {
     .kw-aq-pollen-field { display: none; }
   }
 }

@@ -1,5 +1,13 @@
 import { GridStack } from "gridstack"
 
+// GridStack v11+ stopped rendering a widget's `content` as HTML by default
+// (XSS hardening) — it now sets textContent, which made our widget cards show
+// as raw escaped markup. We build trusted HTML here, so restore innerHTML
+// rendering via the global render callback.
+GridStack.renderCB = (el, widget) => {
+  el.innerHTML = widget.content || ""
+}
+
 const COLUMNS = 12
 const ROWS = 12
 
