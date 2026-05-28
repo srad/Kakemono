@@ -27,7 +27,7 @@ defmodule Kakemono.Widgets.AirQuality do
   def draft_config, do: %{}
 
   @impl true
-  def cache_fields, do: [{"cached", "object"}]
+  def cache_fields, do: [{"cached", "object"}, {"fetched_at", "string"}]
 
   @impl true
   def fields do
@@ -79,7 +79,11 @@ defmodule Kakemono.Widgets.AirQuality do
   @impl true
   def fetch(%Instance{config: cfg}) do
     with {:ok, body} <- http_get(cfg["latitude"], cfg["longitude"]) do
-      {:ok, %{"cached" => body}}
+      {:ok,
+       %{
+         "cached" => body,
+         "fetched_at" => NaiveDateTime.local_now() |> NaiveDateTime.to_iso8601()
+       }}
     end
   end
 
@@ -136,6 +140,7 @@ defmodule Kakemono.Widgets.AirQuality do
     assigns =
       Map.merge(assigns, %{
         label: cfg["label"] || "Air Quality",
+        updated_at: format_fetched_at(cfg["fetched_at"]),
         aqi: aqi,
         aqi_level: aqi_level,
         aqi_label: aqi_label,
@@ -149,6 +154,7 @@ defmodule Kakemono.Widgets.AirQuality do
 
     ~H"""
     <div class={"kakemono-widget kakemono-widget-air-quality"} data-aqi={@aqi_level} data-pollen={@pollen_severity}>
+      <span :if={@updated_at != ""} class="kw-aq-updated" title="Last updated">{@updated_at}</span>
       <.pollen_field />
       <div class="kw-aq-content">
         <div class="kw-aq-header">
@@ -345,6 +351,23 @@ defmodule Kakemono.Widgets.AirQuality do
       true -> "none"
     end
   end
+
+  defp format_fetched_at(nil), do: ""
+  defp format_fetched_at(""), do: ""
+
+  defp format_fetched_at(str) when is_binary(str) do
+    case NaiveDateTime.from_iso8601(str) do
+      {:ok, dt} ->
+        hh = dt.hour |> Integer.to_string() |> String.pad_leading(2, "0")
+        mm = dt.minute |> Integer.to_string() |> String.pad_leading(2, "0")
+        "#{hh}:#{mm}"
+
+      _ ->
+        ""
+    end
+  end
+
+  defp format_fetched_at(_), do: ""
 
   defp format_number(n) when is_float(n), do: :erlang.float_to_binary(n, decimals: 1)
   defp format_number(n) when is_integer(n), do: Integer.to_string(n)

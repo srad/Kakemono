@@ -47,7 +47,8 @@ defmodule Kakemono.Widget.ConfigTest do
                  "latitude" => %{"type" => "number", "minimum" => -90, "maximum" => 90},
                  "longitude" => %{"type" => "number", "minimum" => -180, "maximum" => 180},
                  "label" => %{"type" => "string"},
-                 "cached" => %{"type" => "object"}
+                 "cached" => %{"type" => "object"},
+                 "fetched_at" => %{"type" => "string"}
                }
              }
     end

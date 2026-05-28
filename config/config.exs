@@ -86,8 +86,9 @@ config :kakemono, Oban,
     {Oban.Plugins.Cron,
      crontab: [
        {"*/15 * * * *", Kakemono.Widgets.RefreshScheduler,
-        args: %{"types" => ["weather", "air_quality", "rss"]}},
-       {"0 * * * *", Kakemono.Widgets.RefreshScheduler, args: %{"types" => ["instagram"]}},
+        args: %{"types" => ["weather", "rss"]}},
+       {"0 * * * *", Kakemono.Widgets.RefreshScheduler,
+        args: %{"types" => ["air_quality", "instagram"]}},
        {"* * * * *", Kakemono.Scenes.ScheduleWorker}
      ]}
   ]

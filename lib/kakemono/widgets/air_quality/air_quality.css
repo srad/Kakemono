@@ -108,6 +108,20 @@
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
   }
 
+  .kw-aq-updated {
+    position: absolute;
+    top: clamp(8px, 2cqw, 16px);
+    right: clamp(10px, 2.5cqw, 20px);
+    z-index: 2;
+    font-size: clamp(0.6rem, 2cqw, 0.8rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    opacity: 0.55;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
+    pointer-events: none;
+  }
+
   .kw-aq-empty {
     font-size: clamp(0.85rem, min(3cqw, 3.5cqh), 1.1rem);
     opacity: 0.65;
