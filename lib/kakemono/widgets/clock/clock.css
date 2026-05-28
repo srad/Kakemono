@@ -111,6 +111,21 @@
     text-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
   }
 
+  .kw-clock-location {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--clock-muted);
+    font-size: clamp(0.62rem, min(2cqw, 2.6cqh), 0.9rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.85;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+
   .kw-clock-date,
   .kw-clock-date-pill {
     max-width: 100%;

@@ -45,6 +45,34 @@ defmodule Kakemono.Widgets.Clock do
         options: Kakemono.TimeZones.list()
       },
       %{
+        key: "location",
+        label: "Location (for sun/moon)",
+        type: :location_search,
+        required: false,
+        schema_optional: true,
+        placeholder: "Search a city…"
+      },
+      %{
+        key: "latitude",
+        type: :number,
+        hidden: true,
+        required: false,
+        step: "any",
+        min: -90,
+        max: 90,
+        default: 0.0
+      },
+      %{
+        key: "longitude",
+        type: :number,
+        hidden: true,
+        required: false,
+        step: "any",
+        min: -180,
+        max: 180,
+        default: 0.0
+      },
+      %{
         key: "format",
         label: "Format",
         type: :select,
@@ -66,15 +94,21 @@ defmodule Kakemono.Widgets.Clock do
   def render(assigns) do
     style = Map.get(assigns.instance.config, "style", "celestial")
     style = if style in @styles, do: style, else: "celestial"
-    title = assigns.instance.config |> Map.get("title") |> normalize_title()
+    config = assigns.instance.config
+    title = config |> Map.get("title") |> normalize_title()
+    location = config |> Map.get("location") |> normalize_location()
+    {lat, lon} = location_coords(config)
 
     assigns =
       assigns
       |> Map.put(:style, style)
       |> Map.put(:title, title)
-      |> Map.put(:format, Map.get(assigns.instance.config, "format", "24h"))
-      |> Map.put(:show_seconds, Map.get(assigns.instance.config, "show_seconds", false))
-      |> Map.put(:timezone, Map.get(assigns.instance.config, "timezone"))
+      |> Map.put(:location, location)
+      |> Map.put(:latitude, lat)
+      |> Map.put(:longitude, lon)
+      |> Map.put(:format, Map.get(config, "format", "24h"))
+      |> Map.put(:show_seconds, Map.get(config, "show_seconds", false))
+      |> Map.put(:timezone, Map.get(config, "timezone"))
       |> Map.put(:clock_id, "clock-" <> Integer.to_string(assigns.instance.id))
 
     ~H"""
@@ -101,6 +135,7 @@ defmodule Kakemono.Widgets.Clock do
           </div>
           <div class="kw-clock-stack kw-clock-stack-celestial">
             <div :if={@title} class="kw-clock-title">{@title}</div>
+            <div :if={@location} class="kw-clock-location">{@location}</div>
             <time
               phx-hook="ClockTick"
               id={@clock_id}
@@ -108,6 +143,8 @@ defmodule Kakemono.Widgets.Clock do
               data-format={@format}
               data-show-seconds={to_string(@show_seconds)}
               data-timezone={@timezone}
+              data-latitude={@latitude}
+              data-longitude={@longitude}
               class="kw-clock-time"
             >
               --:--
@@ -130,6 +167,7 @@ defmodule Kakemono.Widgets.Clock do
           </div>
           <div class="kw-clock-stack kw-clock-stack-lunar">
             <div :if={@title} class="kw-clock-title">{@title}</div>
+            <div :if={@location} class="kw-clock-location">{@location}</div>
             <time
               phx-hook="ClockTick"
               id={@clock_id}
@@ -137,6 +175,8 @@ defmodule Kakemono.Widgets.Clock do
               data-format={@format}
               data-show-seconds={to_string(@show_seconds)}
               data-timezone={@timezone}
+              data-latitude={@latitude}
+              data-longitude={@longitude}
               class="kw-clock-time"
             >
               --:--
@@ -148,6 +188,7 @@ defmodule Kakemono.Widgets.Clock do
             <div data-clock-weekday class="kw-clock-weekday"></div>
             <div class="kw-clock-main">
               <div :if={@title} class="kw-clock-title">{@title}</div>
+              <div :if={@location} class="kw-clock-location">{@location}</div>
               <time
                 phx-hook="ClockTick"
                 id={@clock_id}
@@ -184,6 +225,39 @@ defmodule Kakemono.Widgets.Clock do
   end
 
   defp normalize_title(_), do: nil
+
+  # Keep just the leading "City" segment of the geocoded label for a compact pill.
+  defp normalize_location(loc) when is_binary(loc) do
+    case String.trim(loc) do
+      "" -> nil
+      trimmed -> trimmed |> String.split(",") |> List.first() |> String.trim()
+    end
+  end
+
+  defp normalize_location(_), do: nil
+
+  # Returns {lat, lon} floats when a real location is set, else {nil, nil} so the
+  # JS hook falls back to its fixed daylight window.
+  defp location_coords(config) do
+    lat = config |> Map.get("latitude") |> to_coord()
+    lon = config |> Map.get("longitude") |> to_coord()
+    if is_number(lat) and is_number(lon) and not (lat == 0.0 and lon == 0.0) do
+      {lat, lon}
+    else
+      {nil, nil}
+    end
+  end
+
+  defp to_coord(v) when is_number(v), do: v
+
+  defp to_coord(v) when is_binary(v) do
+    case Float.parse(v) do
+      {f, _} -> f
+      :error -> nil
+    end
+  end
+
+  defp to_coord(_), do: nil
 
   defp style_class("lunar"), do: "kw-clock-style-lunar"
   defp style_class("minimal"), do: "kw-clock-style-minimal"
