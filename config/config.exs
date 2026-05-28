@@ -82,6 +82,7 @@ config :kakemono, Oban,
     {Oban.Plugins.Pruner, max_age: 60 * 60 * 24},
     {Oban.Plugins.Cron,
      crontab: [
+       {"*/15 * * * *", Kakemono.Widgets.AirQualityScheduler},
        {"*/15 * * * *", Kakemono.Widgets.WeatherScheduler},
        {"*/15 * * * *", Kakemono.Widgets.RssScheduler},
        {"0 * * * *", Kakemono.Widgets.InstagramScheduler},

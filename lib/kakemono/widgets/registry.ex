@@ -4,9 +4,9 @@ defmodule Kakemono.Widgets.Registry do
   implement `Kakemono.Widget` in a new module, then append it here.
   """
 
-  alias Kakemono.Widgets.{Clock, Instagram, Rss, Slideshow, Weather}
+  alias Kakemono.Widgets.{AirQuality, Clock, Instagram, Rss, Slideshow, Weather}
 
-  @widgets [Clock, Instagram, Rss, Slideshow, Weather]
+  @widgets [AirQuality, Clock, Instagram, Rss, Slideshow, Weather]
 
   def all, do: @widgets
 

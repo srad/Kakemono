@@ -135,21 +135,40 @@ const ClockTick = {
     this.targetCloudCount = 5;
     this.lastCloudTime = performance.now();
 
+    // Cache container dimensions to avoid layout thrashing in the animation loop
+    this._cachedContainerW = 0;
+    this._cachedContainerH = 0;
+    this._updateCachedDimensions();
+
+    // Update cache on resize instead of calling getBoundingClientRect every frame
+    if (typeof ResizeObserver !== "undefined") {
+      this._cloudResizeObserver = new ResizeObserver(() => {
+        this._updateCachedDimensions();
+      });
+      this._cloudResizeObserver.observe(container);
+    }
+
     // Spawn initial clouds spread across visible area
-    const rect = container.getBoundingClientRect();
     for (let i = 0; i < this.targetCloudCount; i++) {
-      this.spawnCloud(Math.random() * rect.width * 0.8);
+      this.spawnCloud(Math.random() * this._cachedContainerW * 0.8);
     }
 
     this.cloudLoop();
   },
 
+  _updateCachedDimensions() {
+    if (!this.cloudContainer) return;
+    const rect = this.cloudContainer.getBoundingClientRect();
+    this._cachedContainerW = rect.width;
+    this._cachedContainerH = rect.height;
+  },
+
   spawnCloud(startX = null) {
     if (!this.cloudContainer || !this.cloudEntities) return;
 
-    const rect = this.cloudContainer.getBoundingClientRect();
-    const containerW = rect.width;
-    const containerH = rect.height;
+    // Use cached dimensions to avoid layout thrashing
+    const containerW = this._cachedContainerW;
+    const containerH = this._cachedContainerH;
 
     if (containerW === 0 || containerH === 0) return;
 
@@ -214,8 +233,8 @@ const ClockTick = {
     const dt = (now - this.lastCloudTime) / 1000;
     this.lastCloudTime = now;
 
-    const rect = this.cloudContainer.getBoundingClientRect();
-    const containerW = rect.width;
+    // Use cached width to avoid layout thrashing (getBoundingClientRect is expensive)
+    const containerW = this._cachedContainerW;
 
     // Update all clouds
     for (let i = this.cloudEntities.length - 1; i >= 0; i--) {
@@ -231,10 +250,13 @@ const ClockTick = {
       }
     }
 
-    // Maintain target cloud count
-    while (this.cloudEntities.length < this.targetCloudCount) {
-      this.spawnCloud();
-    }
+    // Top up to the target count by spawning only the deficit. Bounded on
+    // purpose: spawnCloud() is a no-op when the container measures 0×0 (widget
+    // hidden / mid-relayout), so the old `while (length < target)` spun forever
+    // and froze the tab. A fixed-count loop can't hang; unsized frames simply
+    // spawn nothing and retry once the widget has size again.
+    const deficit = this.targetCloudCount - this.cloudEntities.length;
+    for (let i = 0; i < deficit; i++) this.spawnCloud();
 
     this.cloudAnimFrame = requestAnimationFrame(() => this.cloudLoop());
   },
@@ -243,6 +265,11 @@ const ClockTick = {
     if (this.cloudAnimFrame) {
       cancelAnimationFrame(this.cloudAnimFrame);
       this.cloudAnimFrame = null;
+    }
+    // Disconnect resize observer
+    if (this._cloudResizeObserver) {
+      this._cloudResizeObserver.disconnect();
+      this._cloudResizeObserver = null;
     }
     // Remove all cloud DOM elements and break references
     if (this.cloudEntities) {
@@ -256,6 +283,8 @@ const ClockTick = {
     }
     this.cloudEntities = null;
     this.cloudContainer = null;
+    this._cachedContainerW = 0;
+    this._cachedContainerH = 0;
   },
 
   render() {

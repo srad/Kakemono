@@ -74,6 +74,57 @@ enough for all persistent state.
 
 The Docker workflows include these system dependencies.
 
+## Development Environment Setup
+
+Elixir and Erlang are pinned with [asdf](https://asdf-vm.com); the exact
+versions live in the `.tool-versions` file at the repository root.
+
+### Automated setup (Ubuntu)
+
+On Ubuntu (or another Debian-based host), run the `setup-erlang.sh` helper
+script from the repository root. It installs build dependencies, asdf, the
+pinned Erlang/Elixir versions from `.tool-versions`, and compiles the project:
+
+```bash
+./setup-erlang.sh
+```
+
+When it finishes, open a new terminal (or `source ~/.bashrc`) so asdf is on your
+`PATH`, then start the server:
+
+```bash
+mix phx.server
+```
+
+### Manual setup with asdf
+
+If you already have asdf installed, add the plugins and install the versions
+from `.tool-versions`:
+
+```bash
+asdf plugin add erlang
+asdf plugin add elixir
+asdf install
+```
+
+`asdf install` reads `.tool-versions` and installs the listed versions.
+Building Erlang from source needs the usual build toolchain (for example
+`build-essential`, `autoconf`, `m4`, `libssl-dev`, `libncurses-dev`); see
+`setup-erlang.sh` for the full package list.
+
+Verify the toolchain is active in the project directory:
+
+```bash
+elixir --version
+```
+
+asdf must be sourced in your shell for `mix`, `iex`, and `erl` to resolve. Most
+shells load it automatically; in non-interactive shells source it explicitly:
+
+```bash
+. "$HOME/.asdf/asdf.sh"
+```
+
 ## Quick Start
 
 ```bash
