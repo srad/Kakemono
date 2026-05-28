@@ -114,7 +114,8 @@ defmodule Kakemono.Widgets.AirQuality do
       <.pollen_field />
       <div class="kw-aq-content">
         <div class="kw-aq-header">
-          <span class="kw-aq-loc">{@label}</span>
+          <span class="kw-aq-eyebrow">Air Quality</span>
+          <span :if={@label != "Air Quality"} class="kw-aq-loc">{@label}</span>
         </div>
 
         <div :if={is_nil(@aqi)} class="kw-aq-empty">
@@ -128,17 +129,24 @@ defmodule Kakemono.Widgets.AirQuality do
           <div class="kw-aq-hero-text">
             <div class="kw-aq-value">{@aqi}</div>
             <div class="kw-aq-label">{@aqi_label}</div>
+            <div class="kw-aq-caption">Air Quality Index</div>
           </div>
         </div>
 
         <div :if={not is_nil(@pm25) or not is_nil(@pm10)} class="kw-aq-chips">
           <span :if={not is_nil(@pm25)} class="kw-aq-chip">
-            <span class="kw-aq-chip-label">PM2.5</span>
-            <span class="kw-aq-chip-value">{format_number(@pm25)}</span>
+            <span class="kw-aq-chip-name">Fine dust</span>
+            <span class="kw-aq-chip-abbr">PM2.5</span>
+            <span class="kw-aq-chip-value">
+              {format_number(@pm25)}<span class="kw-aq-chip-unit">µg/m³</span>
+            </span>
           </span>
           <span :if={not is_nil(@pm10)} class="kw-aq-chip">
-            <span class="kw-aq-chip-label">PM10</span>
-            <span class="kw-aq-chip-value">{format_number(@pm10)}</span>
+            <span class="kw-aq-chip-name">Coarse dust</span>
+            <span class="kw-aq-chip-abbr">PM10</span>
+            <span class="kw-aq-chip-value">
+              {format_number(@pm10)}<span class="kw-aq-chip-unit">µg/m³</span>
+            </span>
           </span>
         </div>
 

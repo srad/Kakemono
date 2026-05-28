@@ -18,7 +18,8 @@ defmodule Kakemono.Widgets.Rss do
         "title" => %{"type" => "string"},
         "max_items" => %{"type" => "integer", "minimum" => 1, "maximum" => 20},
         "cached_items" => %{"type" => "array"},
-        "feed_title" => %{"type" => "string"}
+        "feed_title" => %{"type" => "string"},
+        "fetched_at" => %{"type" => "string"}
       },
       "additionalProperties" => false
     }
@@ -31,8 +32,9 @@ defmodule Kakemono.Widgets.Rss do
   def prefetch(%Kakemono.Widgets.Instance{id: id, config: cfg}) do
     url = cfg["url"]
     items = cfg["cached_items"]
+    needs_fetch = is_nil(items) or items == [] or is_nil(cfg["fetched_at"])
 
-    if is_binary(url) and url != "" and (is_nil(items) or items == []) do
+    if is_binary(url) and url != "" and needs_fetch do
       %{instance_id: id}
       |> Kakemono.Widgets.RssFetchWorker.new()
       |> Oban.insert!()
@@ -129,8 +131,10 @@ defmodule Kakemono.Widgets.Rss do
     display_title = cfg["title"] || cfg["feed_title"] || "Feed"
     max = cfg["max_items"] || 5
     items = Enum.take(cfg["cached_items"] || [], max)
+    updated_at = format_fetched_at(cfg["fetched_at"])
 
-    assigns = Map.merge(assigns, %{display_title: display_title, items: items})
+    assigns =
+      Map.merge(assigns, %{display_title: display_title, items: items, updated_at: updated_at})
 
     ~H"""
     <div class="kakemono-widget kakemono-widget-rss">
@@ -159,6 +163,7 @@ defmodule Kakemono.Widgets.Rss do
           </svg>
         </span>
         <span class="kw-rss-title">{@display_title}</span>
+        <span :if={@updated_at != ""} class="kw-rss-updated" title="Last updated">{@updated_at}</span>
       </div>
       <div :if={@items == []} class="kw-rss-empty">No items cached yet.</div>
       <ul :if={@items != []} class="kw-rss-list">
@@ -171,6 +176,21 @@ defmodule Kakemono.Widgets.Rss do
       </ul>
     </div>
     """
+  end
+
+  defp format_fetched_at(nil), do: ""
+  defp format_fetched_at(""), do: ""
+
+  defp format_fetched_at(str) when is_binary(str) do
+    case NaiveDateTime.from_iso8601(str) do
+      {:ok, dt} ->
+        hh = dt.hour |> Integer.to_string() |> String.pad_leading(2, "0")
+        mm = dt.minute |> Integer.to_string() |> String.pad_leading(2, "0")
+        "#{hh}:#{mm}"
+
+      _ ->
+        ""
+    end
   end
 
   defp meta_for(item) do

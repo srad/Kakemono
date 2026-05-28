@@ -24,7 +24,13 @@ defmodule Kakemono.Widgets.RssFetchWorker do
              {feed_title, items} = Rss.parse_feed(body),
              max = cfg["max_items"] || 5,
              trimmed = Enum.take(items, max),
-             update = Map.merge(cfg, %{"cached_items" => trimmed, "feed_title" => feed_title}),
+             fetched_at = NaiveDateTime.local_now() |> NaiveDateTime.to_iso8601(),
+             update =
+               Map.merge(cfg, %{
+                 "cached_items" => trimmed,
+                 "feed_title" => feed_title,
+                 "fetched_at" => fetched_at
+               }),
              {:ok, _} <- Widgets.update_config(inst, update) do
           broadcast(inst.id)
           :ok

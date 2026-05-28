@@ -1750,12 +1750,22 @@ body { @apply bg-background text-foreground; }
     min-height: 0;
   }
 
-  /* Header: location name, centered (matches weather header) */
+  /* Header: "Air Quality" eyebrow over the location name, centered */
   .kw-aq-header {
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     text-align: center;
+    row-gap: clamp(1px, 0.4cqh, 4px);
+  }
+  .kw-aq-eyebrow {
+    font-size: clamp(0.6rem, 2cqw, 0.85rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    opacity: 0.6;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.30);
   }
   .kw-aq-loc {
     font-size: clamp(0.9rem, 3.4cqw, 1.5rem);
@@ -1805,6 +1815,13 @@ body { @apply bg-background text-foreground; }
     font-weight: 600;
     opacity: 0.95;
   }
+  .kw-aq-caption {
+    font-size: clamp(0.6rem, 1.9cqw, 0.85rem);
+    font-weight: 500;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
 
   /* SVG icon styling (Lucide conventions — matches weather icons) */
   .kw-aq-icon {
@@ -1848,12 +1865,22 @@ body { @apply bg-background text-foreground; }
     line-height: 1.2;
     font-variant-numeric: tabular-nums;
   }
-  .kw-aq-chip-label {
-    opacity: 0.75;
+  .kw-aq-chip-name {
+    font-weight: 600;
+  }
+  .kw-aq-chip-abbr {
+    opacity: 0.6;
     font-weight: 500;
+    font-size: 0.85em;
   }
   .kw-aq-chip-value {
     font-weight: 700;
+  }
+  .kw-aq-chip-unit {
+    opacity: 0.6;
+    font-weight: 500;
+    font-size: 0.85em;
+    margin-left: 3px;
   }
 
   /* Pollen section */
@@ -1900,6 +1927,11 @@ body { @apply bg-background text-foreground; }
   .kw-aq-pollen-row[data-level="very-high"] .kw-aq-pollen-value { color: #f87171; }
 
   /* ─── Responsive tiers (largest → smallest, cascading) ──── */
+
+  /* M: drop the AQI caption when space is tight (names stay visible) */
+  @container widget (max-width: 420px), widget (max-height: 320px) {
+    .kw-aq-caption { display: none; }
+  }
 
   /* Drop pollen when space is tight */
   @container widget (max-width: 340px), widget (max-height: 280px) {
@@ -2057,6 +2089,14 @@ body { @apply bg-background text-foreground; }
     flex-shrink: 0;
   }
   .kw-shell-light .kw-rss-feed-icon { background: #ea580c; }
+  .kw-rss-updated {
+    flex-shrink: 0;
+    font-size: clamp(0.65rem, min(2cqw, 3cqh), 0.85rem);
+    font-weight: 500;
+    opacity: 0.5;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
   .kw-rss-title {
     flex: 1;
     min-width: 0;
