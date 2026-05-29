@@ -18,17 +18,22 @@ defmodule Kakemono.Widgets.Weather.Sources.BrightSkyTest do
   defp range_fixture do
     %{
       "weather" => [
-        record("2026-05-28T12:00:00+02:00", 18.5, "partly-cloudy-day"),
-        record("2026-05-28T13:00:00+02:00", 19.0, "rain"),
-        record("2026-05-28T23:00:00+02:00", 11.0, "clear-night"),
-        record("2026-05-29T12:00:00+02:00", 15.0, "thunderstorm"),
-        record("2026-05-30T12:00:00+02:00", 4.0, "snow")
+        record("2026-05-28T12:00:00+02:00", 18.5, "partly-cloudy-day", 10),
+        record("2026-05-28T13:00:00+02:00", 19.0, "rain", 80),
+        record("2026-05-28T23:00:00+02:00", 11.0, "clear-night", 20),
+        record("2026-05-29T12:00:00+02:00", 15.0, "thunderstorm", 90),
+        record("2026-05-30T12:00:00+02:00", 4.0, "snow", 60)
       ]
     }
   end
 
-  defp record(ts, temp, icon) do
-    %{"timestamp" => ts, "temperature" => temp, "icon" => icon}
+  defp record(ts, temp, icon, precip_prob) do
+    %{
+      "timestamp" => ts,
+      "temperature" => temp,
+      "icon" => icon,
+      "precipitation_probability" => precip_prob
+    }
   end
 
   describe "normalize/2" do
@@ -68,6 +73,12 @@ defmodule Kakemono.Widgets.Weather.Sources.BrightSkyTest do
       assert daily["time"] == ["2026-05-28", "2026-05-29", "2026-05-30"]
       assert daily["temperature_2m_max"] == [19.0, 15.0, 4.0]
       assert daily["temperature_2m_min"] == [11.0, 15.0, 4.0]
+    end
+
+    test "daily carries the max precipitation probability per day" do
+      daily = BrightSky.normalize(current_fixture(), range_fixture())["daily"]
+
+      assert daily["precipitation_probability_max"] == [80, 90, 60]
     end
   end
 

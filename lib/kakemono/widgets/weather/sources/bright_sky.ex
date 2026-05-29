@@ -77,6 +77,7 @@ defmodule Kakemono.Widgets.Weather.Sources.BrightSky do
       "time" => dates,
       "temperature_2m_max" => Enum.map(dates, fn d -> day_temp(by_day[d], &Enum.max/1) end),
       "temperature_2m_min" => Enum.map(dates, fn d -> day_temp(by_day[d], &Enum.min/1) end),
+      "precipitation_probability_max" => Enum.map(dates, fn d -> day_precip_prob(by_day[d]) end),
       "weather_code" => Enum.map(dates, fn d -> midday_code(by_day[d]) end)
     }
   end
@@ -85,6 +86,13 @@ defmodule Kakemono.Widgets.Weather.Sources.BrightSky do
     case records |> Enum.map(& &1["temperature"]) |> Enum.filter(&is_number/1) do
       [] -> nil
       temps -> agg.(temps)
+    end
+  end
+
+  defp day_precip_prob(records) do
+    case records |> Enum.map(& &1["precipitation_probability"]) |> Enum.filter(&is_number/1) do
+      [] -> nil
+      probs -> Enum.max(probs)
     end
   end
 

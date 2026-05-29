@@ -42,6 +42,10 @@ defmodule Kakemono.Widget.ConfigTest do
                  },
                  "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()},
                  "api_key" => %{"type" => "string"},
+                 "forecast_layout" => %{
+                   "type" => "string",
+                   "enum" => ["cards", "open", "panel"]
+                 },
                  "cached" => %{"type" => "object"}
                }
              }
@@ -126,7 +130,8 @@ defmodule Kakemono.Widget.ConfigTest do
                "latitude" => 0.0,
                "longitude" => 0.0,
                "label" => "Weather",
-               "source" => "open_meteo"
+               "source" => "open_meteo",
+               "forecast_layout" => "cards"
              }
 
       assert AirQuality.default_config() == %{

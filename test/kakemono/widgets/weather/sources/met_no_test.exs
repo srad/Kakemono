@@ -3,7 +3,7 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNoTest do
 
   alias Kakemono.Widgets.Weather.Sources.MetNo
 
-  defp series_entry(time, temp, symbol) do
+  defp series_entry(time, temp, symbol, precip_prob \\ nil) do
     %{
       "time" => time,
       "data" => %{
@@ -14,7 +14,10 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNoTest do
             "wind_speed" => 5.0
           }
         },
-        "next_1_hours" => %{"summary" => %{"symbol_code" => symbol}}
+        "next_1_hours" => %{
+          "summary" => %{"symbol_code" => symbol},
+          "details" => %{"probability_of_precipitation" => precip_prob}
+        }
       }
     }
   end
@@ -23,12 +26,12 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNoTest do
     %{
       "properties" => %{
         "timeseries" => [
-          series_entry("2026-05-28T12:00:00Z", 18.0, "clearsky_day"),
-          series_entry("2026-05-28T13:00:00Z", 19.0, "partlycloudy_day"),
-          series_entry("2026-05-28T23:00:00Z", 12.0, "partlycloudy_night"),
-          series_entry("2026-05-29T12:00:00Z", 16.0, "lightrain"),
-          series_entry("2026-05-29T18:00:00Z", 14.0, "rainshowers_day"),
-          series_entry("2026-05-30T12:00:00Z", 5.0, "snow")
+          series_entry("2026-05-28T12:00:00Z", 18.0, "clearsky_day", 10),
+          series_entry("2026-05-28T13:00:00Z", 19.0, "partlycloudy_day", 40),
+          series_entry("2026-05-28T23:00:00Z", 12.0, "partlycloudy_night", 20),
+          series_entry("2026-05-29T12:00:00Z", 16.0, "lightrain", 70),
+          series_entry("2026-05-29T18:00:00Z", 14.0, "rainshowers_day", 55),
+          series_entry("2026-05-30T12:00:00Z", 5.0, "snow", 90)
         ]
       }
     }
@@ -74,6 +77,23 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNoTest do
       assert daily["temperature_2m_min"] == [12.0, 14.0, 5.0]
       # day 1 midday closest entry is clearsky_day (12:00) -> 0
       assert hd(daily["weather_code"]) == 0
+    end
+
+    test "daily carries the max probability_of_precipitation per day" do
+      daily = MetNo.normalize(fixture())["daily"]
+
+      assert daily["precipitation_probability_max"] == [40, 70, 90]
+    end
+
+    test "daily precipitation probability is nil-safe when the feed omits it" do
+      body = %{
+        "properties" => %{
+          "timeseries" => [series_entry("2026-05-28T12:00:00Z", 18.0, "clearsky_day")]
+        }
+      }
+
+      daily = MetNo.normalize(body)["daily"]
+      assert daily["precipitation_probability_max"] == [nil]
     end
 
     test "omits utc_offset_seconds and sunrise/sunset" do

@@ -74,6 +74,18 @@ defmodule Kakemono.Widgets.Weather do
         required: false,
         schema_optional: true,
         placeholder: "Only needed for key-based sources"
+      },
+      %{
+        key: "forecast_layout",
+        label: "Forecast layout",
+        type: :select,
+        required: false,
+        default: "cards",
+        options: [
+          {"cards", "Day columns"},
+          {"open", "Open (no panels)"},
+          {"panel", "Single panel"}
+        ]
       }
     ]
   end
@@ -85,10 +97,11 @@ defmodule Kakemono.Widgets.Weather do
   end
 
   @impl true
-  def merge_config(old, new) do
-    merged = Map.merge(old, new)
-    if provider_input_changed?(old, merged), do: Map.delete(merged, "cached"), else: merged
-  end
+  # Keep the existing cache across provider changes: every source normalizes to
+  # the same canonical shape, so the last-known data keeps rendering until the
+  # refetch (enqueued by on_config_change/2) replaces it — the widget never
+  # blanks when the source/coordinates change.
+  def merge_config(old, new), do: Map.merge(old, new)
 
   @impl true
   def on_config_change(%Instance{id: id, config: cfg}, old_config) do
@@ -162,10 +175,13 @@ defmodule Kakemono.Widgets.Weather do
         condition: weather_condition(code),
         hi: format_temperature(today["max"]),
         lo: format_temperature(today["min"]),
+        rain: format_percent(today["precip"]),
         sun_window: format_sun_window(today["sunrise"], today["sunset"]),
         today_date: format_today(today["date"]),
         hourly: next_hours(cached, 12),
-        daily: next_days(cached, 5)
+        daily: next_days(cached, 3),
+        forecast_grid: forecast_grid(cached, 4, [6, 12, 18, 21]),
+        forecast_layout: cfg["forecast_layout"] || "cards"
       })
 
     ~H"""
@@ -188,7 +204,9 @@ defmodule Kakemono.Widgets.Weather do
         <div class="kw-w-moon-body"></div>
         <div class="kw-w-atmosphere"></div>
       </div>
-      <div class="kw-w-content">
+      <div class={
+        if @forecast_grid != nil, do: "kw-w-content kw-w-content-table", else: "kw-w-content"
+      }>
         <div class="kw-w-header">
           <span class="kw-w-loc">{@label}</span>
           <span :if={@today_date != ""} class="kw-w-sep">·</span>
@@ -202,11 +220,14 @@ defmodule Kakemono.Widgets.Weather do
           <div class="kw-w-hero-text">
             <div class="kw-w-temp">{@temp}</div>
             <div class="kw-w-cond">{@condition}</div>
-            <div class="kw-w-hilo">
-              <span class="kw-w-hi">↑ {@hi}</span>
-              <span class="kw-w-lo">↓ {@lo}</span>
-            </div>
             <div :if={@feels_like != "—°"} class="kw-w-feels">Feels like {@feels_like}</div>
+          </div>
+          <div class="kw-w-stats">
+            <span class="kw-w-stat kw-w-hi">↑ {@hi}</span>
+            <span class="kw-w-stat-div" aria-hidden="true"></span>
+            <span class="kw-w-stat kw-w-lo">↓ {@lo}</span>
+            <span class="kw-w-stat-div" aria-hidden="true"></span>
+            <span class="kw-w-stat kw-w-rain">🌧 {@rain || "—"}</span>
           </div>
         </div>
 
@@ -222,7 +243,41 @@ defmodule Kakemono.Widgets.Weather do
           </span>
         </div>
 
-        <div :if={@hourly != []} class="kw-w-hourly">
+        <div
+          :if={@forecast_grid != nil}
+          class="kw-w-forecast-table"
+          data-layout={@forecast_layout}
+          role="table"
+          aria-label="Weather forecast by day and hour"
+        >
+          <div class="kw-w-forecast-rail" role="rowgroup">
+            <div class="kw-w-forecast-corner"></div>
+            <div :for={hour <- @forecast_grid.hours} class="kw-w-forecast-hour" role="rowheader">
+              {hour}
+            </div>
+          </div>
+
+          <div :for={col <- @forecast_grid.columns} class="kw-w-forecast-col" role="column">
+            <div class="kw-w-forecast-day" role="columnheader">
+              <span class="kw-w-forecast-weekday">{col.weekday}</span>
+              <span class="kw-w-forecast-date">{col.date}</span>
+            </div>
+            <div
+              :for={cell <- col.cells}
+              class={["kw-w-forecast-cell", cell.temp == nil && "kw-w-forecast-cell-empty"]}
+              data-scene={cell.scene}
+              role="cell"
+            >
+              <div :if={cell.temp != nil} class="kw-w-forecast-cell-main">
+                <span class="kw-w-forecast-icon"><.weather_icon scene={cell.scene} small /></span>
+                <span class="kw-w-forecast-temp">{cell.temp}</span>
+              </div>
+              <span :if={cell.temp == nil} class="kw-w-forecast-dash">–</span>
+            </div>
+          </div>
+        </div>
+
+        <div :if={@forecast_grid == nil and @hourly != []} class="kw-w-hourly">
           <div :for={h <- @hourly} class="kw-w-hourly-cell">
             <div class="kw-w-hourly-time">{h.label}</div>
             <div class="kw-w-hourly-icon"><.weather_icon scene={h.scene} small /></div>
@@ -230,7 +285,7 @@ defmodule Kakemono.Widgets.Weather do
           </div>
         </div>
 
-        <div :if={@daily != []} class="kw-w-daily">
+        <div :if={@forecast_grid == nil and @daily != []} class="kw-w-daily">
           <div :for={d <- @daily} class="kw-w-daily-row">
             <div class="kw-w-daily-day">{d.label}</div>
             <div class="kw-w-daily-icon"><.weather_icon scene={d.scene} small /></div>
@@ -306,23 +361,25 @@ defmodule Kakemono.Widgets.Weather do
             fill-opacity="0.85"
           />
         <% "partly" -> %>
-          <path d="M12 2v2" />
-          <path d="m4.93 4.93 1.41 1.41" />
-          <path d="M20 12h2" />
-          <path d="m19.07 4.93-1.41 1.41" />
-          <path d="M15.947 12.65a4 4 0 0 0-5.925-4.128" />
+          <g class="kw-w-sun">
+            <path d="M12 2v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="M20 12h2" />
+            <path d="m19.07 4.93-1.41 1.41" />
+            <path d="M15.947 12.65a4 4 0 0 0-5.925-4.128" />
+          </g>
           <path class="kw-w-cloud" d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z" />
         <% "cloudy" -> %>
           <path class="kw-w-cloud" d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
         <% "fog" -> %>
-          <path d="M16 17H7a5 5 0 1 1 4.9-6H17a3 3 0 0 1 0 6h-1" />
+          <path class="kw-w-cloud" d="M16 17H7a5 5 0 1 1 4.9-6H17a3 3 0 0 1 0 6h-1" />
           <g class="kw-w-fog-lines">
             <path d="M16 21H7" />
             <path d="M19 21h-3" />
             <path d="M11 13H3" />
           </g>
         <% "drizzle" -> %>
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+          <path class="kw-w-cloud" d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
           <g class="kw-w-rain">
             <path d="M8 19v1" />
             <path d="M8 14v1" />
@@ -332,14 +389,14 @@ defmodule Kakemono.Widgets.Weather do
             <path d="M12 16v1" />
           </g>
         <% s when s in ["rain", "showers"] -> %>
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+          <path class="kw-w-cloud" d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
           <g class="kw-w-rain">
             <path d="M16 14v6" />
             <path d="M8 14v6" />
             <path d="M12 16v6" />
           </g>
         <% "snow" -> %>
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+          <path class="kw-w-cloud" d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
           <g class="kw-w-snow">
             <path d="M8 15h.01" />
             <path d="M8 19h.01" />
@@ -349,7 +406,7 @@ defmodule Kakemono.Widgets.Weather do
             <path d="M16 19h.01" />
           </g>
         <% "thunder" -> %>
-          <path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973" />
+          <path class="kw-w-cloud" d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973" />
           <path class="kw-w-bolt" d="m13 12-3 5h4l-3 5" />
         <% _ -> %>
           <circle cx="12" cy="12" r="4" fill="currentColor" />
@@ -491,6 +548,7 @@ defmodule Kakemono.Widgets.Weather do
       "date" => date,
       "max" => List.first(daily["temperature_2m_max"] || []),
       "min" => List.first(daily["temperature_2m_min"] || []),
+      "precip" => List.first(daily["precipitation_probability_max"] || []),
       "sunrise" => List.first(daily["sunrise"] || []),
       "sunset" => List.first(daily["sunset"] || [])
     }
@@ -545,6 +603,94 @@ defmodule Kakemono.Widgets.Weather do
 
   def next_days(_, _), do: []
 
+  defp forecast_grid(%{"hourly" => %{"time" => times} = hourly} = cached, day_count, hours)
+       when is_list(times) do
+    points = hourly_points(hourly, hours)
+    dates = forecast_dates(cached, times, day_count)
+
+    cond do
+      dates == [] -> nil
+      map_size(points) == 0 -> nil
+      true -> build_forecast_grid(dates, hours, points)
+    end
+  end
+
+  defp forecast_grid(_, _, _), do: nil
+
+  defp hourly_points(hourly, hours) do
+    times = hourly["time"] || []
+    temps = hourly["temperature_2m"] || []
+    codes = hourly["weather_code"] || []
+    days = hourly["is_day"] || List.duplicate(1, length(times))
+    hour_set = MapSet.new(hours)
+
+    Enum.zip([times, temps, codes, days])
+    |> Enum.reduce(%{}, fn {time, temp, code, is_day}, acc ->
+      case date_hour(time) do
+        {date, hour} ->
+          if MapSet.member?(hour_set, hour) do
+            Map.put(acc, {date, hour}, %{
+              temp: format_temperature(temp),
+              scene: weather_scene(code, is_day == 1) |> Atom.to_string()
+            })
+          else
+            acc
+          end
+
+        nil ->
+          acc
+      end
+    end)
+  end
+
+  defp forecast_dates(cached, hourly_times, count) do
+    dates =
+      case get_in(cached, ["daily", "time"]) do
+        daily_dates when is_list(daily_dates) and daily_dates != [] ->
+          daily_dates
+
+        _ ->
+          hourly_times
+          |> Enum.map(&date_part/1)
+          |> Enum.reject(&is_nil/1)
+      end
+
+    dates
+    |> Enum.filter(&is_binary/1)
+    |> Enum.uniq()
+    |> Enum.take(count)
+  end
+
+  defp build_forecast_grid(dates, hours, points) do
+    %{
+      hours: Enum.map(hours, &format_hour_slot/1),
+      columns:
+        Enum.map(dates, fn date ->
+          %{
+            weekday: format_weekday(date),
+            date: format_forecast_date(date),
+            cells:
+              Enum.map(hours, fn hour -> Map.get(points, {date, hour}, empty_forecast_cell()) end)
+          }
+        end)
+    }
+  end
+
+  defp empty_forecast_cell, do: %{temp: nil, scene: nil}
+
+  defp date_hour(<<date::binary-size(10), "T", hh::binary-size(2), ":", _::binary>>) do
+    with {hour, ""} <- Integer.parse(hh) do
+      {date, hour}
+    else
+      _ -> nil
+    end
+  end
+
+  defp date_hour(_), do: nil
+
+  defp date_part(<<date::binary-size(10), "T", _::binary>>), do: date
+  defp date_part(_), do: nil
+
   # Compute the range-bar fill position for one daily row, scaled across
   # the whole displayed week's min/max range.
   defp daily_bar_style(day, all_days) do
@@ -583,6 +729,9 @@ defmodule Kakemono.Widgets.Weather do
   defp format_wind(v) when is_number(v), do: "#{round(v)} km/h"
   defp format_wind(_), do: nil
 
+  defp format_percent(v) when is_number(v), do: "#{round(v)}%"
+  defp format_percent(_), do: nil
+
   defp format_hour_label(
          <<_y::binary-size(4), "-", _m::binary-size(2), "-", _d::binary-size(2), "T",
            hh::binary-size(2), ":", _mm::binary-size(2), _rest::binary>>
@@ -591,6 +740,12 @@ defmodule Kakemono.Widgets.Weather do
   end
 
   defp format_hour_label(_), do: ""
+
+  defp format_hour_slot(hour) when is_integer(hour) do
+    "#{String.pad_leading(Integer.to_string(hour), 2, "0")}:00"
+  end
+
+  defp format_hour_slot(_), do: ""
 
   defp format_clock(
          <<_::binary-size(11), hh::binary-size(2), ":", mm::binary-size(2), _::binary>>
@@ -621,6 +776,14 @@ defmodule Kakemono.Widgets.Weather do
   end
 
   defp format_weekday(_), do: ""
+
+  defp format_forecast_date(
+         <<_y::binary-size(4), "-", m::binary-size(2), "-", d::binary-size(2)>>
+       ) do
+    "#{d}.#{m}."
+  end
+
+  defp format_forecast_date(_), do: ""
 
   @months {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 

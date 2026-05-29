@@ -50,6 +50,31 @@ defmodule Kakemono.Widgets.WeatherTest do
     end
   end
 
+  describe "merge_config/2" do
+    test "retains cached data when the source changes (widget never blanks on switch)" do
+      old = %{
+        "source" => "open_meteo",
+        "latitude" => 52.5,
+        "longitude" => 13.4,
+        "cached" => %{"current" => %{"temperature_2m" => 1.0}}
+      }
+
+      merged = Weather.merge_config(old, %{"source" => "met_no"})
+
+      assert merged["source"] == "met_no"
+      assert merged["cached"] == %{"current" => %{"temperature_2m" => 1.0}}
+    end
+
+    test "retains cached data when coordinates change" do
+      old = %{"latitude" => 52.5, "longitude" => 13.4, "cached" => %{"current" => %{}}}
+
+      merged = Weather.merge_config(old, %{"latitude" => 48.1, "longitude" => 11.6})
+
+      assert merged["latitude"] == 48.1
+      assert merged["cached"] == %{"current" => %{}}
+    end
+  end
+
   describe "is_day_for/4 (pure)" do
     setup do
       {:ok, sunrise} = DateTime.new(~D[2026-05-22], ~T[05:00:00], "Etc/UTC")
@@ -137,7 +162,100 @@ defmodule Kakemono.Widgets.WeatherTest do
       assert html =~ ~s(class="kw-w-stars")
       assert html =~ ~s(class="kw-w-sun-body")
       assert html =~ ~s(class="kw-w-moon-body")
-      assert html =~ ~s(class="kw-w-content")
+      assert html =~ "kw-w-content"
+    end
+
+    test "renders roomy forecast as a visual day-by-hour table" do
+      dates = ["2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01"]
+      hours = [6, 12, 18, 21]
+
+      times =
+        for date <- dates, hour <- hours do
+          "#{date}T#{String.pad_leading(Integer.to_string(hour), 2, "0")}:00"
+        end
+
+      html =
+        render_component(&Weather.render/1,
+          instance: %Instance{
+            id: 124,
+            config: %{
+              "label" => "Berlin",
+              "cached" => %{
+                "current" => %{"temperature_2m" => 21.0, "weather_code" => 0, "is_day" => 1},
+                "hourly" => %{
+                  "time" => times,
+                  "temperature_2m" => Enum.to_list(18..33),
+                  "weather_code" => List.duplicate(0, length(times)),
+                  "is_day" => List.duplicate(1, length(times))
+                },
+                "daily" => %{
+                  "time" => dates,
+                  "weather_code" => [0, 1, 2, 3],
+                  "temperature_2m_max" => [24, 25, 26, 27],
+                  "temperature_2m_min" => [12, 13, 14, 15]
+                }
+              }
+            }
+          }
+        )
+
+      {:ok, document} = Floki.parse_document(html)
+
+      assert document |> Floki.find(".kw-w-forecast-col") |> length() == 4
+      assert document |> Floki.find(".kw-w-forecast-day") |> length() == 4
+      assert document |> Floki.find(".kw-w-forecast-hour") |> length() == 4
+      assert document |> Floki.find(".kw-w-forecast-cell") |> length() == 16
+      assert html =~ "30.05."
+      assert html =~ "21:00"
+    end
+
+    test "shows today's rain chance as a headline stat when available" do
+      html =
+        render_component(&Weather.render/1,
+          instance: %Instance{
+            id: 125,
+            config: %{
+              "label" => "Berlin",
+              "cached" => %{
+                "current" => %{"temperature_2m" => 21.0, "weather_code" => 61, "is_day" => 1},
+                "daily" => %{
+                  "time" => ["2026-05-29"],
+                  "temperature_2m_max" => [24],
+                  "temperature_2m_min" => [12],
+                  "precipitation_probability_max" => [70]
+                }
+              }
+            }
+          }
+        )
+
+      assert html =~ ~s(class="kw-w-stat kw-w-rain")
+      assert html =~ "70%"
+    end
+
+    test "always renders the rain stat with a dash when probability is absent" do
+      html =
+        render_component(&Weather.render/1,
+          instance: %Instance{
+            id: 126,
+            config: %{
+              "label" => "Berlin",
+              "cached" => %{
+                "current" => %{"temperature_2m" => 21.0, "weather_code" => 0, "is_day" => 1},
+                "daily" => %{
+                  "time" => ["2026-05-29"],
+                  "temperature_2m_max" => [24],
+                  "temperature_2m_min" => [12]
+                }
+              }
+            }
+          }
+        )
+
+      # The row is always present (identical layout across sources); when the
+      # source has no probability it shows the dash placeholder, never collapses.
+      assert html =~ ~s(class="kw-w-stat kw-w-rain")
+      assert html =~ "🌧 —"
     end
   end
 

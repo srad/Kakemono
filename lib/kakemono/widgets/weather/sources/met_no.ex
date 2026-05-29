@@ -46,7 +46,7 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNo do
     first = List.first(series) || %{}
     details = get_in(first, ["data", "instant", "details"]) || %{}
 
-    hourly_entries = Enum.take(series, 12)
+    hourly_entries = Enum.take(series, 7 * 24)
 
     %{
       "current" => %{
@@ -75,6 +75,7 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNo do
       "time" => dates,
       "temperature_2m_max" => Enum.map(dates, fn d -> day_temp(by_day[d], &Enum.max/1) end),
       "temperature_2m_min" => Enum.map(dates, fn d -> day_temp(by_day[d], &Enum.min/1) end),
+      "precipitation_probability_max" => Enum.map(dates, fn d -> day_precip_prob(by_day[d]) end),
       "weather_code" => Enum.map(dates, fn d -> midday_code(by_day[d]) end)
     }
   end
@@ -84,6 +85,20 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNo do
       [] -> nil
       temps -> agg.(temps)
     end
+  end
+
+  defp day_precip_prob(entries) do
+    case entries |> Enum.map(&precip_prob/1) |> Enum.filter(&is_number/1) do
+      [] -> nil
+      probs -> Enum.max(probs)
+    end
+  end
+
+  # Probability of precipitation is part of MET's "complete" product and the
+  # next_1/next_6 hours blocks when present; falls back across both windows.
+  defp precip_prob(entry) do
+    get_in(entry, ["data", "next_1_hours", "details", "probability_of_precipitation"]) ||
+      get_in(entry, ["data", "next_6_hours", "details", "probability_of_precipitation"])
   end
 
   defp midday_code(entries) do
@@ -129,8 +144,11 @@ defmodule Kakemono.Widgets.Weather.Sources.MetNo do
 
   defp is_day_int(entry) do
     case symbol(entry) do
-      sym when is_binary(sym) -> if String.ends_with?(String.downcase(sym), "_night"), do: 0, else: 1
-      _ -> 1
+      sym when is_binary(sym) ->
+        if String.ends_with?(String.downcase(sym), "_night"), do: 0, else: 1
+
+      _ ->
+        1
     end
   end
 

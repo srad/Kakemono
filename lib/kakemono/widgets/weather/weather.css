@@ -248,7 +248,7 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    padding: clamp(20px, 4cqw, 44px);
+    padding: clamp(18px, 3.4cqw, 38px);
     display: grid;
     grid-template-rows:
       auto                /* header */
@@ -256,10 +256,18 @@
       auto                /* chips  */
       minmax(0, 1fr)      /* hourly */
       minmax(0, 1.2fr);   /* daily  */
-    row-gap: clamp(10px, 2cqh, 22px);
+    row-gap: clamp(10px, 1.7cqh, 18px);
     overflow: hidden;
     min-height: 0;
     min-block-size: 0;
+  }
+
+  .kw-w-content-table {
+    grid-template-rows:
+      auto                /* header */
+      auto                /* hero   */
+      auto                /* chips  */
+      minmax(0, 1fr);     /* forecast table */
   }
 
   /* Header: "Location · Mon, May 22" on a single line, centered */
@@ -288,9 +296,12 @@
     letter-spacing: 0.04em;
   }
 
-  /* Hero: icon + temp/cond/hi-lo, centered horizontally as a group */
+  /* Hero: icon + temp/condition block + a stacked hi/lo/rain stat column.
+     flex-wrap lets the stat column drop below the block when there isn't
+     horizontal room to sit beside it. */
   .kw-w-hero {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: clamp(14px, 4cqw, 36px);
@@ -301,7 +312,7 @@
     flex-shrink: 0;
     /* Cap by both container width and height so the icon never eats the
        row budget on short widgets. */
-    width: min(clamp(56px, 22cqw, 200px), 32cqh);
+    width: min(clamp(52px, 18cqw, 168px), 28cqh);
     aspect-ratio: 1;
     display: grid;
     place-items: center;
@@ -331,7 +342,7 @@
     min-width: 0;
   }
   .kw-w-temp {
-    font-size: clamp(2.4rem, min(20cqw, 26cqh), 8rem);
+    font-size: clamp(2.2rem, min(17cqw, 22cqh), 6.4rem);
     font-weight: 200;
     letter-spacing: -0.04em;
     line-height: 0.95;
@@ -339,21 +350,42 @@
     text-shadow: 0 4px 24px rgba(0, 0, 0, 0.30);
   }
   .kw-w-cond {
-    font-size: clamp(0.95rem, 3.4cqw, 1.5rem);
+    font-size: clamp(1rem, 3.4cqw, 1.65rem);
     font-weight: 600;
     opacity: 0.95;
   }
-  .kw-w-hilo {
+  /* Day's headline stats (hi / lo / rain chance) stacked in a column that sits
+     to the right of the temp/condition block, centered against it. */
+  .kw-w-stats {
+    flex: 0 0 auto;
     display: flex;
-    gap: clamp(8px, 1.6cqw, 14px);
-    font-size: clamp(0.8rem, 2.2cqw, 1.05rem);
-    font-weight: 600;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(2px, 0.7cqh, 7px);
+    font-size: clamp(0.95rem, min(2.6cqw, 4cqh), 1.7rem);
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+  }
+  .kw-w-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    white-space: nowrap;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
+  }
+  /* Light horizontal separator between the stacked values. */
+  .kw-w-stat-div {
+    height: 2px;
+    width: 100%;
+    min-width: clamp(28px, 5cqw, 64px);
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.42) 50%, transparent 100%);
   }
   .kw-w-hi { color: #fde68a; }
   .kw-w-lo { color: #bae6fd; }
+  .kw-w-rain { color: #93c5fd; }
   .kw-w-feels {
-    font-size: clamp(0.7rem, 2cqw, 0.95rem);
+    font-size: clamp(0.8rem, 2cqw, 1.05rem);
     opacity: 0.65;
   }
 
@@ -413,12 +445,166 @@
     background: rgba(255, 255, 255, 0.10);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    font-size: clamp(0.75rem, 2cqw, 0.95rem);
+    font-size: clamp(0.85rem, 2cqw, 1.05rem);
     font-weight: 600;
     line-height: 1.2;
     font-variant-numeric: tabular-nums;
   }
   .kw-w-chip-icon { font-size: 0.95em; opacity: 0.9; }
+
+  /* Visual forecast for roomy widgets, laid out as day columns + a left hour
+     rail. One column-major DOM drives three configurable looks (data-layout):
+     cards / open / panel. Rail and each column are flex-columns whose header is
+     a fixed height and whose slots are flex:1, so hour labels line up with the
+     cells across every column and the content fills the available height (no
+     empty boxes on large displays). */
+  .kw-w-forecast-table {
+    display: flex;
+    align-items: stretch;
+    gap: clamp(6px, 1.4cqw, 18px);
+    min-height: 0;
+    min-block-size: 0;
+    overflow: hidden;
+    --kw-w-fc-head: clamp(34px, 7cqh, 66px);
+  }
+  .kw-w-forecast-rail,
+  .kw-w-forecast-col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+  .kw-w-forecast-rail { flex: 0 0 auto; }
+  .kw-w-forecast-col { flex: 1 1 0; }
+
+  /* Hour rail: muted time labels aligned to the cell rows. */
+  .kw-w-forecast-corner {
+    flex: 0 0 var(--kw-w-fc-head);
+  }
+  .kw-w-forecast-hour {
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    color: rgba(248, 250, 252, 0.78);
+    /* Match the day-header date's font, rotated 45°. */
+    font-size: clamp(1.05rem, min(2.5cqw, 3.4cqh), 1.6rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    transform: rotate(20deg) translateX(30%) translateY(-10%);
+  }
+  /* Day header: weekday over date, sitting atop its column. */
+  .kw-w-forecast-day {
+    flex: 0 0 var(--kw-w-fc-head);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1px, 0.3cqh, 4px);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .kw-w-forecast-weekday {
+    color: rgba(248, 250, 252, 0.72);
+    font-size: clamp(0.8rem, min(1.8cqw, 2.6cqh), 1.2rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .kw-w-forecast-date {
+    font-size: clamp(1.05rem, min(2.5cqw, 3.4cqh), 1.6rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  }
+  /* Cells fill their slot; icon stacked over temp so big widgets stay filled. */
+  .kw-w-forecast-cell {
+    flex: 1 1 0;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: clamp(2px, 0.5cqh, 8px) clamp(2px, 0.5cqw, 8px);
+  }
+  .kw-w-forecast-cell-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2px, 0.6cqh, 7px);
+    min-width: 0;
+  }
+  .kw-w-forecast-icon {
+    width: clamp(30px, min(7cqw, 13cqh), 76px);
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+  }
+  .kw-w-forecast-icon .kw-w-icon {
+    width: 100%;
+    height: 100%;
+  }
+  .kw-w-forecast-temp {
+    font-size: clamp(1.2rem, min(3.2cqw, 6.5cqh), 2.4rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
+  }
+  .kw-w-forecast-dash {
+    color: rgba(248, 250, 252, 0.4);
+    font-size: clamp(1rem, min(2.4cqw, 4cqh), 1.4rem);
+    font-weight: 700;
+  }
+
+  /* ── Layout: cards — each day is its own translucent panel ───── */
+  .kw-w-forecast-table[data-layout="cards"] .kw-w-forecast-col {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: clamp(12px, 1.8cqw, 22px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    padding: clamp(4px, 0.8cqh, 10px) clamp(2px, 0.6cqw, 8px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* ── Layout: panel — one panel behind the whole forecast ─────── */
+  .kw-w-forecast-table[data-layout="panel"] {
+    border-radius: clamp(12px, 1.8cqw, 22px);
+    background: rgba(15, 23, 42, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    padding: clamp(8px, 1.6cqh, 18px) clamp(8px, 1.4cqw, 18px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* ── Layout: open — no panels, just spaced content (default flex) ── */
+
+  /* Temperature tinted per scene (weather + day/night) for at-a-glance read. */
+  .kw-w-forecast-cell[data-scene="clear_day"]   .kw-w-forecast-temp { color: #fde68a; }
+  .kw-w-forecast-cell[data-scene="clear_night"] .kw-w-forecast-temp { color: #e2e8f0; }
+  .kw-w-forecast-cell[data-scene="partly"]      .kw-w-forecast-temp { color: #fde68a; }
+  .kw-w-forecast-cell[data-scene="cloudy"]      .kw-w-forecast-temp { color: #f1f5f9; }
+  .kw-w-forecast-cell[data-scene="fog"]         .kw-w-forecast-temp { color: #e2e8f0; }
+  .kw-w-forecast-cell[data-scene="drizzle"]     .kw-w-forecast-temp { color: #bae6fd; }
+  .kw-w-forecast-cell[data-scene="rain"]        .kw-w-forecast-temp { color: #bae6fd; }
+  .kw-w-forecast-cell[data-scene="showers"]     .kw-w-forecast-temp { color: #bae6fd; }
+  .kw-w-forecast-cell[data-scene="snow"]        .kw-w-forecast-temp { color: #f8fafc; }
+  .kw-w-forecast-cell[data-scene="thunder"]     .kw-w-forecast-temp { color: #ddd6fe; }
+
+  /* Detailed multi-color icons for the compact forecast/strip icons (the hero
+     keeps its single-tint treatment). Explicit stroke/fill on each part beats
+     the inherited single `color`, so e.g. rain = light cloud + blue drops and
+     a storm = grey cloud + bright bolt. */
+  .kw-w-icon-sm .kw-w-cloud     { stroke: #e8eef6; }
+  .kw-w-icon-sm .kw-w-rain      { stroke: #38bdf8; }
+  .kw-w-icon-sm .kw-w-snow      { stroke: #bae6fd; }
+  .kw-w-icon-sm .kw-w-bolt      { stroke: #fde047; fill: #fde047; }
+  .kw-w-icon-sm .kw-w-fog-lines { stroke: #cbd5e1; }
+  .kw-w-icon-sm .kw-w-sun       { stroke: #fbbf24; }
+  .kw-w-icon-sm .kw-w-sun-core  { fill: #fbbf24; stroke: #fbbf24; }
+  .kw-w-icon-sm .kw-w-sun-rays  { stroke: #fbbf24; }
+  .kw-w-icon-sm .kw-w-moon      { fill: #e2e8f0; }
+  .kw-w-icon-sm[data-scene="thunder"] .kw-w-cloud { stroke: #94a3b8; }
 
   /* Hourly strip (next 12 hours) — direct child grid, no inner wrapper.
      Cells size to their allotted row height so they never overflow. */
@@ -444,18 +630,18 @@
     overflow: hidden;
   }
   .kw-w-hourly-time {
-    font-size: clamp(0.65rem, min(1.4cqw, 2cqh), 0.85rem);
+    font-size: clamp(0.75rem, min(1.7cqw, 2.4cqh), 0.95rem);
     opacity: 0.75;
     font-variant-numeric: tabular-nums;
   }
   .kw-w-hourly-icon {
-    height: clamp(18px, min(4cqw, 6cqh), 38px);
+    height: clamp(22px, min(4.6cqw, 7cqh), 44px);
     width: auto;
     aspect-ratio: 1;
   }
   .kw-w-hourly-icon .kw-w-icon { width: 100%; height: 100%; }
   .kw-w-hourly-temp {
-    font-size: clamp(0.78rem, min(2cqw, 2.4cqh), 1.05rem);
+    font-size: clamp(0.9rem, min(2.2cqw, 2.8cqh), 1.2rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
@@ -468,7 +654,7 @@
   .kw-w-daily {
     display: grid;
     grid-auto-rows: minmax(0, 1fr);
-    gap: clamp(2px, 0.4cqh, 5px);
+    gap: clamp(5px, 0.8cqh, 10px);
     min-height: 0;
     min-block-size: 0;
     overflow: hidden;
@@ -478,50 +664,51 @@
   .kw-w-daily-row {
     display: grid;
     grid-template-columns:
-      clamp(36px, 7cqw, 56px)
-      clamp(24px, 4.5cqw, 36px)
+      clamp(46px, 8cqw, 72px)
       clamp(32px, 5.5cqw, 48px)
+      clamp(40px, 6cqw, 58px)
       1fr
-      clamp(32px, 5.5cqw, 48px);
+      clamp(40px, 6cqw, 58px);
     align-items: center;
-    gap: clamp(8px, 1.6cqw, 14px);
-    padding-block: 0;
+    gap: clamp(10px, 1.8cqw, 18px);
+    padding-block: clamp(2px, 0.5cqh, 6px);
     min-height: 0;
     min-block-size: 0;
     overflow: hidden;
+    container-type: size;
   }
   .kw-w-daily-day {
-    font-size: clamp(0.62rem, min(2.2cqw, 11cqh), 1rem);
+    font-size: clamp(0.9rem, min(2.4cqw, 34cqh), 1.25rem);
     font-weight: 600;
   }
   .kw-w-daily-icon {
-    height: clamp(12px, min(5cqw, 13cqh), 34px);
+    height: clamp(22px, min(5.8cqw, 58cqh), 46px);
     width: auto;
     aspect-ratio: 1;
   }
   .kw-w-daily-icon .kw-w-icon { width: 100%; height: 100%; }
   .kw-w-daily-lo {
-    font-size: clamp(0.6rem, min(2.2cqw, 10cqh), 0.95rem);
+    font-size: clamp(0.85rem, min(2.2cqw, 30cqh), 1.15rem);
     opacity: 0.65;
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
   .kw-w-daily-hi {
-    font-size: clamp(0.62rem, min(2.2cqw, 11cqh), 1rem);
+    font-size: clamp(0.9rem, min(2.2cqw, 34cqh), 1.25rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
   .kw-w-daily-bar {
     position: relative;
-    height: clamp(4px, 1.6cqh, 6px);
-    border-radius: 3px;
+    height: clamp(6px, 7cqh, 9px);
+    border-radius: 999px;
     background: rgba(255, 255, 255, 0.10);
   }
   .kw-w-daily-bar-fill {
     position: absolute;
     top: 0;
     bottom: 0;
-    border-radius: 3px;
+    border-radius: 999px;
     background: linear-gradient(90deg, #60a5fa 0%, #fbbf24 100%);
   }
 
@@ -534,8 +721,10 @@
     .kw-w-content { grid-template-rows: auto auto auto minmax(0, 1fr); }
   }
 
-  /* Drop the daily strip too on shorter cells. */
-  @container widget (max-height: 340px) {
+  /* Hide the table where columns would become cramped; tiny layouts keep
+     the current conditions only. */
+  @container widget (max-width: 520px) or (max-height: 340px) {
+    .kw-w-forecast-table,
     .kw-w-daily { display: none; }
     .kw-w-content { grid-template-rows: auto auto auto; }
   }
@@ -563,7 +752,7 @@
       row-gap: 0;
     }
     .kw-w-header,
-    .kw-w-hilo { display: none; }
+    .kw-w-stats { display: none; }
     .kw-w-hero {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -617,6 +806,38 @@
       transform-origin: 12px 12px;
       animation: kw-w-pulse 4s ease-in-out infinite;
     }
+
+    /* Fully-sunny forecast/strip entries: spin the sun like the hero. */
+    .kw-w-icon-sm[data-scene="clear_day"] .kw-w-sun-rays {
+      transform-box: view-box;
+      transform-origin: 12px 12px;
+      animation: kw-w-spin 36s linear infinite;
+    }
+
+    /* Rainy forecast/strip entries: drops fall like the hero. */
+    .kw-w-icon-sm .kw-w-rain path {
+      transform-box: view-box;
+      animation: kw-w-rainfall 1.4s ease-in infinite;
+    }
+    .kw-w-icon-sm .kw-w-rain path:nth-child(2) { animation-delay: 0.35s; }
+    .kw-w-icon-sm .kw-w-rain path:nth-child(3) { animation-delay: 0.7s; }
+    .kw-w-icon-sm .kw-w-rain path:nth-child(4) { animation-delay: 0.5s; }
+    .kw-w-icon-sm .kw-w-rain path:nth-child(5) { animation-delay: 0.9s; }
+    .kw-w-icon-sm .kw-w-rain path:nth-child(6) { animation-delay: 1.1s; }
+
+    /* Thunder forecast/strip entries: the bolt flickers like distant lightning.
+       An irregular keyframe + per-position delay offsets keep multiple bolts
+       out of phase so the flashing reads as random rather than synchronised. */
+    .kw-w-icon-sm .kw-w-bolt {
+      animation: kw-w-bolt-flicker 5s linear infinite;
+    }
+    .kw-w-forecast-col:nth-child(2) .kw-w-bolt { animation-delay: -2.1s; }
+    .kw-w-forecast-col:nth-child(3) .kw-w-bolt { animation-delay: -3.6s; }
+    .kw-w-forecast-col:nth-child(4) .kw-w-bolt { animation-delay: -1.2s; }
+    .kw-w-hourly-cell:nth-child(3n) .kw-w-bolt { animation-delay: -1.7s; }
+    .kw-w-hourly-cell:nth-child(3n+1) .kw-w-bolt { animation-delay: -3.4s; }
+    .kw-w-daily-row:nth-child(2) .kw-w-bolt { animation-delay: -2.8s; }
+    .kw-w-daily-row:nth-child(3) .kw-w-bolt { animation-delay: -1.5s; }
 
     /* Moon: gentle glow breathing. */
     .kw-w-hero-icon .kw-w-moon {
@@ -708,6 +929,20 @@
     16% { opacity: 1; }
     24% { opacity: 0.35; }
     32% { opacity: 1; }
+  }
+  /* Irregular two-burst lightning flicker: the bolt sits dimmer, then snaps
+     bright in quick uneven double-flashes with a long quiet gap between. */
+  @keyframes kw-w-bolt-flicker {
+    0%, 100% { opacity: 0.7; }
+    3% { opacity: 1; }
+    6% { opacity: 0.45; }
+    9% { opacity: 1; }
+    12% { opacity: 0.7; }
+    46% { opacity: 0.7; }
+    49% { opacity: 1; }
+    51% { opacity: 0.55; }
+    53% { opacity: 1; }
+    56% { opacity: 0.7; }
   }
   @keyframes kw-w-fog {
     0%, 100% { transform: translateX(-0.8px); }

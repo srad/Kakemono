@@ -13,10 +13,18 @@ defmodule Kakemono.Widgets.FetchWorker do
   HTTP clients live in the widget modules; tests stub via `Req.Test`
   (`config :kakemono, :req_options`).
   """
+  # `states` excludes terminal states (notably :completed) so a deliberate
+  # refetch (e.g. a widget's source/config changed) or a scheduled refresh is
+  # not coalesced with a just-completed job. Concurrent/pending fetches are
+  # still de-duplicated (e.g. several displays mounting the same scene at once).
   use Oban.Worker,
     queue: :widgets,
     max_attempts: 3,
-    unique: [period: 60, fields: [:worker, :args]]
+    unique: [
+      period: 60,
+      fields: [:worker, :args],
+      states: [:available, :scheduled, :executing, :retryable]
+    ]
 
   alias Kakemono.Widgets
   alias Kakemono.Widgets.{Instance, Registry}
