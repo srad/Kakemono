@@ -175,7 +175,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                 </select>
               </form>
 
-              <div :if={online?(d, @presence_ids)} class="flex gap-1">
+              <div :if={present?(d, @presence_ids)} class="flex gap-1">
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
@@ -197,11 +197,20 @@ defmodule KakemonoWeb.ControlLive.Index do
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
+                  phx-value-cmd="reloadPage"
+                  class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
+                  title="Reload display page"
+                >
+                  Refresh
+                </button>
+                <button
+                  phx-click="fk_cmd"
+                  phx-value-display_id={d.id}
                   phx-value-cmd="restartApp"
                   class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
                   title="Restart Fully Kiosk"
                 >
-                  Reload
+                  Restart
                 </button>
               </div>
             </div>
@@ -218,5 +227,9 @@ defmodule KakemonoWeb.ControlLive.Index do
 
   defp online?(d, presence_ids) do
     MapSet.member?(presence_ids, d.id) or Displays.online?(d)
+  end
+
+  defp present?(d, presence_ids) do
+    MapSet.member?(presence_ids, d.id)
   end
 end

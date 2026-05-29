@@ -32,6 +32,7 @@ import GridEditor from "./hooks/grid_editor.js"
 import LocationSearch from "../../lib/kakemono/widgets/weather/location_search.js"
 import WeatherSky from "../../lib/kakemono/widgets/weather/weather_sky.js"
 import WakeLock from "./hooks/wake_lock.js"
+import { bindFullyKioskEvents } from "./fully_kiosk.js"
 
 const Hooks = {
   Sortable: SortableHook,
@@ -72,6 +73,4 @@ window.addEventListener("phx:js-exec", ({detail}) => {
 })
 
 // Fully Kiosk Browser remote control
-window.addEventListener("phx:fully_kiosk", ({detail}) => {
-  if (window.fully) window.fully[detail.cmd]?.()
-})
+bindFullyKioskEvents()

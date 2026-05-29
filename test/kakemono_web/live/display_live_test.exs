@@ -84,6 +84,15 @@ defmodule KakemonoWeb.DisplayLiveTest do
     assert second.id == i1.id
   end
 
+  test "reloadPage command pushes fully_kiosk event", %{conn: conn} do
+    d = display!("reload-#{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/d/#{d.id}")
+
+    Phoenix.PubSub.broadcast(Kakemono.PubSub, "display:#{d.id}", {:fully_kiosk_cmd, "reloadPage"})
+
+    assert_push_event(view, "fully_kiosk", %{cmd: "reloadPage"})
+  end
+
   test "renders data-fit-mode from the playlist default", %{conn: conn} do
     d = display!("dfit-#{System.unique_integer([:positive])}")
     pl = playlist_fixture()

@@ -24,6 +24,25 @@ defmodule KakemonoWeb.ControlLiveTest do
     assert html =~ ~s(data-state="online")
   end
 
+  test "shows refresh and restart controls for connected displays", %{conn: conn} do
+    d = Fixtures.display!("ctl-#{System.unique_integer([:positive])}")
+    {:ok, _} = KakemonoWeb.Presence.track_display(self(), d.id)
+
+    {:ok, view, _html} = live(conn, ~p"/c")
+
+    assert has_element?(
+             view,
+             ~s(button[phx-click="fk_cmd"][phx-value-display_id="#{d.id}"][phx-value-cmd="reloadPage"]),
+             "Refresh"
+           )
+
+    assert has_element?(
+             view,
+             ~s(button[phx-click="fk_cmd"][phx-value-display_id="#{d.id}"][phx-value-cmd="restartApp"]),
+             "Restart"
+           )
+  end
+
   describe "create display form" do
     test "adds a new display", %{conn: conn} do
       id = "new-#{System.unique_integer([:positive])}"
