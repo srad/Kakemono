@@ -139,6 +139,15 @@ defmodule Kakemono.WidgetsTest do
       assert {:ok, updated} = Widgets.update_config(inst, %{"title" => "Berlin"})
       assert updated.config["title"] == "Berlin"
     end
+
+    test "broadcasts config updates", %{scene: scene} do
+      {:ok, inst} = Widgets.create_instance("clock", scene.id, %{})
+      Phoenix.PubSub.subscribe(Kakemono.PubSub, "widgets")
+
+      assert {:ok, _updated} = Widgets.update_config(inst, %{"title" => "Berlin"})
+      assert_receive {:widget_config_updated, %{instance_id: instance_id}}, 500
+      assert instance_id == inst.id
+    end
   end
 
   describe "delete_instance/1" do

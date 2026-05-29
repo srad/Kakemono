@@ -34,7 +34,8 @@
 
   /* ══════════════════════════════════════════════════════════════
      Weather widget
-     - Gradient background per scene (day/night aware via data-is-day).
+     - Gradient background per scene (day/night driven live via data-tod from
+       the WeatherSky hook, so it tracks the location's current local time).
      - Soft radial halo via ::before to suggest sun/moon without an SVG
        overlay that can collide with content.
      - Hero icon does all the "what's the weather" lifting.
@@ -57,7 +58,7 @@
   }
 
   /* Scene-tinted gradients (day variants) */
-  .kakemono-widget-weather[data-cond="clear_day"]   { background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%); }
+  .kakemono-widget-weather[data-cond="clear"]       { background: linear-gradient(165deg, #38bdf8 0%, #1d4ed8 70%, #0b2566 100%); }
   .kakemono-widget-weather[data-cond="partly"]      { background: linear-gradient(165deg, #60a5fa 0%, #1e40af 70%, #0b1e4a 100%); }
   .kakemono-widget-weather[data-cond="cloudy"]      { background: linear-gradient(165deg, #64748b 0%, #334155 60%, #0f172a 100%); }
   .kakemono-widget-weather[data-cond="fog"]         { background: linear-gradient(165deg, #94a3b8 0%, #475569 60%, #1e293b 100%); }
@@ -66,9 +67,11 @@
   .kakemono-widget-weather[data-cond="showers"]     { background: linear-gradient(165deg, #38bdf8 0%, #1e3a8a 65%, #0c1d3f 100%); }
   .kakemono-widget-weather[data-cond="snow"]        { background: linear-gradient(165deg, #cbd5e1 0%, #64748b 55%, #1e293b 100%); }
   .kakemono-widget-weather[data-cond="thunder"]     { background: linear-gradient(165deg, #334155 0%, #1e1b4b 55%, #020617 100%); }
-  /* Night variants */
-  .kakemono-widget-weather[data-is-day="0"]         { background: linear-gradient(165deg, #1e293b 0%, #0f172a 60%, #020617 100%); }
-  .kakemono-widget-weather[data-cond="clear_night"] { background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%); }
+  /* Night variants — driven by the live data-tod from the WeatherSky hook.
+     The generic dark base comes last so it overrides per-condition gradients
+     for non-clear night scenes; clear at night (2 attrs) outranks it. */
+  .kakemono-widget-weather[data-tod="night"]                    { background: linear-gradient(165deg, #1e293b 0%, #0f172a 60%, #020617 100%); }
+  .kakemono-widget-weather[data-cond="clear"][data-tod="night"] { background: linear-gradient(165deg, #312e81 0%, #1e1b4b 50%, #020617 100%); }
 
   /* Soft halo (sun/moon glow) — no shape edges to overlap content */
   .kakemono-widget-weather::before {
@@ -85,8 +88,7 @@
     z-index: 0;
     background: radial-gradient(circle, rgba(253, 230, 138, 0.85) 0%, rgba(253, 230, 138, 0) 65%);
   }
-  .kakemono-widget-weather[data-cond="clear_night"]::before,
-  .kakemono-widget-weather[data-is-day="0"]::before {
+  .kakemono-widget-weather[data-tod="night"]::before {
     background: radial-gradient(circle, rgba(226, 232, 240, 0.55) 0%, rgba(226, 232, 240, 0) 65%);
     opacity: 0.45;
   }
@@ -260,8 +262,8 @@
   }
 
   /* Per-scene tint, applied to the SVG via inherited `color`. */
-  .kakemono-widget-weather[data-cond="clear_day"]   .kw-w-icon { color: #fde68a; }
-  .kakemono-widget-weather[data-cond="clear_night"] .kw-w-icon { color: #e2e8f0; }
+  .kakemono-widget-weather[data-cond="clear"]                    .kw-w-icon { color: #fde68a; }
+  .kakemono-widget-weather[data-cond="clear"][data-tod="night"]  .kw-w-icon { color: #e2e8f0; }
   .kakemono-widget-weather[data-cond="partly"]      .kw-w-icon { color: #fde68a; }
   .kakemono-widget-weather[data-cond="cloudy"]      .kw-w-icon { color: #f1f5f9; }
   .kakemono-widget-weather[data-cond="fog"]         .kw-w-icon { color: #cbd5e1; }
@@ -270,6 +272,11 @@
   .kakemono-widget-weather[data-cond="showers"]     .kw-w-icon { color: #bae6fd; }
   .kakemono-widget-weather[data-cond="snow"]        .kw-w-icon { color: #f8fafc; }
   .kakemono-widget-weather[data-cond="thunder"]     .kw-w-icon { color: #fde047; }
+
+  /* Hero "clear" icon carries both sun and moon; data-tod (live) picks one. */
+  .kw-w-icon[data-scene="clear"] .kw-w-moon { display: none; }
+  .kakemono-widget-weather[data-tod="night"] .kw-w-icon[data-scene="clear"] .kw-w-sun  { display: none; }
+  .kakemono-widget-weather[data-tod="night"] .kw-w-icon[data-scene="clear"] .kw-w-moon { display: inline; }
 
   /* Per-scene icon tinting also for forecast cells (use data-scene on the SVG). */
   .kw-w-icon[data-scene="clear_day"]   { color: #fde68a; }

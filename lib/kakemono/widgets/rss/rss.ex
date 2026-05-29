@@ -2,6 +2,7 @@ defmodule Kakemono.Widgets.Rss do
   use Kakemono.Widget
 
   alias Kakemono.Widgets.{FetchWorker, Instance}
+  import SweetXml, only: [sigil_x: 2, xpath: 2, xpath: 3]
 
   @impl true
   def type, do: "rss"
@@ -61,11 +62,22 @@ defmodule Kakemono.Widgets.Rss do
   @impl true
   def on_config_change(%Instance{id: id, config: %{"url" => url}}, old_config)
       when is_binary(url) and url != "" do
-    if old_config["url"] != url, do: enqueue_fetch(id)
+    if old_config["url"] != url, do: enqueue_fetch(id, bypass_unique: true)
     :ok
   end
 
   def on_config_change(_instance, _old_config), do: :ok
+
+  @impl true
+  def merge_config(old, new) do
+    merged = Map.merge(old, new || %{})
+
+    if feed_url_changed?(old, merged) do
+      Map.drop(merged, ["cached_items", "feed_title", "fetched_at"])
+    else
+      merged
+    end
+  end
 
   @impl true
   def fetch(%Instance{config: cfg}) do
@@ -86,8 +98,13 @@ defmodule Kakemono.Widgets.Rss do
   defp empty_items?([]), do: true
   defp empty_items?(_), do: false
 
-  defp enqueue_fetch(id) do
-    %{instance_id: id} |> FetchWorker.new() |> Oban.insert!()
+  defp feed_url_changed?(old_config, config) do
+    old_config["url"] != config["url"]
+  end
+
+  defp enqueue_fetch(id, opts \\ []) do
+    job_opts = if Keyword.get(opts, :bypass_unique, false), do: [unique: false], else: []
+    %{instance_id: id} |> FetchWorker.new(job_opts) |> Oban.insert!()
   end
 
   defp http_get(url) do
@@ -108,44 +125,113 @@ defmodule Kakemono.Widgets.Rss do
     end
   end
 
-  @doc "Parse RSS or Atom XML bytes into a list of item maps."
+  @doc "Parse RSS/RDF RSS or Atom XML bytes into a list of item maps."
   def parse_feed(body) when is_binary(body) do
-    import SweetXml
-
     try do
-      rss_items =
-        body
-        |> xpath(
-          ~x"//item"l,
-          title: ~x"./title/text()"s,
-          link: ~x"./link/text()"s,
-          pub_date: ~x"./pubDate/text()"s
-        )
+      body = strip_doctype(body)
+      rss_items = parse_rss_items(body)
 
-      if rss_items != [] do
-        feed_title = body |> xpath(~x"//channel/title/text()"s)
-        {to_string(feed_title), normalize_items(rss_items)}
-      else
-        atom_items =
-          body
-          |> xpath(
-            ~x"//entry"l,
-            title: ~x"./title/text()"s,
-            link: ~x"./link/@href"s,
-            updated: ~x"./updated/text()"s,
-            published: ~x"./published/text()"s
-          )
-          |> Enum.map(fn i ->
-            date = if i.updated != "", do: i.updated, else: i.published
-            %{title: i.title, link: i.link, pub_date: date}
-          end)
+      cond do
+        rss_items != [] ->
+          feed_title =
+            body |> xpath(~x"//*[local-name()='channel']/*[local-name()='title']/text()"s)
 
-        feed_title = body |> xpath(~x"/*[local-name()='feed']/*[local-name()='title']/text()"s)
-        {to_string(feed_title), normalize_items(atom_items)}
+          {to_string(feed_title), normalize_items(rss_items)}
+
+        atom_items = parse_atom_items(body) ->
+          feed_title = body |> xpath(~x"/*[local-name()='feed']/*[local-name()='title']/text()"s)
+          {to_string(feed_title), normalize_items(atom_items)}
+
+        opml_items = parse_opml_items(body) ->
+          feed_title =
+            body
+            |> xpath(
+              ~x"/*[local-name()='opml']/*[local-name()='head']/*[local-name()='title']/text()"s
+            )
+
+          {to_string(feed_title), normalize_items(opml_items)}
+
+        true ->
+          {"", []}
       end
     catch
       :exit, _ -> {"", []}
     end
+  end
+
+  defp strip_doctype(body) do
+    Regex.replace(~r/<!DOCTYPE\s+[^>]*>/i, body, "")
+  end
+
+  defp parse_rss_items(body) do
+    body
+    |> xpath(
+      ~x"//*[local-name()='item']"l,
+      title: ~x"./*[local-name()='title']/text()"s,
+      link: ~x"./*[local-name()='link']/text()"s,
+      pub_date: ~x"./*[local-name()='pubDate']/text()"s,
+      date: ~x"./*[local-name()='date']/text()"s,
+      updated: ~x"./*[local-name()='updated']/text()"s,
+      published: ~x"./*[local-name()='published']/text()"s
+    )
+    |> Enum.map(fn i ->
+      %{
+        title: i.title,
+        link: i.link,
+        pub_date: first_present([i.pub_date, i.date, i.updated, i.published])
+      }
+    end)
+  end
+
+  defp parse_atom_items(body) do
+    items =
+      body
+      |> xpath(
+        ~x"//*[local-name()='entry']"l,
+        title: ~x"./*[local-name()='title']/text()"s,
+        link_href: ~x"./*[local-name()='link']/@href"s,
+        link_text: ~x"./*[local-name()='link']/text()"s,
+        updated: ~x"./*[local-name()='updated']/text()"s,
+        published: ~x"./*[local-name()='published']/text()"s
+      )
+      |> Enum.map(fn i ->
+        %{
+          title: i.title,
+          link: first_present([i.link_href, i.link_text]),
+          pub_date: first_present([i.updated, i.published])
+        }
+      end)
+
+    if items == [], do: nil, else: items
+  end
+
+  defp parse_opml_items(body) do
+    items =
+      body
+      |> xpath(
+        ~x"/*[local-name()='opml']/*[local-name()='body']//*[local-name()='outline']"l,
+        title: ~x"./@title"s,
+        text: ~x"./@text"s,
+        html_url: ~x"./@htmlUrl"s,
+        xml_url: ~x"./@xmlUrl"s
+      )
+      |> Enum.map(fn i ->
+        %{
+          title: first_present([i.title, i.text]),
+          link: first_present([i.html_url, i.xml_url]),
+          pub_date: ""
+        }
+      end)
+      |> Enum.reject(fn i -> i.title == "" or i.link == "" end)
+
+    if items == [], do: nil, else: items
+  end
+
+  defp first_present(values) do
+    Enum.find_value(values, "", fn value ->
+      text = value |> to_string() |> String.trim()
+      if text == "", do: false, else: text
+    end)
   end
 
   defp normalize_items(items) do

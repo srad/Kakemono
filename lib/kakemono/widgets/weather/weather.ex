@@ -133,12 +133,12 @@ defmodule Kakemono.Widgets.Weather do
 
     is_day? = compute_is_day(cached)
     code = current["weather_code"]
-    scene = weather_scene(code, is_day?)
+    cond = weather_cond(code)
     today = (cached["daily"] || %{}) |> daily_today()
 
     assigns =
       Map.merge(assigns, %{
-        scene: Atom.to_string(scene),
+        cond: Atom.to_string(cond),
         is_day: if(is_day?, do: "1", else: "0"),
         tod: if(is_day?, do: "day", else: "night"),
         weather_id: "weather-" <> Integer.to_string(assigns.instance.id),
@@ -164,7 +164,7 @@ defmodule Kakemono.Widgets.Weather do
       id={@weather_id}
       phx-hook="WeatherSky"
       class="kakemono-widget kakemono-widget-weather"
-      data-cond={@scene}
+      data-cond={@cond}
       data-is-day={@is_day}
       data-tod={@tod}
       data-latitude={@latitude}
@@ -180,7 +180,7 @@ defmodule Kakemono.Widgets.Weather do
 
         <div class="kw-w-hero">
           <div class="kw-w-hero-icon">
-            <.weather_icon scene={@scene} />
+            <.weather_icon scene={@cond} />
           </div>
           <div class="kw-w-hero-text">
             <div class="kw-w-temp">{@temp}</div>
@@ -249,6 +249,21 @@ defmodule Kakemono.Widgets.Weather do
       aria-hidden="true"
     >
       <%= case @scene do %>
+        <% "clear" -> %>
+          <g class="kw-w-sun">
+            <circle class="kw-w-sun-core" cx="12" cy="12" r="4" fill="currentColor" />
+            <g class="kw-w-sun-rays">
+              <path d="M12 2v2" />
+              <path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" />
+              <path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" />
+              <path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" />
+              <path d="m19.07 4.93-1.41 1.41" />
+            </g>
+          </g>
+          <path class="kw-w-moon" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" fill-opacity="0.85" />
         <% "clear_day" -> %>
           <circle class="kw-w-sun-core" cx="12" cy="12" r="4" fill="currentColor" />
           <g class="kw-w-sun-rays">
@@ -377,6 +392,27 @@ defmodule Kakemono.Widgets.Weather do
   defp parse_local(_, _), do: nil
 
   # ── Scene mapping ───────────────────────────────────────────────
+
+  # Day/night-neutral condition for the hero. Day vs night is decided live by
+  # the WeatherSky hook via data-tod, so the hero icon (combined sun+moon for
+  # :clear) and gradient stay in sync with the location's current local time
+  # regardless of when the cache was fetched.
+  defp weather_cond(code) do
+    cond do
+      not is_integer(code) -> :clear
+      code == 0 -> :clear
+      code in 1..2 -> :partly
+      code == 3 -> :cloudy
+      code in 45..48 -> :fog
+      code in 51..57 -> :drizzle
+      code in 61..67 -> :rain
+      code in 71..77 -> :snow
+      code in 80..82 -> :showers
+      code in 85..86 -> :snow
+      code in 95..99 -> :thunder
+      true -> :clear
+    end
+  end
 
   defp weather_scene(code, is_day?) do
     cond do

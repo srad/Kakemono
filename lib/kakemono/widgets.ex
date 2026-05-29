@@ -75,6 +75,7 @@ defmodule Kakemono.Widgets do
         with :ok <- validate_config(mod, merged),
              {:ok, updated} <- inst |> Instance.changeset(%{config: merged}) |> Repo.update() do
           mod.on_config_change(updated, old_config)
+          broadcast_config_updated(updated.id)
           {:ok, updated}
         end
     end

@@ -115,6 +115,43 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
     assert_enqueued(worker: FetchWorker, args: %{instance_id: weather.id})
   end
 
+  test "widget config updates refresh the connected display", %{conn: conn} do
+    d = Fixtures.display!("rss-refresh-#{System.unique_integer([:positive])}")
+
+    {:ok, scene} =
+      Scenes.create(%{name: "RSS Refresh", mode: "dashboard", layout: %{"cells" => []}})
+
+    {:ok, rss} =
+      Widgets.create_instance("rss", scene.id, %{
+        "url" => "http://example.com/old",
+        "cached_items" => [
+          %{"title" => "Old Item", "link" => "http://example.com/old", "pub_date" => ""}
+        ],
+        "feed_title" => "Old Feed",
+        "fetched_at" => NaiveDateTime.utc_now() |> NaiveDateTime.to_iso8601()
+      })
+
+    {:ok, scene} =
+      Scenes.update(scene, %{
+        layout: %{
+          "cells" => [%{"widget_instance_id" => rss.id, "x" => 0, "y" => 0, "w" => 6, "h" => 4}]
+        }
+      })
+
+    {:ok, _} = Displays.set_scene(d.id, scene.id)
+
+    {:ok, view, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "Old Item"
+
+    assert {:ok, updated} = Widgets.update_config(rss, %{"url" => "http://example.com/new"})
+    refute Map.has_key?(updated.config, "cached_items")
+
+    html = render(view)
+    assert html =~ "No items cached yet."
+    refute html =~ "Old Item"
+    assert_enqueued(worker: FetchWorker, args: %{instance_id: rss.id})
+  end
+
   test "fullscreen_widget mode renders a single widget filling the grid", %{conn: conn} do
     d = Fixtures.display!("fs-#{System.unique_integer([:positive])}")
 

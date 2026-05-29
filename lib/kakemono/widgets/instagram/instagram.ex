@@ -116,10 +116,7 @@ defmodule Kakemono.Widgets.Instagram do
       |> Map.delete("last_error_at")
       |> Map.delete("next_fetch_at")
 
-    with {:ok, _} <- Widgets.update_config(inst, update) do
-      Widgets.broadcast_config_updated(inst.id)
-      :ok
-    end
+    with {:ok, _} <- Widgets.update_config(inst, update), do: :ok
   end
 
   defp store_error(inst, cfg, reason) do
@@ -130,7 +127,6 @@ defmodule Kakemono.Widgets.Instagram do
       |> maybe_put_backoff(reason)
 
     with {:ok, _} <- Widgets.update_config(inst, update) do
-      Widgets.broadcast_config_updated(inst.id)
       if retryable_error?(reason), do: {:error, reason}, else: :ok
     end
   end

@@ -35,10 +35,7 @@ defmodule Kakemono.Widgets.FetchWorker do
   defp dispatch(mod, inst) do
     case mod.fetch(inst) do
       {:ok, patch} when is_map(patch) ->
-        with {:ok, _} <- Widgets.update_config(inst, patch) do
-          Widgets.broadcast_config_updated(inst.id)
-          :ok
-        end
+        with {:ok, _} <- Widgets.update_config(inst, patch), do: :ok
 
       :ok ->
         :ok
