@@ -18,6 +18,7 @@ defmodule KakemonoWeb.ControlLive.Index do
 
   @impl true
   def handle_info({:display_updated, _d}, socket), do: {:noreply, assign_state(socket)}
+  def handle_info({:display_deleted, _id}, socket), do: {:noreply, assign_state(socket)}
   def handle_info(%{event: "presence_diff"}, socket), do: {:noreply, assign_state(socket)}
   def handle_info(_msg, socket), do: {:noreply, socket}
 
@@ -39,6 +40,16 @@ defmodule KakemonoWeb.ControlLive.Index do
   def handle_event("fk_cmd", %{"display_id" => did, "cmd" => cmd}, socket) do
     FullyKiosk.broadcast(did, cmd)
     {:noreply, socket}
+  end
+
+  def handle_event("delete_display", %{"id" => id}, socket) do
+    case Displays.delete(id) do
+      {:ok, _} ->
+        {:noreply, socket |> put_flash(:info, "Display '#{id}' deleted") |> assign_state()}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "Display not found")}
+    end
   end
 
   def handle_event("create_display", %{"display" => %{"id" => id, "name" => name}}, socket) do
@@ -213,6 +224,15 @@ defmodule KakemonoWeb.ControlLive.Index do
                   Restart
                 </button>
               </div>
+
+              <button
+                phx-click="delete_display"
+                phx-value-id={d.id}
+                data-confirm={"Delete display '#{d.name}'?"}
+                class="text-red-600 text-xs hover:underline"
+              >
+                delete
+              </button>
             </div>
           </li>
         </ul>

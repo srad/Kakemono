@@ -38,6 +38,19 @@ defmodule Kakemono.Displays do
     end
   end
 
+  def delete(id) when is_binary(id) do
+    case get(id) do
+      nil ->
+        :error
+
+      %Display{} = d ->
+        with {:ok, deleted} <- Repo.delete(d) do
+          broadcast_deleted(deleted)
+          {:ok, deleted}
+        end
+    end
+  end
+
   @doc "Record a heartbeat. Returns {:ok, display} or :error if unknown."
   def heartbeat(id) when is_binary(id) do
     case get(id) do
@@ -86,5 +99,10 @@ defmodule Kakemono.Displays do
   defp broadcast(%Display{id: id} = d, msg) do
     Phoenix.PubSub.broadcast(Kakemono.PubSub, "display:#{id}", msg)
     Phoenix.PubSub.broadcast(Kakemono.PubSub, "displays", {:display_updated, d})
+  end
+
+  defp broadcast_deleted(%Display{id: id}) do
+    Phoenix.PubSub.broadcast(Kakemono.PubSub, "display:#{id}", :deleted)
+    Phoenix.PubSub.broadcast(Kakemono.PubSub, "displays", {:display_deleted, id})
   end
 end

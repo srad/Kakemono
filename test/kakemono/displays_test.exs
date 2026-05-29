@@ -84,4 +84,24 @@ defmodule Kakemono.DisplaysTest do
       assert updated.name == "Renamed"
     end
   end
+
+  describe "delete/1" do
+    test "deletes an existing display and broadcasts" do
+      d = Fixtures.display!("del-#{System.unique_integer([:positive])}")
+      Phoenix.PubSub.subscribe(Kakemono.PubSub, "display:#{d.id}")
+      Phoenix.PubSub.subscribe(Kakemono.PubSub, "displays")
+
+      assert {:ok, deleted} = Displays.delete(d.id)
+      assert deleted.id == d.id
+      refute Displays.get(d.id)
+
+      id = d.id
+      assert_receive :deleted, 500
+      assert_receive {:display_deleted, ^id}, 500
+    end
+
+    test "returns :error for unknown id" do
+      assert Displays.delete("nope") == :error
+    end
+  end
 end

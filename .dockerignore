@@ -8,6 +8,10 @@
 .claude/
 .codex/
 .elixir_ls/
+.cache/
+.hex/
+.mix/
+.npm/
 .idea/
 .vscode/
 
@@ -36,20 +40,30 @@ priv/secret.key
 !.env.example
 
 # Generated frontend/static output
+node_modules/
+**/node_modules/
 assets/node_modules/
 assets/.vite/
 assets/coverage/
+assets/test/
+assets/vitest.config.js
 priv/static/assets/
 priv/static/cache_manifest.json
+priv/static/*.gz
+priv/static/*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*.*
+priv/static/images/*.gz
+priv/static/images/*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*.*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # Files not needed for the production image build
 test/
 README.md
 docker-compose.yml
+docker-compose.dev.yml
 kdev
 scripts/
 .docker/

@@ -43,6 +43,19 @@ defmodule KakemonoWeb.ControlLiveTest do
            )
   end
 
+  test "deletes a display from the control page", %{conn: conn} do
+    d = Fixtures.display!("ctl-#{System.unique_integer([:positive])}")
+    {:ok, view, _html} = live(conn, ~p"/c")
+
+    html =
+      view
+      |> element(~s(button[phx-click="delete_display"][phx-value-id="#{d.id}"]), "delete")
+      |> render_click()
+
+    refute html =~ ~s(id="display-#{d.id}")
+    refute Kakemono.Displays.get(d.id)
+  end
+
   describe "create display form" do
     test "adds a new display", %{conn: conn} do
       id = "new-#{System.unique_integer([:positive])}"
