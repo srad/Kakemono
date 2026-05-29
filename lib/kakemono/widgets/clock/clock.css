@@ -146,17 +146,16 @@
     -webkit-backdrop-filter: blur(8px);
   }
 
-  /* ── Halo — blurred radial gradient, same pattern as
+  /* ── Halo — radial glow, same pattern as
         .kakemono-widget-weather::before (app.css ~1405) ── */
 
   .kw-clock-halo {
     position: absolute;
     inset: -40%;
     border-radius: 50%;
-    filter: blur(40px);
     opacity: 0.85;
     pointer-events: none;
-    background: radial-gradient(circle, var(--halo-color) 0%, rgba(253, 230, 138, 0) 65%);
+    background: radial-gradient(circle, var(--halo-color) 0%, rgba(253, 230, 138, 0) 70%);
     transition: opacity 1.6s ease, background 2s ease;
     will-change: transform, opacity;
   }
@@ -177,12 +176,12 @@
     stroke-linecap: round;
     stroke-linejoin: round;
     overflow: visible;
-    filter: drop-shadow(0 6px 22px rgba(253, 191, 36, 0.45));
   }
   .kw-clock-sun .kw-sun-rays {
     transform-box: fill-box;
     transform-origin: center;
     animation: kw-sun-spin 110s linear infinite;
+    will-change: transform;
   }
   .kw-clock-sun .kw-sun-rays-short {
     animation: kw-sun-spin-rev 90s linear infinite;
@@ -218,7 +217,6 @@
     height: 100%;
     color: var(--moon-lit-color);
     overflow: visible;
-    filter: drop-shadow(0 6px 22px rgba(15, 23, 42, 0.45));
   }
   .kw-clock-moon .kw-moon-body {
     transform-box: fill-box;
@@ -270,13 +268,14 @@
     transform-box: fill-box;
     transform-origin: center;
     animation: kw-clock-twinkle 4.2s ease-in-out infinite alternate;
+    will-change: transform, opacity;
   }
   @keyframes kw-clock-twinkle {
     0%   { opacity: 0.3; transform: scale(0.8); }
     100% { opacity: 1.0; transform: scale(1.15); }
   }
 
-  /* ── Clouds (JS-animated) ─────────────────────────────────────── */
+  /* ── Clouds (CSS transform animated) ──────────────────────────── */
 
   .kw-clock-clouds {
     position: absolute;
@@ -285,11 +284,32 @@
     transition: opacity 4s ease;
     pointer-events: none;
     overflow: visible;
+    contain: paint;
+  }
+
+  .kw-cloud-dynamic {
+    position: absolute;
+    left: 0;
+    animation: kw-clock-cloud-drift var(--cloud-duration, 30s) linear forwards;
+    contain: layout paint style;
+    transform: translate3d(var(--cloud-from, -120px), 0, 0);
+    will-change: transform;
+  }
+
+  .kw-cloud-visual {
+    width: 100%;
+    height: 100%;
+    filter: var(--cloud-filter, none);
   }
 
   .kw-cloud-dynamic svg {
     width: 100%;
     height: 100%;
+  }
+
+  @keyframes kw-clock-cloud-drift {
+    from { transform: translate3d(var(--cloud-from, -120px), 0, 0); }
+    to   { transform: translate3d(var(--cloud-to, 100%), 0, 0); }
   }
 
   /* ════════════════════════════════════════════════════════════════
