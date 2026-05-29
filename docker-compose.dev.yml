@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.dev
+    image: kakemono-dev:latest
+    container_name: kakemono-dev
+    working_dir: /work
+    command: mix phx.server
+    user: "${UID:-1000}:${GID:-1000}"
+    ports:
+      - "4000:4000"
+    environment:
+      HOME: /cache
+      MIX_HOME: /cache/mix
+      HEX_HOME: /cache/hex
+      REBAR_CACHE_DIR: /cache/rebar3
+    volumes:
+      - .:/work
+      - kakemono-dev-cache:/cache
+
+volumes:
+  kakemono-dev-cache:

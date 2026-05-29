@@ -1,19 +1,17 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: kakemono:latest
+    image: sedrad/kakemono:latest
     container_name: kakemono
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "${PORT:-4000}:${PORT:-4000}"
     environment:
       KAKEMONO_DATA_DIR: ${KAKEMONO_DATA_DIR:-/data}
       SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
       KAKEMONO_API_SECRET: ${KAKEMONO_API_SECRET:?set KAKEMONO_API_SECRET in .env}
+      KAKEMONO_BACKEND_PASSWORD: ${KAKEMONO_BACKEND_PASSWORD:?set KAKEMONO_BACKEND_PASSWORD in .env}
       PHX_HOST: ${PHX_HOST:-localhost}
       PHX_SERVER: "true"
-      PORT: "4000"
+      PORT: ${PORT:-4000}
     volumes:
       - ./data:/data

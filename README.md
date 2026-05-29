@@ -5,7 +5,7 @@
   <img alt="Phoenix" src="https://img.shields.io/badge/Phoenix-1.8-FD4F00?logo=phoenixframework&logoColor=white">
   <img alt="LiveView" src="https://img.shields.io/badge/Phoenix%20LiveView-1.1-FD4F00">
   <img alt="SQLite" src="https://img.shields.io/badge/SQLite-backed-003B57?logo=sqlite&logoColor=white">
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
+  <a href="https://hub.docker.com/r/sedrad/kakemono"><img alt="Docker image sedrad/kakemono" src="https://img.shields.io/badge/Docker-sedrad%2Fkakemono-2496ED?logo=docker&logoColor=white"></a>
 </p>
 
 Self-hosted digital signage server for small deployments — homes, studios, shops,
@@ -90,11 +90,111 @@ Local development image:
 ./kdev mix phx.server
 ```
 
-Docker Compose (production release image):
+Docker Compose (published release image):
+
+```yaml
+services:
+  app:
+    image: sedrad/kakemono:latest
+    container_name: kakemono
+    restart: unless-stopped
+    ports:
+      - "${PORT:-4000}:${PORT:-4000}"
+    environment:
+      KAKEMONO_DATA_DIR: ${KAKEMONO_DATA_DIR:-/data}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      KAKEMONO_API_SECRET: ${KAKEMONO_API_SECRET:?set KAKEMONO_API_SECRET in .env}
+      KAKEMONO_BACKEND_PASSWORD: ${KAKEMONO_BACKEND_PASSWORD:?set KAKEMONO_BACKEND_PASSWORD in .env}
+      PHX_HOST: ${PHX_HOST:-localhost}
+      PHX_SERVER: "true"
+      PORT: ${PORT:-4000}
+    volumes:
+      - ./data:/data
+```
+
+Example `.env` values:
+
+```env
+PORT=4000
+PHX_HOST=signage.example.com
+SECRET_KEY_BASE=replace-with-output-from-mix-phx.gen.secret
+KAKEMONO_API_SECRET=replace-with-a-long-random-secret
+KAKEMONO_BACKEND_PASSWORD=replace-with-a-strong-password-min-12-chars
+KAKEMONO_DATA_DIR=/data
+```
+
+Docker Compose with Traefik 3.7 TLS proxy:
+
+```yaml
+services:
+  traefik:
+    image: traefik:v3.7
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      # Only needed if Traefik itself is behind another trusted proxy:
+      # - "--entrypoints.websecure.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_IPS}"
+      - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL:?set TRAEFIK_ACME_EMAIL in .env}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+
+  app:
+    image: sedrad/kakemono:latest
+    container_name: kakemono
+    restart: unless-stopped
+    environment:
+      KAKEMONO_DATA_DIR: ${KAKEMONO_DATA_DIR:-/data}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?set SECRET_KEY_BASE in .env}
+      KAKEMONO_API_SECRET: ${KAKEMONO_API_SECRET:?set KAKEMONO_API_SECRET in .env}
+      KAKEMONO_BACKEND_PASSWORD: ${KAKEMONO_BACKEND_PASSWORD:?set KAKEMONO_BACKEND_PASSWORD in .env}
+      PHX_HOST: ${PHX_HOST:?set PHX_HOST in .env}
+      PHX_SERVER: "true"
+      PORT: "4000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kakemono.rule=Host(`${PHX_HOST:?set PHX_HOST in .env}`)"
+      - "traefik.http.routers.kakemono.entrypoints=websecure"
+      - "traefik.http.routers.kakemono.tls.certresolver=letsencrypt"
+      - "traefik.http.services.kakemono.loadbalancer.server.port=4000"
+      - "traefik.http.middlewares.kakemono-forwarded-proto.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.kakemono.middlewares=kakemono-forwarded-proto"
+    volumes:
+      - ./data:/data
+
+volumes:
+  traefik-letsencrypt:
+```
+
+Additional `.env` values for Traefik:
+
+```env
+TRAEFIK_ACME_EMAIL=admin@example.com
+TRAEFIK_TRUSTED_IPS=203.0.113.10/32
+```
+
+`TRAEFIK_TRUSTED_IPS` is only needed when you uncomment the
+`forwardedHeaders.trustedIPs` line because Traefik is behind another trusted
+proxy.
+
+Traefik forwards `X-Forwarded-*` request headers to the container by default; the
+middleware above makes `X-Forwarded-Proto: https` explicit for Phoenix SSL
+rewrite handling after TLS termination.
 
 ```bash
 cp .env.example .env          # fill in the secrets below
-docker compose up --build
+docker compose up -d
 ```
 
 Set `SECRET_KEY_BASE`, `KAKEMONO_API_SECRET`, and `KAKEMONO_BACKEND_PASSWORD` in
