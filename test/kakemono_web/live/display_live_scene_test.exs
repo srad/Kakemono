@@ -152,6 +152,36 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
     assert_enqueued(worker: FetchWorker, args: %{instance_id: rss.id})
   end
 
+  test "scene settings updates refresh the connected display", %{conn: conn} do
+    d = Fixtures.display!("scene-refresh-#{System.unique_integer([:positive])}")
+
+    {:ok, scene} =
+      Scenes.create(%{
+        name: "Scene Settings Refresh",
+        mode: "dashboard",
+        layout: %{"cells" => []},
+        aspect_ratio: "16:9",
+        orientation: "portrait",
+        color_scheme: "light"
+      })
+
+    {:ok, _} = Displays.set_scene(d.id, scene.id)
+
+    {:ok, view, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "aspect-ratio: 9 / 16"
+    assert html =~ "kw-shell-light"
+
+    {:ok, _updated} =
+      Scenes.update(scene, %{
+        orientation: "landscape",
+        color_scheme: "dark"
+      })
+
+    html = render(view)
+    assert html =~ "aspect-ratio: 16 / 9"
+    assert html =~ "kw-shell-dark"
+  end
+
   test "fullscreen_widget mode renders a single widget filling the grid", %{conn: conn} do
     d = Fixtures.display!("fs-#{System.unique_integer([:positive])}")
 

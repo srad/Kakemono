@@ -26,7 +26,10 @@ defmodule KakemonoWeb.DisplayLive.Index do
     active_id = if override, do: override.id, else: display.current_scene_id
     cells = load_scene_cells(active_id)
 
-    if connected?(socket), do: prefetch_cells(cells)
+    if connected?(socket) do
+      subscribe_scene(active_id)
+      prefetch_cells(cells)
+    end
 
     {:ok,
      socket
@@ -77,6 +80,26 @@ defmodule KakemonoWeb.DisplayLive.Index do
     end
   end
 
+  defp subscribe_scene(nil), do: :ok
+
+  defp subscribe_scene(scene_id) do
+    Phoenix.PubSub.subscribe(Kakemono.PubSub, "scene:#{scene_id}")
+  end
+
+  defp resubscribe_scene(socket, scene_id, scene_id), do: socket
+
+  defp resubscribe_scene(socket, old_scene_id, new_scene_id) do
+    unsubscribe_scene(old_scene_id)
+    subscribe_scene(new_scene_id)
+    socket
+  end
+
+  defp unsubscribe_scene(nil), do: :ok
+
+  defp unsubscribe_scene(scene_id) do
+    Phoenix.PubSub.unsubscribe(Kakemono.PubSub, "scene:#{scene_id}")
+  end
+
   @impl true
   def handle_info({:scene_changed, scene_id}, socket) do
     if socket.assigns.override_scene do
@@ -87,8 +110,25 @@ defmodule KakemonoWeb.DisplayLive.Index do
 
       {:noreply,
        socket
+       |> resubscribe_scene(socket.assigns.scene && socket.assigns.scene.id, scene_id)
        |> assign(:scene, load_scene(scene_id))
        |> assign(:scene_cells, cells)}
+    end
+  end
+
+  def handle_info({:scene_updated, scene_id}, socket) do
+    current_id = socket.assigns.scene && socket.assigns.scene.id
+
+    if current_id == scene_id do
+      cells = load_scene_cells(scene_id)
+      prefetch_cells(cells)
+
+      {:noreply,
+       socket
+       |> assign(:scene, load_scene(scene_id))
+       |> assign(:scene_cells, cells)}
+    else
+      {:noreply, socket}
     end
   end
 

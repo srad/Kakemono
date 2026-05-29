@@ -5,6 +5,8 @@ defmodule Kakemono.Scenes do
   alias Kakemono.Scenes.Scene
   alias Kakemono.Displays
 
+  @pubsub Kakemono.PubSub
+
   def list, do: Repo.all(from p in Scene, order_by: [asc: p.name])
 
   def get(id), do: Repo.get(Scene, id)
@@ -16,7 +18,10 @@ defmodule Kakemono.Scenes do
   end
 
   def update(%Scene{} = p, attrs) do
-    p |> Scene.changeset(attrs) |> Repo.update()
+    with {:ok, updated} <- p |> Scene.changeset(attrs) |> Repo.update() do
+      broadcast_updated(updated.id)
+      {:ok, updated}
+    end
   end
 
   def delete(%Scene{} = p), do: Repo.delete(p)
@@ -52,4 +57,8 @@ defmodule Kakemono.Scenes do
   end
 
   defp schedule_matches?(_, _), do: false
+
+  defp broadcast_updated(scene_id) do
+    Phoenix.PubSub.broadcast(@pubsub, "scene:#{scene_id}", {:scene_updated, scene_id})
+  end
 end

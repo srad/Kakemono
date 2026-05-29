@@ -127,6 +127,20 @@ defmodule Kakemono.ScenesTest do
     end
   end
 
+  describe "update/2" do
+    test "broadcasts scene_updated for the changed scene" do
+      {:ok, scene} =
+        Scenes.create(%{name: "Refresh me", mode: "dashboard", layout: %{"cells" => []}})
+
+      Phoenix.PubSub.subscribe(Kakemono.PubSub, "scene:#{scene.id}")
+
+      assert {:ok, updated} = Scenes.update(scene, %{orientation: "landscape"})
+      assert updated.orientation == "landscape"
+      assert_receive {:scene_updated, scene_id}
+      assert scene_id == scene.id
+    end
+  end
+
   describe "set_active_for/2" do
     test "delegates to Displays.set_scene/2 and broadcasts" do
       d = Kakemono.Fixtures.display!("d-#{System.unique_integer([:positive])}")
