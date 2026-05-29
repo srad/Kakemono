@@ -52,6 +52,14 @@ defmodule Kakemono.Widgets.Weather do
         default: 0.0
       },
       %{
+        key: "timezone",
+        type: :timezone_search,
+        hidden: true,
+        required: false,
+        schema_optional: true,
+        options: Kakemono.TimeZones.list()
+      },
+      %{
         key: "source",
         label: "Data source",
         type: :select,
@@ -144,7 +152,8 @@ defmodule Kakemono.Widgets.Weather do
         weather_id: "weather-" <> Integer.to_string(assigns.instance.id),
         latitude: cfg["latitude"],
         longitude: cfg["longitude"],
-        utc_offset: cached["utc_offset_seconds"] || 0,
+        timezone: cfg["timezone"],
+        utc_offset: utc_offset_for(cfg, cached),
         label: cfg["label"] || "Weather",
         temp: format_temperature(current["temperature_2m"]),
         feels_like: format_temperature(current["apparent_temperature"]),
@@ -169,6 +178,7 @@ defmodule Kakemono.Widgets.Weather do
       data-tod={@tod}
       data-latitude={@latitude}
       data-longitude={@longitude}
+      data-timezone={@timezone}
       data-utc-offset={@utc_offset}
     >
       <div class="kw-w-content">
@@ -263,7 +273,12 @@ defmodule Kakemono.Widgets.Weather do
               <path d="m19.07 4.93-1.41 1.41" />
             </g>
           </g>
-          <path class="kw-w-moon" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" fill-opacity="0.85" />
+          <path
+            class="kw-w-moon"
+            d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
+            fill="currentColor"
+            fill-opacity="0.85"
+          />
         <% "clear_day" -> %>
           <circle class="kw-w-sun-core" cx="12" cy="12" r="4" fill="currentColor" />
           <g class="kw-w-sun-rays">
@@ -277,7 +292,12 @@ defmodule Kakemono.Widgets.Weather do
             <path d="m19.07 4.93-1.41 1.41" />
           </g>
         <% "clear_night" -> %>
-          <path class="kw-w-moon" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="currentColor" fill-opacity="0.85" />
+          <path
+            class="kw-w-moon"
+            d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"
+            fill="currentColor"
+            fill-opacity="0.85"
+          />
         <% "partly" -> %>
           <path d="M12 2v2" />
           <path d="m4.93 4.93 1.41 1.41" />
@@ -363,6 +383,15 @@ defmodule Kakemono.Widgets.Weather do
     case get_in(cached, ["current", "is_day"]) do
       0 -> false
       _ -> true
+    end
+  end
+
+  defp utc_offset_for(cfg, cached) do
+    case cfg["source"] do
+      nil -> Map.get(cached, "utc_offset_seconds")
+      "" -> Map.get(cached, "utc_offset_seconds")
+      "open_meteo" -> Map.get(cached, "utc_offset_seconds")
+      _ -> nil
     end
   end
 

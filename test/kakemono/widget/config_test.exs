@@ -19,7 +19,10 @@ defmodule Kakemono.Widget.ConfigTest do
                  "style" => %{"type" => "string", "enum" => ["celestial", "lunar", "minimal"]},
                  "format" => %{"type" => "string", "enum" => ["24h", "12h"]},
                  "show_seconds" => %{"type" => "boolean"},
-                 "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()}
+                 "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()},
+                 "location" => %{"type" => "string"},
+                 "latitude" => %{"type" => "number", "minimum" => -90, "maximum" => 90},
+                 "longitude" => %{"type" => "number", "minimum" => -180, "maximum" => 180}
                }
              }
     end
@@ -37,6 +40,7 @@ defmodule Kakemono.Widget.ConfigTest do
                    "type" => "string",
                    "enum" => ["open_meteo", "met_no", "bright_sky"]
                  },
+                 "timezone" => %{"type" => "string", "enum" => Kakemono.TimeZones.list()},
                  "api_key" => %{"type" => "string"},
                  "cached" => %{"type" => "object"}
                }
@@ -112,6 +116,8 @@ defmodule Kakemono.Widget.ConfigTest do
     test "all widgets" do
       assert Clock.default_config() == %{
                "style" => "celestial",
+               "latitude" => 0.0,
+               "longitude" => 0.0,
                "format" => "24h",
                "show_seconds" => false
              }
