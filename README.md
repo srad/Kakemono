@@ -234,6 +234,19 @@ Dockerfile, docker-compose.yml, .docker/   Container images
 Runtime data (DB, uploads, backups, secret/password files) lives under the data dir
 and is ignored by Git.
 
+## License
+
+Kakemono is source-available under the
+[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0/)
+(`PolyForm-Noncommercial-1.0.0`) for free non-commercial use.
+
+The license permits personal, private, educational institution, research,
+charitable or nonprofit, community, and similar non-commercial use. Commercial
+use is not covered by this license and requires a separate paid commercial
+license from the copyright holder.
+
+See [`LICENSE`](LICENSE) for the full terms.
+
 ## Maintenance
 
 ```bash
