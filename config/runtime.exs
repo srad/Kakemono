@@ -110,7 +110,6 @@ if config_env() == :prod do
   config :kakemono, KakemonoWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
     check_origin: ["https://#{host}"],
-    force_ssl: [rewrite_on: [:x_forwarded_proto], hsts: true],
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.

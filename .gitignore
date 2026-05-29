@@ -25,6 +25,10 @@ kakemono-*.tar
 # Generated static assets
 /priv/static/assets/
 /priv/static/cache_manifest.json
+/priv/static/*.gz
+/priv/static/*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*.*
+/priv/static/images/*.gz
+/priv/static/images/*-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]*.*
 
 # JavaScript dependencies and build output
 /assets/node_modules/
