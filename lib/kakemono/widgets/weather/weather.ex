@@ -181,6 +181,13 @@ defmodule Kakemono.Widgets.Weather do
       data-timezone={@timezone}
       data-utc-offset={@utc_offset}
     >
+      <div class="kw-w-sky" aria-hidden="true">
+        <div class="kw-w-stars"></div>
+        <div class="kw-w-horizon"></div>
+        <div class="kw-w-sun-body"></div>
+        <div class="kw-w-moon-body"></div>
+        <div class="kw-w-atmosphere"></div>
+      </div>
       <div class="kw-w-content">
         <div class="kw-w-header">
           <span class="kw-w-loc">{@label}</span>

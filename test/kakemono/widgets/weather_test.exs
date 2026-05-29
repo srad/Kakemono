@@ -1,6 +1,7 @@
 defmodule Kakemono.Widgets.WeatherTest do
   # async: false — the fetch/1 dispatch tests mutate the global :req_options env.
   use ExUnit.Case, async: false
+  import Phoenix.LiveViewTest
   alias Kakemono.Widgets.Weather
   alias Kakemono.Widgets.Instance
 
@@ -110,6 +111,33 @@ defmodule Kakemono.Widgets.WeatherTest do
       }
 
       assert Weather.compute_is_day(cached) == false
+    end
+  end
+
+  describe "render/1" do
+    test "includes the sky art layer behind weather content" do
+      html =
+        render_component(&Weather.render/1,
+          instance: %Instance{
+            id: 123,
+            config: %{
+              "label" => "Berlin",
+              "latitude" => 52.52,
+              "longitude" => 13.405,
+              "timezone" => "Europe/Berlin",
+              "cached" => %{
+                "utc_offset_seconds" => 7200,
+                "current" => %{"temperature_2m" => 21.0, "weather_code" => 0, "is_day" => 1}
+              }
+            }
+          }
+        )
+
+      assert html =~ ~s(class="kw-w-sky")
+      assert html =~ ~s(class="kw-w-stars")
+      assert html =~ ~s(class="kw-w-sun-body")
+      assert html =~ ~s(class="kw-w-moon-body")
+      assert html =~ ~s(class="kw-w-content")
     end
   end
 
