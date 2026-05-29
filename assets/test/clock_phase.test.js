@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+import ClockTick from "../../lib/kakemono/widgets/clock/clock_tick.js"
 import {
   moonPhase,
   sunPosition,
@@ -96,6 +97,27 @@ describe("timeOfDay", () => {
     expect(timeOfDay(20, 5, 21)).toBe("dusk")
     expect(timeOfDay(22, 5, 21)).toBe("night")
     expect(timeOfDay(5, 5, 21)).toBe("dawn")
+  })
+})
+
+describe("ClockTick.render", () => {
+  it("repairs a stale data-tod attribute after LiveView patches the widget root", () => {
+    document.body.innerHTML = `
+      <div class="kakemono-widget-clock" data-tod="night">
+        <time data-style="celestial" data-format="24h" data-show-seconds="false"></time>
+      </div>
+    `
+
+    const el = document.querySelector("time")
+    const ctx = {
+      el,
+      lastTod: "day",
+      timeParts: () => ({ hour: 16, minute: 47, second: 0 }),
+    }
+
+    ClockTick.render.call(ctx)
+
+    expect(document.querySelector(".kakemono-widget-clock").dataset.tod).toBe("day")
   })
 })
 
