@@ -185,4 +185,25 @@ defmodule KakemonoWeb.DisplayLiveTest do
     assert html =~ ~s(duration_ms&quot;:12345)
     refute html =~ ~s(duration_ms&quot;:7000)
   end
+
+  test "widget config update patches slideshow data-items", %{conn: conn} do
+    d = display!("dpatch-#{System.unique_integer([:positive])}")
+    pl1 = playlist_fixture()
+    pl2 = playlist_fixture()
+    first = media_item_fixture(%{filename: "first-patched.jpg"})
+    second = media_item_fixture(%{filename: "second-patched.jpg"})
+    {:ok, _} = Playlists.add_item(pl1, first.id)
+    {:ok, _} = Playlists.add_item(pl2, second.id)
+    {_scene, inst} = slideshow_scene!(d.id, pl1.id)
+
+    {:ok, view, html} = live(conn, ~p"/d/#{d.id}")
+    assert html =~ "first-patched.jpg"
+    refute html =~ "second-patched.jpg"
+
+    {:ok, _} = Widgets.update_config(inst, %{"playlist_id" => pl2.id})
+
+    html = render(view)
+    assert html =~ "second-patched.jpg"
+    refute html =~ "first-patched.jpg"
+  end
 end

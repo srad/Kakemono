@@ -156,6 +156,83 @@ describe("Slideshow hook", () => {
     hook.destroyed()
   })
 
+  it("updated() picks up patched data-items and starts showing the new item", () => {
+    const hook = makeHost({ items: [] })
+    hook.mounted()
+
+    hook.el.dataset.items = JSON.stringify([
+      { id: 9, type: "image", src: "/new.jpg", duration_ms: 3000 },
+    ])
+    hook.updated()
+
+    expect(hook.items).toEqual([{ id: 9, type: "image", src: "/new.jpg", duration_ms: 3000 }])
+    expect(hook.index).toBe(0)
+    expect(hook.layers[hook.active].img.src).toContain("/new.jpg")
+    hook.destroyed()
+  })
+
+  it("updated() applies a patched data-fit-mode to both layers", () => {
+    const hook = makeHost({
+      items: [{ id: 1, type: "image", src: "/a.jpg", duration_ms: 3000 }],
+      fitMode: "contain",
+    })
+    hook.mounted()
+
+    hook.el.dataset.fitMode = "cover"
+    hook.updated()
+
+    expect(hook.fitMode).toBe("cover")
+    hook.layers.forEach((l) => {
+      expect(l.img.style.objectFit).toBe("cover")
+      expect(l.vid.style.objectFit).toBe("cover")
+    })
+    hook.destroyed()
+  })
+
+  it("updated() leaves the current item alone when dataset attributes are unchanged", () => {
+    const hook = makeHost({
+      items: [
+        { id: 1, type: "image", src: "/a.jpg", duration_ms: 3000 },
+        { id: 2, type: "image", src: "/b.jpg", duration_ms: 3000 },
+      ],
+    })
+    hook.mounted()
+    vi.advanceTimersByTime(3001)
+    expect(hook.index).toBe(1)
+
+    hook.updated()
+
+    expect(hook.index).toBe(1)
+    hook.destroyed()
+  })
+
+  it("updated() treats invalid data-items as an empty list", () => {
+    const hook = makeHost({
+      items: [{ id: 1, type: "image", src: "/a.jpg", duration_ms: 3000 }],
+    })
+    hook.mounted()
+
+    hook.el.dataset.items = "{bad json"
+
+    expect(() => hook.updated()).not.toThrow()
+    expect(hook.items).toEqual([])
+    hook.destroyed()
+  })
+
+  it("updated() reattaches hook-owned layers after a LiveView patch removes them", () => {
+    const hook = makeHost({
+      items: [{ id: 1, type: "image", src: "/a.jpg", duration_ms: 3000 }],
+    })
+    hook.mounted()
+    const firstLayer = hook.layers[0].root
+    firstLayer.remove()
+
+    hook.updated()
+
+    expect(firstLayer.parentElement).toBe(hook.el)
+    hook.destroyed()
+  })
+
   it("image onerror calls flashStatus with the failing src", () => {
     const hook = makeHost({
       items: [{ id: 1, type: "image", src: "/missing.jpg", duration_ms: 3000 }],
