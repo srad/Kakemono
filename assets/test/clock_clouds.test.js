@@ -28,6 +28,7 @@ describe("ClockTick CSS cloud animation maintenance", () => {
   })
 
   afterEach(() => {
+    vi.restoreAllMocks()
     vi.unstubAllGlobals()
   })
 
@@ -108,7 +109,8 @@ describe("ClockTick.spawnCloud guard", () => {
     expect(container.children.length).toBe(0)
   })
 
-  it("appends a cloud element when the container has size", () => {
+  it("appends an unfiltered SVG fallback when canvas is unavailable", () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null)
     const container = document.createElement("div")
     const ctx = {
       cloudContainer: container,
@@ -123,11 +125,54 @@ describe("ClockTick.spawnCloud guard", () => {
     ClockTick.spawnCloud.call(ctx, 12)
 
     expect(ctx.cloudEntities.length).toBe(1)
+    expect(ctx.cloudEntities[0].puffCount).toBeGreaterThanOrEqual(6)
+    expect(ctx.cloudEntities[0].padding).toBeGreaterThan(0)
     expect(container.children.length).toBe(1)
     expect(container.children[0].style.left).toBe("")
     expect(container.children[0].style.getPropertyValue("--cloud-from")).toBe("12px")
     expect(container.children[0].style.getPropertyValue("--cloud-to")).toBe("310px")
     expect(container.children[0].style.getPropertyValue("--cloud-duration")).toMatch(/s$/)
+    expect(container.children[0].style.getPropertyValue("--cloud-filter")).toBe("")
     expect(container.querySelector(".kw-cloud-visual")).not.toBeNull()
+    expect(container.querySelector(".kw-cloud-visual svg")).not.toBeNull()
+    expect(container.querySelectorAll(".kw-cloud-visual ellipse").length).toBeGreaterThanOrEqual(6)
+  })
+
+  it("uses a rasterized canvas when a 2d context is available", () => {
+    const gradient = { addColorStop: vi.fn() }
+    const draw = {
+      setTransform: vi.fn(),
+      clearRect: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      ellipse: vi.fn(),
+      closePath: vi.fn(),
+      fill: vi.fn(),
+      createRadialGradient: vi.fn(() => gradient),
+      createLinearGradient: vi.fn(() => gradient),
+    }
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(draw)
+
+    const container = document.createElement("div")
+    const ctx = {
+      cloudContainer: container,
+      cloudEntities: [],
+      targetCloudCount: 5,
+      _cachedContainerW: 300,
+      _cachedContainerH: 150,
+      topUpClouds: ClockTick.topUpClouds,
+      finishCloud: ClockTick.finishCloud,
+    }
+
+    ClockTick.spawnCloud.call(ctx, 12)
+
+    expect(ctx.cloudEntities.length).toBe(1)
+    expect(ctx.cloudEntities[0].puffCount).toBeGreaterThanOrEqual(6)
+    expect(ctx.cloudEntities[0].padding).toBeGreaterThan(0)
+    expect(container.querySelector("canvas.kw-cloud-canvas")).not.toBeNull()
+    expect(container.querySelector(".kw-cloud-visual")).toBeNull()
+    expect(container.children[0].style.getPropertyValue("--cloud-filter")).toBe("")
+    expect(draw.ellipse).toHaveBeenCalled()
+    expect(draw.fill.mock.calls.length).toBeGreaterThan(2)
   })
 })
