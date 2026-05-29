@@ -8,6 +8,8 @@ defmodule KakemonoWeb.ScenesLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
+       page_title: "Scenes",
+       active_nav: :scenes,
        scenes: Scenes.list(),
        modes: @modes,
        aspect_ratios: Kakemono.Scenes.Scene.aspect_ratios(),
@@ -73,73 +75,135 @@ defmodule KakemonoWeb.ScenesLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 space-y-6 w-full">
-      <h1 class="text-2xl font-bold">Scenes</h1>
-      <nav class="flex gap-4 text-blue-600">
-        <.link navigate={~p"/c"}>Back to Control</.link>
-        <.link navigate={~p"/c/media"}>Media</.link>
-        <.link navigate={~p"/c/playlists"}>Playlists</.link>
-      </nav>
+    <div class="space-y-6">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-500">Layouts</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Scenes</h1>
+        </div>
+        <p class="text-sm text-slate-500">{length(@scenes)} scenes</p>
+      </div>
 
       <form
         id="create-scene-form"
         phx-submit="create_scene"
-        class="flex flex-wrap items-end gap-2 p-3 border rounded bg-white shadow-sm"
+        class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
       >
-        <div>
-          <label class="block text-xs text-gray-500">Name</label>
-          <input type="text" name="scene[name]" required class="border rounded px-2 py-1" />
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950">Create scene</h2>
+          <p class="text-sm text-slate-500">Scenes define what each display shows.</p>
         </div>
-        <div>
-          <label class="block text-xs text-gray-500">Mode</label>
-          <select name="scene[mode]" class="border rounded px-2 py-1">
-            <option :for={m <- @modes} value={m}>{m}</option>
-          </select>
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(14rem,1fr)_repeat(4,minmax(9rem,11rem))_auto]">
+          <div>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Name
+            </label>
+            <input
+              type="text"
+              name="scene[name]"
+              required
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Mode
+            </label>
+            <select
+              name="scene[mode]"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+            >
+              <option :for={m <- @modes} value={m}>{m}</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Aspect Ratio
+            </label>
+            <select
+              name="scene[aspect_ratio]"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+            >
+              <option :for={r <- @aspect_ratios} value={r}>{r}</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Orientation
+            </label>
+            <select
+              name="scene[orientation]"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+            >
+              <option :for={o <- @orientations} value={o} selected={o == "portrait"}>{o}</option>
+            </select>
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Theme
+            </label>
+            <select
+              name="scene[color_scheme]"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+            >
+              <option :for={s <- @color_schemes} value={s} selected={s == "light"}>{s}</option>
+            </select>
+          </div>
+          <button
+            type="submit"
+            class="inline-flex h-10 items-center justify-center self-end rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+          >
+            Create
+          </button>
         </div>
-        <div>
-          <label class="block text-xs text-gray-500">Aspect Ratio</label>
-          <select name="scene[aspect_ratio]" class="border rounded px-2 py-1">
-            <option :for={r <- @aspect_ratios} value={r}>{r}</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-500">Orientation</label>
-          <select name="scene[orientation]" class="border rounded px-2 py-1">
-            <option :for={o <- @orientations} value={o} selected={o == "portrait"}>{o}</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs text-gray-500">Theme</label>
-          <select name="scene[color_scheme]" class="border rounded px-2 py-1">
-            <option :for={s <- @color_schemes} value={s} selected={s == "light"}>{s}</option>
-          </select>
-        </div>
-        <button type="submit" class="bg-primary text-primary-foreground px-3 py-1.5 rounded">
-          Create
-        </button>
-        <p :if={@form_error} class="text-red-600 text-sm w-full">{@form_error}</p>
+        <p :if={@form_error} class="mt-3 text-sm text-rose-600">{@form_error}</p>
       </form>
 
-      <ul id="scenes-list" class="space-y-2">
+      <ul
+        id="scenes-list"
+        class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
+      >
         <li
           :for={p <- @scenes}
           id={"scene-#{p.id}"}
-          class="flex items-center gap-3 p-3 border rounded"
+          class="flex items-center gap-3 border-b border-slate-200 px-5 py-4 last:border-b-0"
         >
-          <.link navigate={~p"/c/scenes/#{p.id}"} class="font-medium hover:underline">{p.name}</.link>
-          <span class="text-sm text-gray-500">{p.mode}</span>
+          <div class="min-w-0 flex-1">
+            <.link
+              navigate={~p"/c/scenes/#{p.id}"}
+              class="truncate font-medium text-slate-950 hover:text-slate-700"
+            >
+              {p.name}
+            </.link>
+            <div class="mt-1 flex flex-wrap gap-2 text-xs">
+              <span class="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+                {p.mode}
+              </span>
+              <span class="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+                {p.aspect_ratio} {p.orientation}
+              </span>
+              <span class="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">
+                {p.color_scheme}
+              </span>
+            </div>
+          </div>
           <button
             phx-click="delete_scene"
             phx-value-id={p.id}
             data-confirm={"Delete scene '#{p.name}'?"}
-            class="ml-auto text-red-600 text-sm hover:underline"
+            class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
           >
             delete
           </button>
         </li>
       </ul>
 
-      <p :if={@scenes == []} class="text-gray-500">No scenes yet. Create one above.</p>
+      <p
+        :if={@scenes == []}
+        class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
+      >
+        No scenes yet. Create one above.
+      </p>
     </div>
     """
   end

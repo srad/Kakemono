@@ -4,7 +4,11 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:page_title, "Playlists") |> assign(:playlists, Playlists.list())}
+    {:ok,
+     socket
+     |> assign(:page_title, "Playlists")
+     |> assign(:active_nav, :playlists)
+     |> assign(:playlists, Playlists.list())}
   end
 
   @impl true
@@ -24,29 +28,60 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 w-full">
-      <h1 class="text-2xl font-bold mb-4">Playlists</h1>
+    <div class="space-y-6">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-500">Playback</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Playlists</h1>
+        </div>
+        <p class="text-sm text-slate-500">{length(@playlists)} playlists</p>
+      </div>
 
-      <form phx-submit="create" class="mb-6 flex gap-2">
-        <input name="name" placeholder="New playlist name" class="flex-1 border rounded px-3 py-2" />
-        <button class="bg-primary text-primary-foreground px-4 py-2 rounded">Create</button>
+      <form
+        phx-submit="create"
+        class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:flex-row"
+      >
+        <input
+          name="name"
+          placeholder="New playlist name"
+          class="flex-1 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+        />
+        <button class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
+          Create
+        </button>
       </form>
 
-      <ul class="divide-y border rounded">
-        <li :for={p <- @playlists} class="flex justify-between items-center p-3">
-          <.link navigate={~p"/c/playlists/#{p.id}"} class="text-blue-600 hover:underline">
-            {p.name}
-          </.link>
+      <ul class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <li
+          :for={p <- @playlists}
+          class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 last:border-b-0"
+        >
+          <div class="min-w-0">
+            <.link
+              navigate={~p"/c/playlists/#{p.id}"}
+              class="truncate font-medium text-slate-950 hover:text-slate-700"
+            >
+              {p.name}
+            </.link>
+            <p class="text-sm text-slate-500">Playlist #{p.id}</p>
+          </div>
           <button
             phx-click="delete"
             phx-value-id={p.id}
             data-confirm="Delete playlist?"
-            class="text-red-600 text-sm"
+            class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
           >
             delete
           </button>
         </li>
       </ul>
+
+      <p
+        :if={@playlists == []}
+        class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
+      >
+        No playlists yet. Create one above.
+      </p>
     </div>
     """
   end

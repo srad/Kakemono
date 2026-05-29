@@ -5,6 +5,8 @@ defmodule KakemonoWeb.ControlLive.Settings do
   def mount(_params, _session, socket) do
     {:ok,
      socket
+     |> assign(:page_title, "Settings")
+     |> assign(:active_nav, :settings)
      |> assign(:secret, current_secret())
      |> assign(:password_set, Kakemono.BackendAuth.configured?())}
   end
@@ -52,57 +54,59 @@ defmodule KakemonoWeb.ControlLive.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 space-y-6 w-full max-w-2xl">
-      <h1 class="text-2xl font-bold">Settings</h1>
-      <nav class="flex gap-4 text-blue-600">
-        <.link navigate={~p"/c"}>← Control panel</.link>
-        <.link navigate={~p"/c/backups"}>Backups</.link>
-        <.link href={~p"/logout"} method="delete" class="ml-auto">Logout</.link>
-      </nav>
+    <div class="max-w-3xl space-y-6">
+      <div>
+        <p class="text-sm font-medium text-slate-500">Administration</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Settings</h1>
+      </div>
 
-      <section class="space-y-3">
-        <h2 class="text-lg font-semibold">Backend password</h2>
-        <p class="text-sm text-gray-600">
-          Single password (no username) protecting the control panel and landing page. {if @password_set,
-            do: "A password is currently set.",
-            else: "No password is set yet."}
-        </p>
-        <form phx-submit="set_password" class="flex items-center gap-3">
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950">Backend password</h2>
+          <p class="text-sm text-slate-500">
+            Single password protecting the control panel and landing page. {if @password_set,
+              do: "A password is currently set.",
+              else: "No password is set yet."}
+          </p>
+        </div>
+        <form phx-submit="set_password" class="flex flex-col gap-3 sm:flex-row">
           <input
             type="password"
             name="password"
             autocomplete="new-password"
             placeholder="New password"
-            class="flex-1 border rounded px-3 py-2 text-sm"
+            class="flex-1 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
           />
           <button
             type="submit"
-            class="shrink-0 bg-primary text-primary-foreground px-3 py-2 rounded text-sm"
+            class="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
             {if @password_set, do: "Change", else: "Set"}
           </button>
         </form>
       </section>
 
-      <section class="space-y-3">
-        <h2 class="text-lg font-semibold">API Secret</h2>
-        <p class="text-sm text-gray-600">
-          Used by displays to authenticate heartbeat and scene-change API calls
-          (<code class="font-mono text-xs bg-gray-100 px-1 rounded">x-kakemono-secret</code> header).
-        </p>
-        <div class="flex items-center gap-3">
-          <code class="flex-1 font-mono text-sm bg-gray-100 border rounded px-3 py-2 break-all select-all">
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950">API Secret</h2>
+          <p class="text-sm text-slate-500">
+            Used by displays to authenticate heartbeat and scene-change API calls
+            (<code class="rounded bg-slate-100 px-1 font-mono text-xs">x-kakemono-secret</code> header).
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <code class="flex-1 select-all break-all rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-700">
             {@secret}
           </code>
           <button
             phx-click="regenerate"
             data-confirm="Replace the current secret? All displays will need updating."
-            class="shrink-0 bg-destructive text-destructive-foreground px-3 py-2 rounded text-sm"
+            class="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-rose-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
           >
             Regenerate
           </button>
         </div>
-        <p class="text-xs text-gray-500">
+        <p class="mt-3 text-xs text-slate-500">
           Set <code class="font-mono">KAKEMONO_API_SECRET</code> for the startup secret, or
           use Regenerate to update immediately (persisted to <code class="font-mono">{secret_key_path()}</code>).
         </p>

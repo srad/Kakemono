@@ -4,6 +4,15 @@ defmodule KakemonoWeb.ControlLiveTest do
 
   alias Kakemono.Fixtures
 
+  test "renders shared backend navigation with logout", %{conn: conn} do
+    {:ok, _view, html} = live(conn, ~p"/c")
+    assert html =~ "Kakemono"
+    assert html =~ "Media"
+    assert html =~ "Scenes"
+    assert html =~ "Logout"
+    assert html =~ ~s(href="/logout")
+  end
+
   test "lists displays with offline indicator by default", %{conn: conn} do
     d = Fixtures.display!("ctl-#{System.unique_integer([:positive])}")
     {:ok, _view, html} = live(conn, ~p"/c")

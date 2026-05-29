@@ -5,7 +5,12 @@ defmodule KakemonoWeb.ControlLive.Backups do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, socket |> assign(:backups, Backup.list()) |> assign(:creating, false)}
+    {:ok,
+     socket
+     |> assign(:page_title, "Backups")
+     |> assign(:active_nav, :backups)
+     |> assign(:backups, Backup.list())
+     |> assign(:creating, false)}
   end
 
   @impl true
@@ -46,31 +51,40 @@ defmodule KakemonoWeb.ControlLive.Backups do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 space-y-6 w-full max-w-3xl">
-      <h1 class="text-2xl font-bold">Backups</h1>
-      <nav class="flex gap-4 text-blue-600">
-        <.link navigate={~p"/c"}>← Control panel</.link>
-      </nav>
+    <div class="max-w-5xl space-y-6">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-500">Administration</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Backups</h1>
+        </div>
+        <p class="text-sm text-slate-500">{length(@backups)} backup files</p>
+      </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
         <button
           phx-click="create"
           disabled={@creating}
-          class="bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
+          class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {if @creating, do: "Creating…", else: "Create backup"}
         </button>
-        <span class="text-sm text-gray-500">
+        <span class="text-sm text-slate-500">
           Archives the database and uploads into a zip file.
         </span>
       </div>
 
-      <p :if={@backups == [] and not @creating} class="text-gray-500 text-sm">
+      <p
+        :if={@backups == [] and not @creating}
+        class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
+      >
         No backups yet — click Create backup above.
       </p>
 
-      <table :if={@backups != []} class="w-full text-sm border rounded overflow-hidden">
-        <thead class="bg-gray-50 text-left">
+      <table
+        :if={@backups != []}
+        class="w-full overflow-hidden rounded-lg border border-slate-200 bg-white text-sm shadow-sm"
+      >
+        <thead class="bg-slate-50 text-left text-slate-600">
           <tr>
             <th class="px-3 py-2 font-medium">Filename</th>
             <th class="px-3 py-2 font-medium">Size</th>
@@ -79,16 +93,16 @@ defmodule KakemonoWeb.ControlLive.Backups do
           </tr>
         </thead>
         <tbody>
-          <tr :for={b <- @backups} class="border-t hover:bg-gray-50">
-            <td class="px-3 py-2 font-mono text-xs">{b.filename}</td>
-            <td class="px-3 py-2 tabular-nums">{format_size(b.size)}</td>
-            <td class="px-3 py-2 tabular-nums">{format_datetime(b.created_at)}</td>
+          <tr :for={b <- @backups} class="border-t border-slate-200 hover:bg-slate-50">
+            <td class="px-3 py-2 font-mono text-xs text-slate-800">{b.filename}</td>
+            <td class="px-3 py-2 tabular-nums text-slate-700">{format_size(b.size)}</td>
+            <td class="px-3 py-2 tabular-nums text-slate-700">{format_datetime(b.created_at)}</td>
             <td class="px-3 py-2">
               <div class="flex gap-3 justify-end">
                 <a
                   href={~p"/c/backups/#{b.filename}/download"}
                   download={b.filename}
-                  class="text-blue-600 hover:underline"
+                  class="font-medium text-slate-700 hover:text-slate-950"
                 >
                   Download
                 </a>
@@ -96,7 +110,7 @@ defmodule KakemonoWeb.ControlLive.Backups do
                   phx-click="delete"
                   phx-value-filename={b.filename}
                   data-confirm={"Delete #{b.filename}?"}
-                  class="text-red-600 hover:underline"
+                  class="font-medium text-rose-600 hover:text-rose-700"
                 >
                   Delete
                 </button>
@@ -106,7 +120,7 @@ defmodule KakemonoWeb.ControlLive.Backups do
         </tbody>
       </table>
 
-      <p class="text-xs text-gray-400">
+      <p class="text-xs text-slate-500">
         Stored in <code class="font-mono">{Backup.backups_dir()}</code>
       </p>
     </div>

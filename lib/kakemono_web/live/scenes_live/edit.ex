@@ -24,6 +24,9 @@ defmodule KakemonoWeb.ScenesLive.Edit do
 
     {:ok,
      socket
+     |> assign(:page_title, scene.name)
+     |> assign(:active_nav, :scenes)
+     |> assign(:backend_full_bleed, true)
      |> assign(:scene, scene)
      |> assign(:instances, instances)
      |> assign(:types, types)
@@ -530,24 +533,26 @@ defmodule KakemonoWeb.ScenesLive.Edit do
     assigns = assign(assigns, :placed_ids, placed_ids(assigns.scene))
 
     ~H"""
-    <div class="flex h-screen overflow-hidden bg-gray-100">
+    <div class="flex h-full min-h-0 overflow-hidden bg-slate-100">
       <%!-- Sidebar --%>
-      <aside class="w-72 flex-none flex flex-col border-r bg-white overflow-y-auto">
+      <aside class="flex w-80 flex-none flex-col overflow-y-auto border-r border-slate-200 bg-white shadow-sm">
         <%!-- Header --%>
-        <div class="p-4 border-b space-y-2">
+        <div class="space-y-3 border-b border-slate-200 p-4">
           <div class="flex items-center justify-between">
-            <.link navigate={~p"/c/scenes"} class="text-sm text-blue-600 hover:underline">
-              ← All scenes
+            <.link
+              navigate={~p"/c/scenes"}
+              class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-950"
+            >
+              <.icon name="hero-arrow-left" class="h-4 w-4" /> All scenes
             </.link>
             <a
               href={~p"/d/preview?scene=#{@scene.name}"}
               target="_blank"
               rel="noopener"
               title="Open this scene in the display viewer in a new tab"
-              class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-300
-                     text-gray-600 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50"
+              class="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
             >
-              <span aria-hidden="true">↗</span> Preview
+              <.icon name="hero-arrow-top-right-on-square" class="h-3.5 w-3.5" /> Preview
             </a>
           </div>
           <form phx-submit="rename_scene" class="flex items-center gap-1">
@@ -555,26 +560,33 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               type="text"
               name="name"
               value={@scene.name}
-              class="flex-1 font-bold text-lg border-0 border-b border-transparent
-                     hover:border-gray-300 focus:border-blue-500 focus:ring-0
-                     bg-transparent px-0 py-0.5"
+              class="min-w-0 flex-1 border-0 border-b border-transparent bg-transparent px-0 py-0.5 text-lg font-semibold text-slate-950 hover:border-slate-300 focus:border-slate-500 focus:ring-0"
             />
-            <button type="submit" class="text-xs text-gray-400 hover:text-gray-700 shrink-0">
-              ✓
+            <button
+              type="submit"
+              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              title="Save scene name"
+            >
+              <.icon name="hero-check" class="h-4 w-4" />
             </button>
           </form>
-          <p class="text-xs text-gray-400">mode: {@scene.mode}</p>
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-400">
+            mode: {@scene.mode}
+          </p>
         </div>
 
         <%!-- Canvas settings — dashboard mode only --%>
-        <section :if={@scene.mode == "dashboard"} class="p-4 border-b">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+        <section :if={@scene.mode == "dashboard"} class="border-b border-slate-200 p-4">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Canvas
           </h2>
           <form phx-submit="set_canvas_settings" class="space-y-2">
             <label class="block">
-              <span class="block text-xs text-gray-500 mb-1">Ratio</span>
-              <select name="aspect_ratio" class="w-full border rounded px-2 py-1 text-sm">
+              <span class="mb-1 block text-xs text-slate-500">Ratio</span>
+              <select
+                name="aspect_ratio"
+                class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+              >
                 <option
                   :for={r <- Kakemono.Scenes.Scene.aspect_ratios()}
                   value={r}
@@ -585,8 +597,11 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               </select>
             </label>
             <label class="block">
-              <span class="block text-xs text-gray-500 mb-1">Orientation</span>
-              <select name="orientation" class="w-full border rounded px-2 py-1 text-sm">
+              <span class="mb-1 block text-xs text-slate-500">Orientation</span>
+              <select
+                name="orientation"
+                class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+              >
                 <option
                   :for={o <- Kakemono.Scenes.Scene.orientations()}
                   value={o}
@@ -597,8 +612,11 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               </select>
             </label>
             <label class="block">
-              <span class="block text-xs text-gray-500 mb-1">Theme</span>
-              <select name="color_scheme" class="w-full border rounded px-2 py-1 text-sm">
+              <span class="mb-1 block text-xs text-slate-500">Theme</span>
+              <select
+                name="color_scheme"
+                class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+              >
                 <option
                   :for={s <- Kakemono.Scenes.Scene.color_schemes()}
                   value={s}
@@ -610,7 +628,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             </label>
             <button
               type="submit"
-              class="px-2 py-1 text-xs border rounded hover:bg-gray-50 text-gray-600"
+              class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
             >
               Apply
             </button>
@@ -620,9 +638,9 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         <%!-- Add widget buttons — available in both modes --%>
         <section
           :if={@scene.mode in ["dashboard", "fullscreen_widget"]}
-          class="p-4 border-b"
+          class="border-b border-slate-200 p-4"
         >
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Add Widget
           </h2>
           <div class="grid grid-cols-2 gap-2">
@@ -630,8 +648,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               :for={t <- @types}
               phx-click="create_and_place"
               phx-value-type={t.type}
-              class="flex items-center gap-2 px-3 py-2 text-sm border rounded hover:bg-gray-50
-                     text-gray-700 font-medium"
+              class="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
             >
               <span>{t.icon}</span>
               <span class="truncate">{t.name}</span>
@@ -640,15 +657,18 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         </section>
 
         <%!-- Fullscreen widget picker --%>
-        <section :if={@scene.mode == "fullscreen_widget"} class="p-4 border-b space-y-2">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+        <section
+          :if={@scene.mode == "fullscreen_widget"}
+          class="space-y-2 border-b border-slate-200 p-4"
+        >
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Fullscreen Widget
           </h2>
           <form phx-submit="set_fullscreen_widget" class="flex gap-2 items-end">
             <div class="flex-1">
               <select
                 name="widget_instance_id"
-                class="border rounded px-2 py-1 w-full text-sm"
+                class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                 required
               >
                 <option value="">— choose instance —</option>
@@ -663,22 +683,22 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             </div>
             <button
               type="submit"
-              class="bg-primary text-primary-foreground px-3 py-1.5 rounded text-sm"
+              class="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
             >
               Set
             </button>
           </form>
-          <p :if={@instances == []} class="text-xs text-gray-400">
+          <p :if={@instances == []} class="text-xs text-slate-400">
             Click an "Add Widget" button above to create the fullscreen widget.
           </p>
         </section>
 
         <%!-- Placed instances list --%>
-        <section :if={@scene.mode == "dashboard"} class="p-4 border-b flex-1">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+        <section :if={@scene.mode == "dashboard"} class="flex-1 border-b border-slate-200 p-4">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Placed Widgets
           </h2>
-          <p :if={MapSet.size(@placed_ids) == 0} class="text-xs text-gray-400">
+          <p :if={MapSet.size(@placed_ids) == 0} class="text-xs text-slate-400">
             None — click Add Widget above.
           </p>
           <ul class="space-y-1">
@@ -686,53 +706,54 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               :for={cell <- @scene.layout["cells"] || []}
               class="flex items-center gap-1 text-sm py-1"
             >
-              <span class="flex-1 truncate text-gray-700">
+              <span class="flex-1 truncate text-slate-700">
                 {icon_for(@types, inst_type(@instances, cell["widget_instance_id"]))}
                 {type_label(@types, inst_type(@instances, cell["widget_instance_id"]))}
-                <span class="text-gray-400 text-xs">#{cell["widget_instance_id"]}</span>
+                <span class="text-xs text-slate-400">#{cell["widget_instance_id"]}</span>
               </span>
               <button
                 phx-click="open_config"
                 phx-value-widget_instance_id={cell["widget_instance_id"]}
-                class="text-xs text-blue-600 hover:underline px-1"
+                class="rounded px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
               >
                 Config
               </button>
               <button
                 phx-click="remove_from_canvas"
                 phx-value-widget_instance_id={cell["widget_instance_id"]}
-                class="text-xs text-red-500 hover:underline px-1"
+                class="rounded px-1.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                title="Remove from canvas"
               >
-                ✕
+                <.icon name="hero-x-mark" class="h-4 w-4" />
               </button>
             </li>
           </ul>
         </section>
 
         <%!-- All instances (with delete) --%>
-        <section :if={@instances != []} class="p-4 border-b">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+        <section :if={@instances != []} class="border-b border-slate-200 p-4">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             All Instances
           </h2>
           <ul class="space-y-1">
-            <li :for={i <- @instances} class="flex items-center gap-1 text-xs text-gray-500">
+            <li :for={i <- @instances} class="flex items-center gap-1 text-xs text-slate-500">
               <span class="flex-1 truncate">#{i.id} {type_label(@types, i.widget_type)}</span>
               <button
                 phx-click="open_config"
                 phx-value-widget_instance_id={i.id}
-                class="hover:text-blue-600 px-1"
+                class="rounded px-1 py-0.5 hover:bg-slate-100 hover:text-slate-950"
                 title="Configure"
               >
-                ⚙
+                <.icon name="hero-cog-6-tooth" class="h-4 w-4" />
               </button>
               <button
                 phx-click="delete_instance"
                 phx-value-id={i.id}
                 data-confirm="Delete this widget instance permanently?"
-                class="hover:text-red-600 px-1"
+                class="rounded px-1 py-0.5 hover:bg-rose-50 hover:text-rose-600"
                 title="Delete"
               >
-                🗑
+                <.icon name="hero-trash" class="h-4 w-4" />
               </button>
             </li>
           </ul>
@@ -740,7 +761,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
 
         <%!-- Schedule --%>
         <section class="p-4">
-          <h2 class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
             Schedule
           </h2>
           <form phx-submit="save_schedule" class="space-y-3">
@@ -772,26 +793,26 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             </div>
             <div class="flex gap-2 text-xs">
               <div>
-                <label class="block text-gray-400">Start (UTC)</label>
+                <label class="block text-slate-400">Start (UTC)</label>
                 <input
                   type="number"
                   name="schedule[start_hour]"
                   min="0"
                   max="23"
                   value={(@scene.schedule || %{})["start_hour"]}
-                  class="border rounded px-2 py-1 w-16 text-sm"
+                  class="w-16 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                   required
                 />
               </div>
               <div>
-                <label class="block text-gray-400">End (UTC)</label>
+                <label class="block text-slate-400">End (UTC)</label>
                 <input
                   type="number"
                   name="schedule[end_hour]"
                   min="0"
                   max="23"
                   value={(@scene.schedule || %{})["end_hour"]}
-                  class="border rounded px-2 py-1 w-16 text-sm"
+                  class="w-16 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                   required
                 />
               </div>
@@ -799,14 +820,14 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             <div class="flex gap-2">
               <button
                 type="submit"
-                class="bg-primary text-primary-foreground px-3 py-1 rounded text-xs"
+                class="rounded-md bg-slate-950 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800"
               >
                 Save
               </button>
               <button
                 type="button"
                 phx-click="clear_schedule"
-                class="border px-3 py-1 rounded text-xs text-red-600"
+                class="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
               >
                 Clear
               </button>
@@ -816,10 +837,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
       </aside>
 
       <%!-- Main canvas --%>
-      <main class="flex-1 overflow-hidden bg-gray-100 p-4">
+      <main class="flex-1 overflow-hidden bg-slate-100 p-4">
         <%!-- Dashboard grid --%>
         <div :if={@scene.mode == "dashboard"} class="flex h-full min-h-0 flex-col">
-          <div class="dashboard-editor-frame flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-xl bg-neutral-950 p-4">
+          <div class="dashboard-editor-frame flex min-h-0 flex-1 items-center justify-center overflow-auto rounded-lg bg-slate-950 p-4">
             <div
               id="grid-canvas"
               phx-hook="GridEditor"
@@ -840,16 +861,16 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             <p class="text-2xl">
               {icon_for(@types, inst_type(@instances, @scene.layout["widget_instance_id"]))}
             </p>
-            <p class="text-gray-600">
+            <p class="text-slate-600">
               {type_label(@types, inst_type(@instances, @scene.layout["widget_instance_id"]))}
-              <span class="text-gray-400 text-sm">fills entire display</span>
+              <span class="text-sm text-slate-400">fills entire display</span>
             </p>
             <p
               :if={
                 @scene.layout["widget_instance_id"] == 0 or
                   is_nil(@scene.layout["widget_instance_id"])
               }
-              class="text-sm text-gray-400"
+              class="text-sm text-slate-400"
             >
               Select a widget instance in the sidebar.
             </p>
@@ -866,17 +887,17 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           class="absolute inset-0 bg-black/40"
           phx-click="cancel_edit"
         />
-        <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 z-10">
-          <div class="flex items-center justify-between px-5 py-4 border-b">
+        <div class="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <h2 class="font-semibold">
               Configure {type_label(@types, inst_type(@instances, @editing_id))}
-              <span class="text-gray-400 font-normal text-sm">#{@editing_id}</span>
+              <span class="text-sm font-normal text-slate-400">#{@editing_id}</span>
             </h2>
             <button
               phx-click="cancel_edit"
-              class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
-              ×
+              <.icon name="hero-x-mark" class="h-5 w-5" />
             </button>
           </div>
 
@@ -884,7 +905,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             <input type="hidden" name="instance_id" value={@editing_id} />
             <p
               :if={config_fields_for(inst_type(@instances, @editing_id)) == []}
-              class="text-sm text-gray-500"
+              class="text-sm text-slate-500"
             >
               This widget has no configurable options.
             </p>
@@ -893,7 +914,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 {render_config_field(assigns, field)}
               <% else %>
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                  <label class="mb-1 block text-sm font-medium text-slate-700">
                     {field.label}{if field.required, do: " *", else: ""}
                   </label>
                   {render_config_field(assigns, field)}
@@ -903,11 +924,15 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             <div class="flex gap-2 pt-2">
               <button
                 type="submit"
-                class="bg-primary text-primary-foreground px-4 py-2 rounded text-sm"
+                class="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
               >
                 Save
               </button>
-              <button type="button" phx-click="cancel_edit" class="border px-4 py-2 rounded text-sm">
+              <button
+                type="button"
+                phx-click="cancel_edit"
+                class="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
                 Cancel
               </button>
             </div>
@@ -949,7 +974,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             value={@current || ""}
             placeholder={Map.get(@field, :placeholder, "")}
             autocomplete="off"
-            class="kw-loc-input border rounded px-2 py-1 w-full text-sm"
+            class="kw-loc-input w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
           />
           <ul class="kw-loc-results"></ul>
         </div>
@@ -974,7 +999,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           list={@list_id}
           placeholder={Map.get(@field, :placeholder, "")}
           autocomplete="off"
-          class="border rounded px-2 py-1 w-full text-sm"
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         <datalist id={@list_id}>
           <option :for={timezone <- @options} value={timezone}>{timezone}</option>
@@ -985,7 +1010,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         assigns = assign(assigns, field: field, current: current)
 
         ~H"""
-        <select name={"config[#{@field.key}]"} class="border rounded px-2 py-1 w-full text-sm">
+        <select
+          name={"config[#{@field.key}]"}
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+        >
           <option value="">— choose playlist —</option>
           <option :for={pl <- @playlists} value={pl.id} selected={@current == pl.id}>{pl.name}</option>
         </select>
@@ -995,7 +1023,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         assigns = assign(assigns, field: field, current: current)
 
         ~H"""
-        <select name={"config[#{@field.key}]"} class="border rounded px-2 py-1 w-full text-sm">
+        <select
+          name={"config[#{@field.key}]"}
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+        >
           <option :for={{val, lbl} <- @field.options} value={val} selected={@current == val}>
             {lbl}
           </option>
@@ -1021,7 +1052,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           step={Map.get(@field, :step, "any")}
           value={@current}
           placeholder={Map.get(@field, :placeholder, "")}
-          class="border rounded px-2 py-1 w-full text-sm"
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         """
 
@@ -1035,7 +1066,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           value=""
           placeholder={Map.get(@field, :placeholder, "")}
           autocomplete="new-password"
-          class="border rounded px-2 py-1 w-full text-sm"
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         """
 
@@ -1048,7 +1079,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           name={"config[#{@field.key}]"}
           value={@current || ""}
           placeholder={Map.get(@field, :placeholder, "")}
-          class="border rounded px-2 py-1 w-full text-sm"
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         """
     end

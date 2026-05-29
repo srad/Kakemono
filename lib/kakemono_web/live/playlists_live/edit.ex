@@ -27,6 +27,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
   defp load(socket, playlist) do
     socket
     |> assign(:page_title, playlist.name)
+    |> assign(:active_nav, :playlists)
     |> assign(:playlist, playlist)
     |> assign(:available_media, Media.list_items() |> Enum.filter(&(&1.status == "ready")))
   end
@@ -145,132 +146,176 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 w-full">
-      <.link navigate={~p"/c/playlists"} class="text-sm text-blue-600">&larr; Playlists</.link>
-      <h1 class="text-2xl font-bold mb-4">{@playlist.name}</h1>
+    <div class="space-y-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <.link
+            navigate={~p"/c/playlists"}
+            class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900"
+          >
+            <.icon name="hero-arrow-left" class="h-4 w-4" /> Playlists
+          </.link>
+          <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
+            {@playlist.name}
+          </h1>
+        </div>
+        <p class="text-sm text-slate-500">{length(@playlist.entries)} entries</p>
+      </div>
 
-      <form phx-change="update_settings" class="flex flex-wrap items-center gap-4 mb-6 text-sm">
-        <div class="flex items-center gap-2">
-          <label for="fit-mode" class="font-medium text-gray-700">Display fit:</label>
-          <select id="fit-mode" name="fit_mode" class="border rounded px-2 py-1">
-            <option
-              :for={mode <- Kakemono.Playlists.Playlist.fit_modes()}
-              value={mode}
-              selected={mode == @playlist.fit_mode}
+      <form
+        phx-change="update_settings"
+        class="rounded-lg border border-slate-200 bg-white p-5 text-sm shadow-sm"
+      >
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950">Playback settings</h2>
+          <p class="text-sm text-slate-500">Control how playlist media fits the display.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center gap-2">
+            <label for="fit-mode" class="font-medium text-slate-700">Display fit</label>
+            <select
+              id="fit-mode"
+              name="fit_mode"
+              class="rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
             >
-              {mode}
-            </option>
-          </select>
+              <option
+                :for={mode <- Kakemono.Playlists.Playlist.fit_modes()}
+                value={mode}
+                selected={mode == @playlist.fit_mode}
+              >
+                {mode}
+              </option>
+            </select>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <label for="transition-duration" class="font-medium text-slate-700">
+              Transition (ms)
+            </label>
+            <input
+              id="transition-duration"
+              type="number"
+              name="transition_duration_ms"
+              min="500"
+              max="600000"
+              step="500"
+              placeholder="default"
+              value={@playlist.transition_duration_ms}
+              class="w-28 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+              phx-debounce="500"
+            />
+            <span class="text-slate-500">
+              blank = use each item’s own duration (videos: natural length, images: 6000ms)
+            </span>
+          </div>
         </div>
 
-        <div class="flex items-center gap-2">
-          <label for="transition-duration" class="font-medium text-gray-700">
-            Transition (ms):
-          </label>
-          <input
-            id="transition-duration"
-            type="number"
-            name="transition_duration_ms"
-            min="500"
-            max="600000"
-            step="500"
-            placeholder="default"
-            value={@playlist.transition_duration_ms}
-            class="border rounded px-2 py-1 w-28"
-            phx-debounce="500"
-          />
-          <span class="text-gray-500">
-            blank = use each item’s own duration (videos: natural length, images: 6000ms)
-          </span>
-        </div>
-
-        <span class="text-gray-500 basis-full">
+        <p class="mt-3 text-xs text-slate-500">
           contain = letterbox; cover = fill &amp; crop; fill = stretch; scale-down = native or fit; none = native
-        </span>
+        </p>
       </form>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section>
-          <h2 class="font-semibold mb-2">Entries (drag to reorder)</h2>
-          <ul id="entries" phx-hook="Sortable" class="border rounded divide-y">
+        <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div class="border-b border-slate-200 px-5 py-4">
+            <h2 class="font-semibold text-slate-950">Entries</h2>
+            <p class="text-sm text-slate-500">Drag to reorder the playback sequence.</p>
+          </div>
+          <ul id="entries" phx-hook="Sortable" class="divide-y divide-slate-200">
             <li
               :for={e <- @playlist.entries}
               id={"entry-#{e.id}"}
               data-id={e.id}
-              class="flex items-center gap-3 p-2 bg-white cursor-move"
+              class="flex cursor-move items-center gap-3 px-5 py-3 transition hover:bg-slate-50"
             >
-              <span class="text-gray-400 w-6 text-center">≡</span>
+              <span class="w-6 text-center text-slate-400">≡</span>
               <%= if e.media_item.thumbnail_path do %>
                 <img src={Media.thumb_url(e.media_item)} class="w-16 h-16 object-cover rounded" />
               <% else %>
-                <div class="w-16 h-16 bg-gray-100 flex items-center justify-center text-[10px] text-gray-500">
+                <div class="flex h-16 w-16 items-center justify-center rounded bg-slate-100 text-[10px] text-slate-500">
                   {e.media_item.status}
                 </div>
               <% end %>
-              <div class="flex-1 truncate">{e.media_item.original_filename}</div>
-              <button phx-click="remove" phx-value-entry_id={e.id} class="text-red-600 text-sm">
+              <div class="flex-1 truncate text-sm font-medium text-slate-800">
+                {e.media_item.original_filename}
+              </div>
+              <button
+                phx-click="remove"
+                phx-value-entry_id={e.id}
+                class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
+              >
                 remove
               </button>
             </li>
-            <li :if={@playlist.entries == []} class="p-3 text-sm text-gray-500">
+            <li :if={@playlist.entries == []} class="px-5 py-8 text-center text-sm text-slate-500">
               No entries yet — upload below or pick from the library.
             </li>
           </ul>
         </section>
 
-        <section>
-          <h2 class="font-semibold mb-2">Upload &amp; auto-add to this playlist</h2>
+        <section class="space-y-5">
           <form
             id="playlist-upload"
             phx-submit="save"
             phx-change="validate"
-            class="border rounded p-4 mb-4 bg-gray-50"
+            class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <.live_file_input upload={@uploads.files} class="block mb-3" />
-            <ul class="text-sm space-y-1">
+            <h2 class="mb-1 font-semibold text-slate-950">Upload &amp; auto-add to this playlist</h2>
+            <p class="mb-4 text-sm text-slate-500">
+              New files are added here after upload and processing.
+            </p>
+            <.live_file_input
+              upload={@uploads.files}
+              class="block w-full rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600"
+            />
+            <ul class="mt-4 space-y-2 text-sm">
               <li :for={entry <- @uploads.files.entries} class="flex items-center gap-2">
-                <span class="truncate flex-1">{entry.client_name}</span>
-                <div class="w-32 bg-gray-200 rounded h-2 overflow-hidden">
-                  <div class="bg-blue-500 h-full" style={"width: #{entry.progress}%"} />
+                <span class="flex-1 truncate text-slate-700">{entry.client_name}</span>
+                <div class="h-2 w-32 overflow-hidden rounded-full bg-slate-200">
+                  <div class="h-full bg-slate-950" style={"width: #{entry.progress}%"} />
                 </div>
-                <span class="tabular-nums w-10 text-right">{entry.progress}%</span>
+                <span class="w-10 text-right tabular-nums text-slate-500">{entry.progress}%</span>
                 <button
                   type="button"
                   phx-click="cancel-upload"
                   phx-value-ref={entry.ref}
-                  class="text-red-600 text-xs"
+                  class="rounded px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                 >
                   cancel
                 </button>
               </li>
-              <li :for={err <- upload_errors(@uploads.files)} class="text-red-600">
+              <li :for={err <- upload_errors(@uploads.files)} class="text-rose-600">
                 {inspect(err)}
               </li>
             </ul>
-            <p class="mt-2 text-xs text-gray-500">
+            <p class="mt-3 text-xs text-slate-500">
               Uploads start automatically when you pick files. They are transcoded in the background and added to this playlist.
             </p>
           </form>
 
-          <h2 class="font-semibold mb-2">Or add existing media</h2>
-          <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-            <button
-              :for={m <- @available_media}
-              phx-click="add"
-              phx-value-media_id={m.id}
-              class="border rounded overflow-hidden hover:ring-2 ring-primary text-left"
-            >
-              <div class="aspect-square bg-gray-100">
-                <%= if m.thumbnail_path do %>
-                  <img src={Media.thumb_url(m)} class="w-full h-full object-cover" />
-                <% end %>
-              </div>
-              <div class="p-1 text-xs truncate">{m.original_filename}</div>
-            </button>
-            <p :if={@available_media == []} class="text-sm text-gray-500 col-span-full">
-              No ready media in the library yet.
-            </p>
-          </div>
+          <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 class="mb-3 font-semibold text-slate-950">Or add existing media</h2>
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+              <button
+                :for={m <- @available_media}
+                phx-click="add"
+                phx-value-media_id={m.id}
+                class="overflow-hidden rounded-lg border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+              >
+                <div class="aspect-square bg-slate-100">
+                  <%= if m.thumbnail_path do %>
+                    <img src={Media.thumb_url(m)} class="w-full h-full object-cover" />
+                  <% end %>
+                </div>
+                <div class="truncate p-2 text-xs font-medium text-slate-700">
+                  {m.original_filename}
+                </div>
+              </button>
+              <p :if={@available_media == []} class="col-span-full text-sm text-slate-500">
+                No ready media in the library yet.
+              </p>
+            </div>
+          </section>
         </section>
       </div>
     </div>

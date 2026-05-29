@@ -11,7 +11,7 @@ defmodule KakemonoWeb.BackendAuth do
 
   def on_mount(:ensure_authed, _params, session, socket) do
     if not Kakemono.BackendAuth.enabled?() or session["backend_authed"] do
-      {:cont, socket}
+      {:cont, Phoenix.Component.assign(socket, :backend_shell, true)}
     else
       {:halt, redirect(socket, to: ~p"/login")}
     end

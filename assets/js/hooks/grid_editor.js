@@ -98,8 +98,12 @@ function makeCard(cell) {
         </div>
       </div>
       <div class="widget-actions">
-        <button class="js-config widget-action-btn" data-widget-id="${id}" title="Configure">⚙</button>
-        <button class="js-remove widget-action-btn widget-action-del" data-widget-id="${id}" title="Remove">✕</button>
+        <button class="js-config widget-action-btn" data-widget-id="${id}" title="Configure" aria-label="Configure">
+          <span class="hero-cog-6-tooth-micro h-4 w-4"></span>
+        </button>
+        <button class="js-remove widget-action-btn widget-action-del" data-widget-id="${id}" title="Remove" aria-label="Remove">
+          <span class="hero-x-mark-micro h-4 w-4"></span>
+        </button>
       </div>
     </div>`
 }

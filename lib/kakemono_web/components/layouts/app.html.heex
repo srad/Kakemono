@@ -1,4 +1,19 @@
-<main class="min-h-screen bg-gray-50">
-  <.flash_group flash={@flash} />
-  {@inner_content}
-</main>
+<%= if assigns[:backend_shell] do %>
+  <main class="min-h-screen bg-slate-100 text-slate-950">
+    <.backend_nav active={assigns[:active_nav]} />
+    <.flash_group flash={@flash} />
+    <div class={[
+      if(assigns[:backend_full_bleed],
+        do: "h-[calc(100vh-4rem)] min-h-0",
+        else: "mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8"
+      )
+    ]}>
+      {@inner_content}
+    </div>
+  </main>
+<% else %>
+  <main class="min-h-screen bg-gray-50">
+    <.flash_group flash={@flash} />
+    {@inner_content}
+  </main>
+<% end %>

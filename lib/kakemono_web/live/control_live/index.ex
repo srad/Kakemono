@@ -13,7 +13,11 @@ defmodule KakemonoWeb.ControlLive.Index do
       Phoenix.PubSub.subscribe(Kakemono.PubSub, Presence.topic())
     end
 
-    {:ok, assign_state(socket)}
+    {:ok,
+     socket
+     |> assign(:page_title, "Control")
+     |> assign(:active_nav, :control)
+     |> assign_state()}
   end
 
   @impl true
@@ -93,86 +97,107 @@ defmodule KakemonoWeb.ControlLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 space-y-6 w-full">
-      <h1 class="text-2xl font-bold">Kakemono Control</h1>
+    <div class="space-y-6">
+      <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-500">Backend</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Kakemono Control</h1>
+        </div>
+        <p class="text-sm text-slate-500">
+          {length(@displays)} displays · {length(@scenes)} scenes
+        </p>
+      </div>
 
-      <nav class="flex gap-4 text-blue-600">
-        <.link navigate={~p"/c/media"}>Media</.link>
-        <.link navigate={~p"/c/playlists"}>Playlists</.link>
-        <.link navigate={~p"/c/scenes"}>Scenes</.link>
-        <.link navigate={~p"/c/settings"}>Settings</.link>
-        <.link navigate={~p"/c/backups"}>Backups</.link>
-      </nav>
-
-      <section>
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xl font-semibold">Displays</h2>
+      <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-950">Displays</h2>
+            <p class="text-sm text-slate-500">
+              Register screens, assign scenes, and control connected kiosks.
+            </p>
+          </div>
         </div>
 
         <form
           id="create-display-form"
           phx-submit="create_display"
-          class="flex flex-wrap items-end gap-2 mb-4 p-3 border rounded bg-white shadow-sm"
+          class="grid gap-3 border-b border-slate-200 bg-slate-50/70 p-5 md:grid-cols-[minmax(10rem,14rem)_minmax(14rem,1fr)_auto]"
         >
           <div>
-            <label class="block text-xs text-gray-500">ID</label>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              ID
+            </label>
             <input
               type="text"
               name="display[id]"
               placeholder="tablet"
-              class="border rounded px-2 py-1"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
               required
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-500">Name (optional)</label>
+            <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
+              Name
+            </label>
             <input
               type="text"
               name="display[name]"
               placeholder="Living-room tablet"
-              class="border rounded px-2 py-1"
+              class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
             />
           </div>
-          <button type="submit" class="bg-primary text-primary-foreground px-3 py-1.5 rounded">
+          <button
+            type="submit"
+            class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+          >
             Add display
           </button>
-          <p class="text-xs text-gray-500 ml-2 w-full">
+          <p class="text-xs text-slate-500 md:col-span-3">
             Or just visit <code>/d/&lt;id&gt;</code> — the display is auto-registered on first load.
           </p>
         </form>
 
-        <ul id="displays-list" class="space-y-2">
+        <ul id="displays-list" class="divide-y divide-slate-200">
           <li
             :for={d <- @displays}
             id={"display-#{d.id}"}
-            class="flex items-center gap-3 p-3 border rounded"
+            class="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center"
           >
-            <span
-              class={[
-                "inline-block w-3 h-3 rounded-full",
-                if(online?(d, @presence_ids), do: "bg-green-500", else: "bg-red-500")
-              ]}
-              data-state={if online?(d, @presence_ids), do: "online", else: "offline"}
-              data-display-id={d.id}
-            />
+            <div class="flex min-w-0 items-center gap-3">
+              <span
+                class={[
+                  "h-2.5 w-2.5 rounded-full ring-4",
+                  if(online?(d, @presence_ids),
+                    do: "bg-emerald-500 ring-emerald-100",
+                    else: "bg-rose-500 ring-rose-100"
+                  )
+                ]}
+                data-state={if online?(d, @presence_ids), do: "online", else: "offline"}
+                data-display-id={d.id}
+              />
+              <div class="min-w-0">
+                <.link
+                  navigate={~p"/d/#{d.id}"}
+                  class="truncate font-medium text-slate-950 hover:text-slate-700"
+                >
+                  {d.name}
+                </.link>
+                <div class="truncate text-sm text-slate-500">/d/{d.id}</div>
+              </div>
+            </div>
 
-            <.link navigate={~p"/d/#{d.id}"} class="font-medium hover:underline">
-              {d.name}
-            </.link>
-            <span class="text-sm text-gray-500">/d/{d.id}</span>
-
-            <div class="ml-auto flex items-center gap-3 text-sm flex-wrap justify-end">
+            <div class="flex flex-1 flex-wrap items-center gap-3 text-sm lg:justify-end">
               <form
                 phx-change="set_scene"
-                class="flex items-center gap-2"
+                class="flex min-w-0 items-center gap-2"
                 id={"scene-form-#{d.id}"}
               >
                 <input type="hidden" name="display_id" value={d.id} />
-                <label for={"pr-#{d.id}"} class="text-gray-600">Scene:</label>
+                <label for={"pr-#{d.id}"} class="text-slate-600">Scene</label>
                 <select
                   id={"pr-#{d.id}"}
                   name="scene_id"
-                  class="border rounded px-2 py-1"
+                  class="min-w-36 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                   data-display-id={d.id}
                 >
                   <option value="" selected={is_nil(d.current_scene_id)}>— none —</option>
@@ -191,7 +216,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="screenOn"
-                  class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
+                  class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                   title="Wake screen"
                 >
                   Wake
@@ -200,7 +225,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="screenOff"
-                  class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
+                  class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                   title="Sleep screen"
                 >
                   Sleep
@@ -209,7 +234,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="reloadPage"
-                  class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
+                  class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                   title="Reload display page"
                 >
                   Refresh
@@ -218,7 +243,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="restartApp"
-                  class="border rounded px-2 py-1 text-xs hover:bg-gray-50"
+                  class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
                   title="Restart Fully Kiosk"
                 >
                   Restart
@@ -229,7 +254,7 @@ defmodule KakemonoWeb.ControlLive.Index do
                 phx-click="delete_display"
                 phx-value-id={d.id}
                 data-confirm={"Delete display '#{d.name}'?"}
-                class="text-red-600 text-xs hover:underline"
+                class="rounded-md px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
               >
                 delete
               </button>
@@ -237,7 +262,7 @@ defmodule KakemonoWeb.ControlLive.Index do
           </li>
         </ul>
 
-        <p :if={@displays == []} class="text-gray-500">
+        <p :if={@displays == []} class="px-5 py-8 text-center text-sm text-slate-500">
           No displays registered yet. Add one above or visit <code>/d/&lt;id&gt;</code>.
         </p>
       </section>
