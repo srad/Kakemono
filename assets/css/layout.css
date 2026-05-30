@@ -25,16 +25,13 @@
     background: rgba(24, 28, 40, 0.65);
     backdrop-filter: blur(20px) saturate(140%);
     -webkit-backdrop-filter: blur(20px) saturate(140%);
-    /* Border width/style only. The actual border-color is set in the
-       @layer base block below — it must live in `base` to beat the global
-       `* { border-color: var(--border) !important }` rule, since for
-       !important declarations the earlier cascade layer wins. */
-    border: 1px solid;
+    border: 1px solid rgba(100, 116, 139, 0.45); /* dark but visible gray edge */
     box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.50);
   }
 
   .kw-shell-light .kw-card {
     background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(15, 23, 42, 0.08);
     box-shadow: 0 10px 30px -12px rgba(15, 23, 42, 0.22);
   }
 
@@ -88,13 +85,4 @@
   @container widget (max-width: 180px) or (max-height: 140px) {
     .kakemono-widget { padding: clamp(12px, 3cqw, 20px); }
   }
-}
-
-/* Card border color lives in @layer base so it can beat the global
-   `* { border-color: hsl(var(--border)) !important }` reset (also in base):
-   for !important declarations the earlier layer wins, so a components-layer
-   override never applies. Within base, these selectors out-specify `*`. */
-@layer base {
-  .kw-card { border-color: rgba(100, 116, 139, 0.45) !important; }
-  .kw-shell-light .kw-card { border-color: rgba(15, 23, 42, 0.08) !important; }
 }

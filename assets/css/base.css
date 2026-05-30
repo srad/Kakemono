@@ -55,7 +55,7 @@
 }
 
   * {
-    @apply border-border!;
+    @apply border-border;
   }
 }
 

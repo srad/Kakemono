@@ -1,8 +1,9 @@
+@layer vendor;                 /* lowest-priority layer, declared first */
 @import "tailwindcss";
 @config "../tailwind.config.js";
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
-@import "gridstack/dist/gridstack.min.css";
+@import "gridstack/dist/gridstack.min.css" layer(vendor);
 
 /* This file is for your main application CSS.
    Styles are split into component partials that mirror the widget
