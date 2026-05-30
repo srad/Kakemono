@@ -5,6 +5,7 @@ function weatherEl(attrs = {}) {
   const el = document.createElement("div")
   el.setAttribute("data-tod", attrs.tod ?? "night")
   el.setAttribute("data-is-day", attrs.isDay ?? "0")
+  if (attrs.previewTod !== undefined) el.dataset.previewTod = attrs.previewTod
   if (attrs.latitude !== undefined) el.dataset.latitude = attrs.latitude
   if (attrs.longitude !== undefined) el.dataset.longitude = attrs.longitude
   if (attrs.utcOffset !== undefined) el.dataset.utcOffset = attrs.utcOffset
@@ -30,6 +31,25 @@ describe("WeatherSky.render", () => {
 
     expect(el.dataset.tod).toBe("day")
     expect(el.dataset.isDay).toBe("1")
+  })
+
+  it("honors a preview time-of-day override instead of live solar calculation", () => {
+    const el = weatherEl({
+      previewTod: "night",
+      latitude: "52.52",
+      longitude: "13.405",
+      timezone: "Europe/Berlin",
+      tod: "day",
+      isDay: "1",
+    })
+
+    renderAt("2026-06-21T12:00:00Z", el)
+
+    expect(el.dataset.tod).toBe("night")
+    expect(el.dataset.isDay).toBe("0")
+    expect(el.style.getPropertyValue("--sun-visible")).toBe("0")
+    expect(el.style.getPropertyValue("--moon-visible")).toBe("1")
+    expect(Number(el.style.getPropertyValue("--star-strength"))).toBeGreaterThan(0.5)
   })
 
   it("uses data-timezone when no provider UTC offset is present", () => {

@@ -21,6 +21,7 @@ laptop. Built with Phoenix LiveView, SQLite, Oban, and Tailwind CSS.
 - Public display URLs at `/d/:display_id`; password-protected control panel at `/c`.
 - Live updates via Phoenix PubSub — displays refresh without a page reload.
 - Scene override with `?scene=NAME` on any display URL.
+- Non-persistent weather preview override on `/d/preview` for visual inspection.
 - Kiosk Browser controls (wake, sleep, reload, restart) and built-in DB + media backups.
 
 ## Requirements
@@ -60,6 +61,24 @@ mix phx.server
 On first visit to `/c` you are redirected to `/login`. In development you set the
 backend password there (the gate protects `/c` and the landing page `/`; display
 URLs stay public). The password must be at least 12 characters.
+
+### Previewing weather states
+
+For display-side visual tuning, you can force the weather widget into a temporary
+preview state without changing cached weather data or saved widget config:
+
+```text
+/d/preview?scene=<scene-name>&weather_cond=cloudy
+/d/preview?scene=<scene-name>&weather_cond=cloudy&weather_tod=day
+```
+
+- `scene` selects the scene by name.
+- `weather_cond` supports `clear`, `partly`, `cloudy`, `fog`, `drizzle`, `rain`,
+  `showers`, `snow`, and `thunder`.
+- `weather_tod` is optional and supports `day`, `dawn`, `dusk`, and `night`.
+
+This override only affects the rendered preview URL. It does not persist any
+changes to the widget instance or fetched provider data.
 
 ## Production deployment
 

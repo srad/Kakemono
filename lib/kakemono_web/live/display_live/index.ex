@@ -36,6 +36,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
      |> assign(:display_id, id)
      |> assign(:display_name, display.name)
      |> assign(:override_scene, override)
+     |> assign(:preview_weather, weather_preview(params))
      |> assign(:scene, load_scene(active_id))
      |> assign(:scene_cells, cells), layout: false}
   end
@@ -165,7 +166,12 @@ defmodule KakemonoWeb.DisplayLive.Index do
   def render(assigns) do
     ~H"""
     <%= if @scene do %>
-      <.scene_view scene={@scene} cells={@scene_cells} display_id={@display_id} />
+      <.scene_view
+        scene={@scene}
+        cells={@scene_cells}
+        display_id={@display_id}
+        preview_weather={@preview_weather}
+      />
     <% else %>
       <.empty_view display_id={@display_id} display_name={@display_name} />
     <% end %>
@@ -175,6 +181,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
   attr :scene, :map, required: true
   attr :cells, :list, required: true
   attr :display_id, :string, required: true
+  attr :preview_weather, :map, default: nil
 
   defp scene_view(assigns) do
     ~H"""
@@ -199,7 +206,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
           style={cell_style(cell)}
         >
           <div class="kw-card-inner">
-            {render_widget(cell.instance)}
+            {render_widget(cell.instance, @preview_weather)}
           </div>
         </div>
 
@@ -282,7 +289,7 @@ defmodule KakemonoWeb.DisplayLive.Index do
     _ -> {9, 16}
   end
 
-  defp render_widget(%Kakemono.Widgets.Instance{widget_type: type} = inst) do
+  defp render_widget(%Kakemono.Widgets.Instance{widget_type: type} = inst, preview_weather) do
     case Kakemono.Widgets.Registry.fetch(type) do
       nil ->
         assigns = %{type: type}
@@ -292,7 +299,41 @@ defmodule KakemonoWeb.DisplayLive.Index do
         """
 
       mod ->
-        mod.render(%{instance: inst})
+        mod.render(%{instance: apply_weather_preview(inst, preview_weather)})
     end
   end
+
+  defp weather_preview(params) do
+    cond = normalize_weather_cond(params["weather_cond"])
+    tod = normalize_weather_tod(params["weather_tod"])
+
+    if cond || tod, do: %{cond: cond, tod: tod}, else: nil
+  end
+
+  defp normalize_weather_cond(value)
+       when value in ~w(clear partly cloudy fog drizzle rain showers snow thunder),
+       do: value
+
+  defp normalize_weather_cond(_), do: nil
+
+  defp normalize_weather_tod(value) when value in ~w(day dawn dusk night), do: value
+  defp normalize_weather_tod(_), do: nil
+
+  defp apply_weather_preview(inst, nil), do: inst
+
+  defp apply_weather_preview(%Kakemono.Widgets.Instance{widget_type: type} = inst, _preview)
+       when type != "weather",
+       do: inst
+
+  defp apply_weather_preview(%Kakemono.Widgets.Instance{} = inst, preview) do
+    cfg =
+      inst.config
+      |> maybe_put_preview("__preview_cond", preview[:cond])
+      |> maybe_put_preview("__preview_tod", preview[:tod])
+
+    %{inst | config: cfg}
+  end
+
+  defp maybe_put_preview(config, _key, nil), do: config
+  defp maybe_put_preview(config, key, value), do: Map.put(config, key, value)
 end

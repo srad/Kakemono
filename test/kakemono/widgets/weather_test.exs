@@ -162,6 +162,9 @@ defmodule Kakemono.Widgets.WeatherTest do
       assert html =~ ~s(class="kw-w-stars")
       assert html =~ ~s(class="kw-w-sun-body")
       assert html =~ ~s(class="kw-w-moon-body")
+      assert html =~ ~s(class="kw-w-cloudfield")
+      assert html =~ ~s(class="kw-w-cloudband kw-w-cloudband--far")
+      assert html =~ ~s(class="kw-w-cloudband kw-w-cloudband--near")
       assert html =~ "kw-w-content"
     end
 

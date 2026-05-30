@@ -29,6 +29,35 @@ defmodule KakemonoWeb.DisplayLiveTest do
     {scene, inst}
   end
 
+  defp weather_scene!(display_id, opts \\ %{}) do
+    cfg =
+      Map.merge(
+        %{
+          "label" => "Berlin",
+          "latitude" => 52.52,
+          "longitude" => 13.405,
+          "timezone" => "Europe/Berlin",
+          "cached" => %{
+            "utc_offset_seconds" => 7200,
+            "current" => %{"temperature_2m" => 21.0, "weather_code" => 0, "is_day" => 1}
+          }
+        },
+        opts
+      )
+
+    {:ok, scene} =
+      Scenes.create(%{
+        name: "W#{System.unique_integer([:positive])}",
+        mode: "fullscreen_widget",
+        layout: %{"widget_instance_id" => 0}
+      })
+
+    {:ok, inst} = Widgets.create_instance("weather", scene.id, cfg)
+    {:ok, scene} = Scenes.update(scene, %{layout: %{"widget_instance_id" => inst.id}})
+    {:ok, _} = Displays.set_scene(display_id, scene.id)
+    {scene, inst}
+  end
+
   test "auto-registers an unknown display id and renders the empty panel", %{conn: conn} do
     id = "auto-#{System.unique_integer([:positive])}"
     refute Displays.get(id)
@@ -123,6 +152,19 @@ defmodule KakemonoWeb.DisplayLiveTest do
 
     refute body =~ "bg-gray-50",
            "display route is wrapped in app layout; expected layout: false in router"
+  end
+
+  test "preview route can force a weather state for visual inspection", %{conn: conn} do
+    d = display!("weather-preview-#{System.unique_integer([:positive])}")
+    {scene, _inst} = weather_scene!(d.id)
+
+    {:ok, _view, html} =
+      live(conn, ~p"/d/preview?scene=#{scene.name}&weather_cond=cloudy&weather_tod=day")
+
+    assert html =~ ~s(class="kakemono-widget kakemono-widget-weather")
+    assert html =~ ~s(data-cond="cloudy")
+    assert html =~ ~s(data-preview-tod="day")
+    assert html =~ "Overcast"
   end
 
   test "playlist transition_duration_ms override applies to all items", %{conn: conn} do

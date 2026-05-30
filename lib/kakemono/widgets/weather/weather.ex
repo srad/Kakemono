@@ -151,17 +151,20 @@ defmodule Kakemono.Widgets.Weather do
     cfg = assigns.instance.config
     cached = cfg["cached"] || %{}
     current = cached["current"] || %{}
+    preview_cond = preview_cond(cfg["__preview_cond"])
+    preview_tod = preview_tod(cfg["__preview_tod"])
 
-    is_day? = compute_is_day(cached)
-    code = current["weather_code"]
-    cond = weather_cond(code)
+    is_day? = if preview_tod, do: preview_is_day?(preview_tod), else: compute_is_day(cached)
+    code = preview_code(preview_cond) || current["weather_code"]
+    cond = preview_cond || weather_cond(code)
     today = (cached["daily"] || %{}) |> daily_today()
 
     assigns =
       Map.merge(assigns, %{
         cond: Atom.to_string(cond),
         is_day: if(is_day?, do: "1", else: "0"),
-        tod: if(is_day?, do: "day", else: "night"),
+        tod: preview_tod || if(is_day?, do: "day", else: "night"),
+        preview_tod: preview_tod,
         weather_id: "weather-" <> Integer.to_string(assigns.instance.id),
         latitude: cfg["latitude"],
         longitude: cfg["longitude"],
@@ -196,12 +199,17 @@ defmodule Kakemono.Widgets.Weather do
       data-longitude={@longitude}
       data-timezone={@timezone}
       data-utc-offset={@utc_offset}
+      data-preview-tod={@preview_tod}
     >
       <div class="kw-w-sky" aria-hidden="true">
         <div class="kw-w-stars"></div>
         <div class="kw-w-horizon"></div>
         <div class="kw-w-sun-body"></div>
         <div class="kw-w-moon-body"></div>
+        <div class="kw-w-cloudfield">
+          <div class="kw-w-cloudband kw-w-cloudband--far"></div>
+          <div class="kw-w-cloudband kw-w-cloudband--near"></div>
+        </div>
         <div class="kw-w-atmosphere"></div>
       </div>
       <div class={
@@ -555,6 +563,34 @@ defmodule Kakemono.Widgets.Weather do
   end
 
   defp weather_condition(_), do: "—"
+
+  defp preview_cond("clear"), do: :clear
+  defp preview_cond("partly"), do: :partly
+  defp preview_cond("cloudy"), do: :cloudy
+  defp preview_cond("fog"), do: :fog
+  defp preview_cond("drizzle"), do: :drizzle
+  defp preview_cond("rain"), do: :rain
+  defp preview_cond("showers"), do: :showers
+  defp preview_cond("snow"), do: :snow
+  defp preview_cond("thunder"), do: :thunder
+  defp preview_cond(_), do: nil
+
+  defp preview_tod(value) when value in ~w(day dawn dusk night), do: value
+  defp preview_tod(_), do: nil
+
+  defp preview_is_day?("night"), do: false
+  defp preview_is_day?(_), do: true
+
+  defp preview_code(:clear), do: 0
+  defp preview_code(:partly), do: 1
+  defp preview_code(:cloudy), do: 3
+  defp preview_code(:fog), do: 45
+  defp preview_code(:drizzle), do: 51
+  defp preview_code(:rain), do: 61
+  defp preview_code(:showers), do: 80
+  defp preview_code(:snow), do: 71
+  defp preview_code(:thunder), do: 95
+  defp preview_code(_), do: nil
 
   defp daily_today(%{"time" => [date | _]} = daily) do
     %{
