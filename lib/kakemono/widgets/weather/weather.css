@@ -488,11 +488,11 @@
     justify-content: center;
     min-height: 0;
     color: rgba(248, 250, 252, 0.78);
-    /* Match the day-header date's font, rotated 45°. */
+    /* Match the day-header date's font, rotated 30°. */
     font-size: clamp(1.05rem, min(2.5cqw, 3.4cqh), 1.6rem);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
-    transform: rotate(20deg) translateX(30%) translateY(-10%);
+    transform: rotate(30deg) translateX(30%) translateY(-10%);
   }
   /* Day header: weekday over date, sitting atop its column. */
   .kw-w-forecast-day {

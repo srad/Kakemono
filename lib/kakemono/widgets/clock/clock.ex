@@ -241,6 +241,7 @@ defmodule Kakemono.Widgets.Clock do
   defp location_coords(config) do
     lat = config |> Map.get("latitude") |> to_coord()
     lon = config |> Map.get("longitude") |> to_coord()
+
     if is_number(lat) and is_number(lon) and not (lat == 0.0 and lon == 0.0) do
       {lat, lon}
     else

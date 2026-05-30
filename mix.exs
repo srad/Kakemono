@@ -65,7 +65,7 @@ defmodule Kakemono.MixProject do
       {:req, "~> 0.5"},
       {:ex_json_schema, "~> 0.10"},
       {:salad_ui, "~> 0.13"},
-            {:sweet_xml, "~> 0.7"}
+      {:sweet_xml, "~> 0.7"}
     ]
   end
 

@@ -153,7 +153,11 @@ defmodule Kakemono.Widgets.AirQuality do
       })
 
     ~H"""
-    <div class={"kakemono-widget kakemono-widget-air-quality"} data-aqi={@aqi_level} data-pollen={@pollen_severity}>
+    <div
+      class="kakemono-widget kakemono-widget-air-quality"
+      data-aqi={@aqi_level}
+      data-pollen={@pollen_severity}
+    >
       <span :if={@updated_at != ""} class="kw-aq-updated" title="Last updated">{@updated_at}</span>
       <.pollen_field />
       <div class="kw-aq-content">
@@ -195,17 +199,17 @@ defmodule Kakemono.Widgets.AirQuality do
         </div>
 
         <div :if={has_pollen?(@grass_pollen, @tree_pollen, @ragweed_pollen)} class="kw-aq-pollen">
-          <div :if={@grass_pollen} class={"kw-aq-pollen-row"} data-level={@grass_pollen.level}>
+          <div :if={@grass_pollen} class="kw-aq-pollen-row" data-level={@grass_pollen.level}>
             <.pollen_icon type="grass" />
             <span class="kw-aq-pollen-type">Grass</span>
             <span class="kw-aq-pollen-value">{@grass_pollen.label}</span>
           </div>
-          <div :if={@tree_pollen} class={"kw-aq-pollen-row"} data-level={@tree_pollen.level}>
+          <div :if={@tree_pollen} class="kw-aq-pollen-row" data-level={@tree_pollen.level}>
             <.pollen_icon type="tree" />
             <span class="kw-aq-pollen-type">Tree</span>
             <span class="kw-aq-pollen-value">{@tree_pollen.label}</span>
           </div>
-          <div :if={@ragweed_pollen} class={"kw-aq-pollen-row"} data-level={@ragweed_pollen.level}>
+          <div :if={@ragweed_pollen} class="kw-aq-pollen-row" data-level={@ragweed_pollen.level}>
             <.pollen_icon type="ragweed" />
             <span class="kw-aq-pollen-type">Ragweed</span>
             <span class="kw-aq-pollen-value">{@ragweed_pollen.label}</span>
@@ -257,26 +261,146 @@ defmodule Kakemono.Widgets.AirQuality do
     ~H"""
     <div class="kw-aq-pollen-field" aria-hidden="true">
       <svg class="kw-aq-particles" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <circle class="kw-aq-particle kw-aq-particle-lg" cx="12" cy="18" r="1.8" style="--delay: 0s; --drift: 15px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="28" cy="42" r="0.9" style="--delay: 2.1s; --drift: -12px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="45" cy="8" r="1.3" style="--delay: 4.5s; --drift: 18px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="62" cy="55" r="0.8" style="--delay: 1.2s; --drift: -8px;" />
-        <circle class="kw-aq-particle kw-aq-particle-lg" cx="78" cy="25" r="1.6" style="--delay: 3.8s; --drift: 20px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="88" cy="68" r="1.2" style="--delay: 0.6s; --drift: -15px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="8" cy="72" r="0.7" style="--delay: 5.2s; --drift: 10px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="35" cy="85" r="1.1" style="--delay: 2.8s; --drift: -18px;" />
-        <circle class="kw-aq-particle kw-aq-particle-lg" cx="55" cy="35" r="1.5" style="--delay: 4.0s; --drift: 14px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="72" cy="78" r="0.6" style="--delay: 1.8s; --drift: -10px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="92" cy="12" r="1.0" style="--delay: 3.2s; --drift: 16px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="18" cy="52" r="0.8" style="--delay: 0.3s; --drift: -14px;" />
-        <circle class="kw-aq-particle kw-aq-particle-lg" cx="42" cy="62" r="1.4" style="--delay: 5.8s; --drift: 12px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="68" cy="5" r="0.7" style="--delay: 2.5s; --drift: -16px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="85" cy="45" r="1.2" style="--delay: 4.2s; --drift: 8px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="5" cy="32" r="0.9" style="--delay: 1.5s; --drift: -20px;" />
-        <circle class="kw-aq-particle kw-aq-particle-lg" cx="25" cy="92" r="1.7" style="--delay: 3.5s; --drift: 22px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="58" cy="88" r="1.0" style="--delay: 0.9s; --drift: -12px;" />
-        <circle class="kw-aq-particle kw-aq-particle-sm" cx="82" cy="92" r="0.6" style="--delay: 6.0s; --drift: 10px;" />
-        <circle class="kw-aq-particle kw-aq-particle-md" cx="48" cy="48" r="1.1" style="--delay: 2.2s; --drift: -8px;" />
+        <circle
+          class="kw-aq-particle kw-aq-particle-lg"
+          cx="12"
+          cy="18"
+          r="1.8"
+          style="--delay: 0s; --drift: 15px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="28"
+          cy="42"
+          r="0.9"
+          style="--delay: 2.1s; --drift: -12px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="45"
+          cy="8"
+          r="1.3"
+          style="--delay: 4.5s; --drift: 18px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="62"
+          cy="55"
+          r="0.8"
+          style="--delay: 1.2s; --drift: -8px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-lg"
+          cx="78"
+          cy="25"
+          r="1.6"
+          style="--delay: 3.8s; --drift: 20px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="88"
+          cy="68"
+          r="1.2"
+          style="--delay: 0.6s; --drift: -15px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="8"
+          cy="72"
+          r="0.7"
+          style="--delay: 5.2s; --drift: 10px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="35"
+          cy="85"
+          r="1.1"
+          style="--delay: 2.8s; --drift: -18px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-lg"
+          cx="55"
+          cy="35"
+          r="1.5"
+          style="--delay: 4.0s; --drift: 14px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="72"
+          cy="78"
+          r="0.6"
+          style="--delay: 1.8s; --drift: -10px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="92"
+          cy="12"
+          r="1.0"
+          style="--delay: 3.2s; --drift: 16px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="18"
+          cy="52"
+          r="0.8"
+          style="--delay: 0.3s; --drift: -14px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-lg"
+          cx="42"
+          cy="62"
+          r="1.4"
+          style="--delay: 5.8s; --drift: 12px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="68"
+          cy="5"
+          r="0.7"
+          style="--delay: 2.5s; --drift: -16px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="85"
+          cy="45"
+          r="1.2"
+          style="--delay: 4.2s; --drift: 8px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="5"
+          cy="32"
+          r="0.9"
+          style="--delay: 1.5s; --drift: -20px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-lg"
+          cx="25"
+          cy="92"
+          r="1.7"
+          style="--delay: 3.5s; --drift: 22px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="58"
+          cy="88"
+          r="1.0"
+          style="--delay: 0.9s; --drift: -12px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-sm"
+          cx="82"
+          cy="92"
+          r="0.6"
+          style="--delay: 6.0s; --drift: 10px;"
+        />
+        <circle
+          class="kw-aq-particle kw-aq-particle-md"
+          cx="48"
+          cy="48"
+          r="1.1"
+          style="--delay: 2.2s; --drift: -8px;"
+        />
       </svg>
     </div>
     """
