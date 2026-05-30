@@ -2,7 +2,7 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
   use KakemonoWeb.ConnCase, async: false
   use Oban.Testing, repo: Kakemono.Repo, engine: Oban.Engines.Lite, notifier: Oban.Notifiers.PG
   import Phoenix.LiveViewTest
-  alias Kakemono.{Scenes, Widgets, Displays, Fixtures}
+  alias Kakemono.{Calendars, Displays, Fixtures, Scenes, Widgets}
   alias Kakemono.Widgets.FetchWorker
 
   test "renders the dashboard scene grid with widgets when set", %{conn: conn} do
@@ -202,5 +202,105 @@ defmodule KakemonoWeb.DisplayLiveSceneTest do
 
     assert html =~ "kakemono-widget-clock"
     assert html =~ "grid-column: 1 / span 12"
+  end
+
+  test "renders updated calendar widget events after event changes", %{conn: conn} do
+    d = Fixtures.display!("calendar-#{System.unique_integer([:positive])}")
+    calendar = Fixtures.calendar_fixture(%{name: "Family"})
+
+    event =
+      Fixtures.calendar_event_fixture(calendar, %{
+        title: "Breakfast",
+        start_on: "2026-05-30",
+        start_time: "09:00",
+        end_on: "2026-05-30",
+        end_time: "10:00"
+      })
+
+    {:ok, scene} = Scenes.create(%{name: "Calendar", mode: "dashboard", layout: %{"cells" => []}})
+
+    {:ok, widget} =
+      Widgets.create_instance("calendar", scene.id, %{
+        "calendar_id" => calendar.id
+      })
+
+    {:ok, scene} =
+      Scenes.update(scene, %{
+        layout: %{
+          "cells" => [
+            %{"widget_instance_id" => widget.id, "x" => 0, "y" => 0, "w" => 6, "h" => 4}
+          ]
+        }
+      })
+
+    {:ok, _} = Displays.set_scene(d.id, scene.id)
+
+    Application.put_env(:kakemono, :calendar_now_fn, fn -> ~U[2026-05-30 08:00:00Z] end)
+    on_exit(fn -> Application.delete_env(:kakemono, :calendar_now_fn) end)
+
+    {:ok, _view, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "kakemono-widget-calendar"
+    assert html =~ "kw-calendar-grid"
+    assert html =~ "Breakfast"
+
+    assert {:ok, _updated} =
+             Calendars.update_event(event, %{
+               title: "Brunch",
+               start_on: "2026-05-30",
+               start_time: "09:00",
+               end_on: "2026-05-30",
+               end_time: "10:00",
+               recurrence: "none",
+               recurrence_interval: "1"
+             })
+
+    {:ok, _view2, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "Brunch"
+    refute html =~ "Breakfast"
+  end
+
+  test "calendar agenda widget shows the current event when time advances", %{conn: conn} do
+    d = Fixtures.display!("calendar-tick-#{System.unique_integer([:positive])}")
+    calendar = Fixtures.calendar_fixture(%{name: "Office"})
+
+    Fixtures.calendar_event_fixture(calendar, %{
+      title: "Standup",
+      start_on: "2026-05-30",
+      start_time: "09:30",
+      end_on: "2026-05-30",
+      end_time: "10:00"
+    })
+
+    {:ok, scene} =
+      Scenes.create(%{name: "Focus calendar", mode: "dashboard", layout: %{"cells" => []}})
+
+    {:ok, widget} =
+      Widgets.create_instance("calendar", scene.id, %{
+        "calendar_id" => calendar.id,
+        "view_mode" => "agenda"
+      })
+
+    {:ok, scene} =
+      Scenes.update(scene, %{
+        layout: %{
+          "cells" => [
+            %{"widget_instance_id" => widget.id, "x" => 0, "y" => 0, "w" => 6, "h" => 4}
+          ]
+        }
+      })
+
+    {:ok, _} = Displays.set_scene(d.id, scene.id)
+
+    Application.put_env(:kakemono, :calendar_now_fn, fn -> ~U[2026-05-30 09:00:00Z] end)
+    on_exit(fn -> Application.delete_env(:kakemono, :calendar_now_fn) end)
+
+    {:ok, _view, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "Standup"
+    refute html =~ "Now"
+
+    Application.put_env(:kakemono, :calendar_now_fn, fn -> ~U[2026-05-30 09:31:00Z] end)
+
+    {:ok, _view2, html} = live(conn, "/d/#{d.id}")
+    assert html =~ "Now"
   end
 end

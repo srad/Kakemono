@@ -1,6 +1,6 @@
 defmodule Kakemono.Fixtures do
   @moduledoc "Shared test fixtures for Phase 1."
-  alias Kakemono.{Repo, Playlists, Displays}
+  alias Kakemono.{Calendars, Displays, Playlists, Repo}
   alias Kakemono.Media.Item
 
   def display!(id, name \\ nil) do
@@ -73,6 +73,37 @@ defmodule Kakemono.Fixtures do
     scene_id = attrs[:scene_id] || scene_fixture().id
     {:ok, inst} = Kakemono.Widgets.create_instance(type, scene_id, config)
     inst
+  end
+
+  def calendar_fixture(attrs \\ %{}) do
+    {:ok, calendar} =
+      Calendars.create_calendar(
+        Map.merge(
+          %{
+            name: "Calendar #{System.unique_integer([:positive])}",
+            timezone: "Etc/UTC",
+            color: "#38bdf8"
+          },
+          Map.new(attrs)
+        )
+      )
+
+    calendar
+  end
+
+  def calendar_event_fixture(calendar, attrs \\ %{}) do
+    defaults = %{
+      title: "Event #{System.unique_integer([:positive])}",
+      start_on: "2026-05-30",
+      start_time: "09:00",
+      end_on: "2026-05-30",
+      end_time: "10:00",
+      recurrence: "none",
+      recurrence_interval: "1"
+    }
+
+    {:ok, event} = Calendars.create_event(calendar, Map.merge(defaults, Map.new(attrs)))
+    event
   end
 
   def scene_fixture(attrs \\ %{}) do

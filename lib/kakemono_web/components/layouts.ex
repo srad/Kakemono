@@ -18,6 +18,12 @@ defmodule KakemonoWeb.Layouts do
         %{label: "Control", path: ~p"/c", icon: "hero-squares-2x2", key: :control},
         %{label: "Media", path: ~p"/c/media", icon: "hero-photo", key: :media},
         %{label: "Playlists", path: ~p"/c/playlists", icon: "hero-queue-list", key: :playlists},
+        %{
+          label: "Calendars",
+          path: ~p"/c/calendars",
+          icon: "hero-calendar-days",
+          key: :calendars
+        },
         %{label: "Scenes", path: ~p"/c/scenes", icon: "hero-rectangle-group", key: :scenes},
         %{label: "Settings", path: ~p"/c/settings", icon: "hero-cog-6-tooth", key: :settings},
         %{label: "Backups", path: ~p"/c/backups", icon: "hero-archive-box", key: :backups}

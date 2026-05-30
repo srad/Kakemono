@@ -7,7 +7,7 @@ defmodule Kakemono.Widget.ConfigTest do
   """
   use ExUnit.Case, async: true
 
-  alias Kakemono.Widgets.{AirQuality, Clock, Instagram, Rss, Slideshow, Weather}
+  alias Kakemono.Widgets.{AirQuality, Calendar, Clock, Instagram, Rss, Slideshow, Weather}
 
   describe "derived config_schema/0 matches the pre-refactor schema" do
     test "clock" do
@@ -114,6 +114,27 @@ defmodule Kakemono.Widget.ConfigTest do
                }
              }
     end
+
+    test "calendar" do
+      assert Calendar.config_schema() == %{
+               "type" => "object",
+               "required" => ["calendar_id"],
+               "additionalProperties" => false,
+               "properties" => %{
+                 "calendar_id" => %{"type" => "integer", "minimum" => 1},
+                 "title" => %{"type" => "string"},
+                 "view_mode" => %{
+                   "type" => "string",
+                   "enum" => ["week", "two_week", "month", "agenda"]
+                 },
+                 "max_items" => %{"type" => "integer", "minimum" => 1, "maximum" => 20},
+                 "lookahead_days" => %{"type" => "integer", "minimum" => 1, "maximum" => 365},
+                 "show_location" => %{"type" => "boolean"},
+                 "show_header" => %{"type" => "boolean"},
+                 "show_agenda" => %{"type" => "boolean"}
+               }
+             }
+    end
   end
 
   describe "derived default_config/0 matches the pre-refactor defaults" do
@@ -143,6 +164,15 @@ defmodule Kakemono.Widget.ConfigTest do
       assert Rss.default_config() == %{"max_items" => 5}
       assert Slideshow.default_config() == %{}
       assert Instagram.default_config() == %{"max_items" => 9}
+
+      assert Calendar.default_config() == %{
+               "view_mode" => "two_week",
+               "max_items" => 5,
+               "lookahead_days" => 14,
+               "show_location" => true,
+               "show_header" => true,
+               "show_agenda" => false
+             }
     end
 
     test "weather and air_quality start drafts empty" do

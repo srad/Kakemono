@@ -9,13 +9,15 @@ defmodule Kakemono.WidgetsTest do
   end
 
   describe "registry" do
-    test "lists clock + weather as known types" do
+    test "lists clock, weather, and calendar as known types" do
       types = Registry.types() |> Enum.sort()
+      assert "calendar" in types
       assert "clock" in types
       assert "weather" in types
     end
 
     test "fetch/1 returns the module for a type" do
+      assert Registry.fetch("calendar") == Kakemono.Widgets.Calendar
       assert Registry.fetch("clock") == Kakemono.Widgets.Clock
       assert Registry.fetch("weather") == Kakemono.Widgets.Weather
       assert Registry.fetch("nope") == nil
@@ -96,6 +98,15 @@ defmodule Kakemono.WidgetsTest do
     test "clock draft does not invent a timezone", %{scene: scene} do
       assert {:ok, draft} = Widgets.create_draft_instance("clock", scene.id, %{})
       refute Map.has_key?(draft.config, "timezone")
+    end
+
+    test "calendar draft keeps its display defaults while waiting for a selected calendar", %{
+      scene: scene
+    } do
+      assert {:ok, draft} = Widgets.create_draft_instance("calendar", scene.id, %{})
+      assert draft.config["view_mode"] == "two_week"
+      assert draft.config["max_items"] == 5
+      refute Map.has_key?(draft.config, "calendar_id")
     end
   end
 

@@ -75,6 +75,16 @@ defmodule KakemonoWeb.AssetsTest do
     end
   end
 
+  describe "calendar widget styles" do
+    test "calendar CSS uses grid view styles without the old nested focus card shell" do
+      css = File.read!("lib/kakemono/widgets/calendar/calendar.css")
+
+      assert css =~ ".kw-calendar-grid"
+      refute css =~ ".kw-calendar-focus-card"
+      refute css =~ "rounded-[1.75rem]"
+    end
+  end
+
   describe "grid editor hook" do
     test "uses a fixed dashboard board with full resize handles" do
       src = File.read!("assets/js/hooks/grid_editor.js")
@@ -99,10 +109,10 @@ defmodule KakemonoWeb.AssetsTest do
       layout = File.read!("assets/css/layout.css")
       editor = File.read!("assets/css/editor.css")
 
-      assert layout =~ "border: 1px solid rgba(51, 65, 85, 0.55)"
-      assert editor =~ "border-color: rgba(51, 65, 85, 0.72) !important"
+      assert layout =~ "border: 1px solid rgba(100, 116, 139, 0.45)"
+      assert editor =~ "border-color: rgba(51, 65, 85, 0.72)"
       refute layout =~ "border: 1px solid rgba(255, 255, 255, 0.08)"
-      refute editor =~ "border-color: rgba(255, 255, 255, 0.10) !important"
+      refute editor =~ "border-color: rgba(255, 255, 255, 0.10)"
     end
   end
 end

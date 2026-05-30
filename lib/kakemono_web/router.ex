@@ -53,6 +53,8 @@ defmodule KakemonoWeb.Router do
       live "/media", MediaLive.Index, :index
       live "/playlists", PlaylistsLive.Index, :index
       live "/playlists/:id", PlaylistsLive.Edit, :edit
+      live "/calendars", CalendarsLive.Index, :index
+      live "/calendars/:id", CalendarsLive.Edit, :edit
       live "/scenes", ScenesLive.Index, :index
       live "/scenes/:id", ScenesLive.Edit, :edit
       live "/settings", ControlLive.Settings, :index

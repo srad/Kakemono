@@ -1,7 +1,7 @@
 defmodule KakemonoWeb.ScenesLiveTest do
   use KakemonoWeb.ConnCase, async: false
   import Phoenix.LiveViewTest
-  alias Kakemono.{Scenes, Widgets}
+  alias Kakemono.{Fixtures, Scenes, Widgets}
 
   describe "/c/scenes index" do
     test "lists scenes and creates new ones", %{conn: conn} do
@@ -157,6 +157,24 @@ defmodule KakemonoWeb.ScenesLiveTest do
       assert html =~ "Title"
       assert html =~ "Timezone *"
       assert html =~ "Europe/Berlin"
+    end
+
+    test "calendar widget config lists managed calendars", %{conn: conn} do
+      _calendar = Fixtures.calendar_fixture(%{name: "Family"})
+
+      {:ok, scene} =
+        Scenes.create(%{name: "Calendar", mode: "dashboard", layout: %{"cells" => []}})
+
+      {:ok, view, _html} = live(conn, "/c/scenes/#{scene.id}")
+
+      html = render_click(view, "create_and_place", %{"type" => "calendar"})
+
+      [inst] = Widgets.list_instances_for(scene.id)
+      assert inst.widget_type == "calendar"
+      assert html =~ "Configure Calendar"
+      assert html =~ "Family"
+      assert html =~ "View"
+      assert html =~ "Agenda lookahead days"
     end
   end
 

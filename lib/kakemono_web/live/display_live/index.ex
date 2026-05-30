@@ -1,7 +1,7 @@
 defmodule KakemonoWeb.DisplayLive.Index do
   use KakemonoWeb, :live_view
 
-  alias Kakemono.{Displays, Scenes, Widgets}
+  alias Kakemono.{Calendars, Displays, Scenes, Widgets}
   alias Kakemono.Widgets.Slideshow
 
   @impl true
@@ -38,7 +38,9 @@ defmodule KakemonoWeb.DisplayLive.Index do
      |> assign(:override_scene, override)
      |> assign(:preview_weather, weather_preview(params))
      |> assign(:scene, load_scene(active_id))
-     |> assign(:scene_cells, cells), layout: false}
+     |> assign(:scene_cells, cells)
+     |> assign(:calendar_tick_ref, nil)
+     |> schedule_calendar_refresh(cells), layout: false}
   end
 
   defp prefetch_cells(cells) do
@@ -113,7 +115,8 @@ defmodule KakemonoWeb.DisplayLive.Index do
        socket
        |> resubscribe_scene(socket.assigns.scene && socket.assigns.scene.id, scene_id)
        |> assign(:scene, load_scene(scene_id))
-       |> assign(:scene_cells, cells)}
+       |> assign(:scene_cells, cells)
+       |> schedule_calendar_refresh(cells)}
     end
   end
 
@@ -127,7 +130,8 @@ defmodule KakemonoWeb.DisplayLive.Index do
       {:noreply,
        socket
        |> assign(:scene, load_scene(scene_id))
-       |> assign(:scene_cells, cells)}
+       |> assign(:scene_cells, cells)
+       |> schedule_calendar_refresh(cells)}
     else
       {:noreply, socket}
     end
@@ -135,7 +139,8 @@ defmodule KakemonoWeb.DisplayLive.Index do
 
   def handle_info({:widget_config_updated, %{instance_id: _id}}, socket) do
     sid = socket.assigns.scene && socket.assigns.scene.id
-    {:noreply, assign(socket, :scene_cells, load_scene_cells(sid))}
+    cells = load_scene_cells(sid)
+    {:noreply, socket |> assign(:scene_cells, cells) |> schedule_calendar_refresh(cells)}
   end
 
   def handle_info({:playlist_updated, %{playlist_id: pid}}, socket) do
@@ -154,6 +159,22 @@ defmodule KakemonoWeb.DisplayLive.Index do
       end)
 
     {:noreply, socket}
+  end
+
+  def handle_info({:calendar_updated, %{calendar_id: calendar_id}}, socket) do
+    if calendar_present?(socket.assigns.scene_cells, calendar_id) do
+      sid = socket.assigns.scene && socket.assigns.scene.id
+      cells = load_scene_cells(sid)
+      {:noreply, socket |> assign(:scene_cells, cells) |> schedule_calendar_refresh(cells)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_info(:calendar_tick, socket) do
+    sid = socket.assigns.scene && socket.assigns.scene.id
+    cells = load_scene_cells(sid)
+    {:noreply, socket |> assign(:scene_cells, cells) |> schedule_calendar_refresh(cells)}
   end
 
   def handle_info({:fully_kiosk_cmd, cmd}, socket) do
@@ -336,4 +357,72 @@ defmodule KakemonoWeb.DisplayLive.Index do
 
   defp maybe_put_preview(config, _key, nil), do: config
   defp maybe_put_preview(config, key, value), do: Map.put(config, key, value)
+
+  defp schedule_calendar_refresh(socket, cells) do
+    socket = cancel_calendar_refresh(socket)
+
+    case {connected?(socket), calendar_refresh_delay(cells)} do
+      {true, delay} when is_integer(delay) and delay > 0 ->
+        ref = Process.send_after(self(), :calendar_tick, delay)
+        assign(socket, :calendar_tick_ref, ref)
+
+      _ ->
+        socket
+    end
+  end
+
+  defp cancel_calendar_refresh(socket) do
+    if ref = socket.assigns[:calendar_tick_ref], do: Process.cancel_timer(ref)
+    assign(socket, :calendar_tick_ref, nil)
+  end
+
+  defp calendar_refresh_delay(cells) do
+    cells
+    |> Enum.map(&calendar_widget_refresh_delay/1)
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> nil
+      delays -> Enum.min(delays)
+    end
+  end
+
+  defp calendar_widget_refresh_delay(%{instance: %{widget_type: "calendar", config: config}}) do
+    case Map.get(config, "view_mode") do
+      "agenda" -> ms_until_next_minute()
+      _ -> ms_until_next_calendar_midnight(config["calendar_id"])
+    end
+  end
+
+  defp calendar_widget_refresh_delay(_), do: nil
+
+  defp calendar_present?(cells, calendar_id) do
+    Enum.any?(cells, fn cell ->
+      cell.instance.widget_type == "calendar" and
+        cell.instance.config["calendar_id"] == calendar_id
+    end)
+  end
+
+  defp ms_until_next_minute do
+    now = Calendars.now_utc()
+    {microsecond, _precision} = now.microsecond
+    elapsed_ms = now.second * 1000 + div(microsecond, 1000)
+    max(1, 60_000 - elapsed_ms)
+  end
+
+  defp ms_until_next_calendar_midnight(calendar_id) when is_integer(calendar_id) do
+    timezone =
+      case Calendars.get(calendar_id) do
+        %{timezone: timezone} -> timezone
+        _ -> "Etc/UTC"
+      end
+
+    now = Calendars.now_utc()
+    local_now = DateTime.shift_zone!(now, timezone)
+    next_date = Date.add(DateTime.to_date(local_now), 1)
+
+    {:ok, next_midnight} = DateTime.new(next_date, ~T[00:00:00], timezone)
+    max(1, DateTime.diff(next_midnight, local_now, :millisecond))
+  end
+
+  defp ms_until_next_calendar_midnight(_), do: ms_until_next_minute()
 end

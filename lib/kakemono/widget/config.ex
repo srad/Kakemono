@@ -11,7 +11,7 @@ defmodule Kakemono.Widget.Config do
   Recognized field keys:
     * `:key` — config key (string)
     * `:type` — `:text | :number | :checkbox | :select | :playlist_select |
-      :location_search | :timezone_search | :password`
+      :calendar_select | :location_search | :timezone_search | :password`
     * `:required` — required in the editor form (drives coercion)
     * `:schema_optional` — when true, a `required: true` field is NOT added to
       the JSON Schema `required` list (e.g. a value the UI always fills in via a
@@ -57,6 +57,7 @@ defmodule Kakemono.Widget.Config do
   defp property(%{type: :checkbox}), do: %{"type" => "boolean"}
 
   defp property(%{type: :playlist_select}), do: %{"type" => "integer", "minimum" => 1}
+  defp property(%{type: :calendar_select}), do: %{"type" => "integer", "minimum" => 1}
 
   defp property(%{type: :select} = f), do: %{"type" => "string", "enum" => select_enum(f)}
 

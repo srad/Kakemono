@@ -11,6 +11,8 @@ config :kakemono,
   ecto_repos: [Kakemono.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 # MET Norway (yr.no) weather source requires a non-generic User-Agent or it
 # returns 403. Override with a real contact in prod (e.g. via runtime.exs).
 config :kakemono, :met_no_user_agent, "Kakemono/1.0 (https://github.com/srad/Kakemono)"

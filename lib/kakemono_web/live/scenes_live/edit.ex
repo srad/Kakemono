@@ -1,6 +1,6 @@
 defmodule KakemonoWeb.ScenesLive.Edit do
   use KakemonoWeb, :live_view
-  alias Kakemono.{Scenes, Widgets, Playlists}
+  alias Kakemono.{Calendars, Playlists, Scenes, Widgets}
   alias Kakemono.Widgets.Registry
 
   @impl true
@@ -17,6 +17,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
   defp mount_scene(scene, socket) do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Kakemono.PubSub, "widgets")
+      Phoenix.PubSub.subscribe(Kakemono.PubSub, "calendars")
     end
 
     instances = Widgets.list_instances_for(scene.id)
@@ -31,6 +32,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
      |> assign(:instances, instances)
      |> assign(:types, types)
      |> assign(:playlists, Playlists.list())
+     |> assign(:calendars, Calendars.list_calendars())
      |> assign(:editing_id, nil)}
   end
 
@@ -312,6 +314,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
     end
   end
 
+  def handle_info({:calendar_list_updated, _}, socket) do
+    {:noreply, assign(socket, :calendars, Calendars.list_calendars())}
+  end
+
   def handle_info(_, socket), do: {:noreply, socket}
 
   # ---------------------------------------------------------------------------
@@ -461,6 +467,13 @@ defmodule KakemonoWeb.ScenesLive.Edit do
     case Integer.parse(v) do
       {i, _} -> {:ok, i}
       :error -> {:error, "Invalid playlist selection"}
+    end
+  end
+
+  defp coerce_value(v, %{type: :calendar_select}) when is_binary(v) do
+    case Integer.parse(v) do
+      {i, _} -> {:ok, i}
+      :error -> {:error, "Invalid calendar selection"}
     end
   end
 
@@ -913,12 +926,19 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               <%= if field[:hidden] do %>
                 {render_config_field(assigns, field)}
               <% else %>
-                <div>
-                  <label class="mb-1 block text-sm font-medium text-slate-700">
-                    {field.label}{if field.required, do: " *", else: ""}
+                <%= if field.type == :checkbox do %>
+                  <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    {render_config_field(assigns, field)}
+                    {field.label}
                   </label>
-                  {render_config_field(assigns, field)}
-                </div>
+                <% else %>
+                  <div>
+                    <label class="mb-1 block text-sm font-medium text-slate-700">
+                      {field.label}{if field.required, do: " *", else: ""}
+                    </label>
+                    {render_config_field(assigns, field)}
+                  </div>
+                <% end %>
               <% end %>
             <% end %>
             <div class="flex gap-2 pt-2">
@@ -1016,6 +1036,25 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         >
           <option value="">— choose playlist —</option>
           <option :for={pl <- @playlists} value={pl.id} selected={@current == pl.id}>{pl.name}</option>
+        </select>
+        """
+
+      :calendar_select ->
+        assigns = assign(assigns, field: field, current: current)
+
+        ~H"""
+        <select
+          name={"config[#{@field.key}]"}
+          class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+        >
+          <option value="">— choose calendar —</option>
+          <option
+            :for={calendar <- @calendars}
+            value={calendar.id}
+            selected={@current == calendar.id}
+          >
+            {calendar.name}
+          </option>
         </select>
         """
 
