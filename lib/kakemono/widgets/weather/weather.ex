@@ -223,24 +223,37 @@ defmodule Kakemono.Widgets.Weather do
             <div :if={@feels_like != "—°"} class="kw-w-feels">Feels like {@feels_like}</div>
           </div>
           <div class="kw-w-stats">
-            <span class="kw-w-stat kw-w-hi">↑ {@hi}</span>
-            <span class="kw-w-stat-div" aria-hidden="true"></span>
-            <span class="kw-w-stat kw-w-lo">↓ {@lo}</span>
-            <span class="kw-w-stat-div" aria-hidden="true"></span>
-            <span class="kw-w-stat kw-w-rain">🌧 {@rain || "—"}</span>
+            <div :if={@hi != "—°"} class="kw-w-stat kw-w-hi">
+              <span class="kw-w-stat-icon" aria-hidden="true">↑</span>
+              <span class="kw-w-stat-label">High</span>
+              <span class="kw-w-stat-val">{@hi}</span>
+            </div>
+            <div :if={@lo != "—°"} class="kw-w-stat kw-w-lo">
+              <span class="kw-w-stat-icon" aria-hidden="true">↓</span>
+              <span class="kw-w-stat-label">Low</span>
+              <span class="kw-w-stat-val">{@lo}</span>
+            </div>
+            <div :if={@rain != nil} class="kw-w-stat kw-w-rain">
+              <span class="kw-w-stat-icon" aria-hidden="true">🌧</span>
+              <span class="kw-w-stat-label">Rain</span>
+              <span class="kw-w-stat-val">{@rain}</span>
+            </div>
+            <div :if={is_number(@humidity)} class="kw-w-stat kw-w-humidity">
+              <span class="kw-w-stat-icon" aria-hidden="true">🌫</span>
+              <span class="kw-w-stat-label">Humidity</span>
+              <span class="kw-w-stat-val">{round(@humidity)}%</span>
+            </div>
+            <div :if={@wind != nil} class="kw-w-stat kw-w-wind">
+              <span class="kw-w-stat-icon" aria-hidden="true">🌬</span>
+              <span class="kw-w-stat-label">Wind</span>
+              <span class="kw-w-stat-val">{@wind}</span>
+            </div>
+            <div :if={@sun_window != nil} class="kw-w-stat kw-w-sun">
+              <span class="kw-w-stat-icon" aria-hidden="true">🌅</span>
+              <span class="kw-w-stat-label">Sun</span>
+              <span class="kw-w-stat-val">{@sun_window}</span>
+            </div>
           </div>
-        </div>
-
-        <div class="kw-w-chips">
-          <span :if={is_number(@humidity)} class="kw-w-chip">
-            <span class="kw-w-chip-icon" aria-hidden="true">💧</span>{round(@humidity)}%
-          </span>
-          <span :if={@wind != nil} class="kw-w-chip">
-            <span class="kw-w-chip-icon" aria-hidden="true">🌬</span>{@wind}
-          </span>
-          <span :if={@sun_window != nil} class="kw-w-chip">
-            <span class="kw-w-chip-icon" aria-hidden="true">🌅</span>{@sun_window}
-          </span>
         </div>
 
         <div

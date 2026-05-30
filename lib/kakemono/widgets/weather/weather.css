@@ -253,7 +253,6 @@
     grid-template-rows:
       auto                /* header */
       auto                /* hero   */
-      auto                /* chips  */
       minmax(0, 1fr)      /* hourly */
       minmax(0, 1.2fr);   /* daily  */
     row-gap: clamp(10px, 1.7cqh, 18px);
@@ -266,7 +265,6 @@
     grid-template-rows:
       auto                /* header */
       auto                /* hero   */
-      auto                /* chips  */
       minmax(0, 1fr);     /* forecast table */
   }
 
@@ -354,36 +352,48 @@
     font-weight: 600;
     opacity: 0.95;
   }
-  /* Day's headline stats (hi / lo / rain chance) stacked in a column that sits
-     to the right of the temp/condition block, centered against it. */
+  /* Day's headline stats (hi / lo / rain chance / humidity) laid out as a
+     three-column grid — icon · label · value — so every icon, label and value
+     lines up in its own column regardless of how many rows are shown. Each row
+     is `display: contents` so its three cells join the shared grid tracks, and
+     a hidden row removes all three cells cleanly. Any unavailable value is
+     omitted from the markup. */
   .kw-w-stats {
     flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: clamp(2px, 0.7cqh, 7px);
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-content: center;
+    column-gap: clamp(5px, 1.1cqw, 12px);
+    row-gap: clamp(3px, 0.9cqh, 9px);
     font-size: clamp(0.95rem, min(2.6cqw, 4cqh), 1.7rem);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-  }
-  .kw-w-stat {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25em;
-    white-space: nowrap;
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
   }
-  /* Light horizontal separator between the stacked values. */
-  .kw-w-stat-div {
-    height: 2px;
-    width: 100%;
-    min-width: clamp(28px, 5cqw, 64px);
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.42) 50%, transparent 100%);
+  .kw-w-stat {
+    display: contents;
   }
-  .kw-w-hi { color: #fde68a; }
-  .kw-w-lo { color: #bae6fd; }
-  .kw-w-rain { color: #93c5fd; }
+  .kw-w-stat-icon {
+    justify-self: center;
+    line-height: 1;
+  }
+  .kw-w-stat-label {
+    justify-self: start;
+    color: rgba(255, 255, 255, 0.82);
+    font-weight: 600;
+  }
+  .kw-w-stat-val {
+    justify-self: end;
+    white-space: nowrap;
+  }
+  .kw-w-hi .kw-w-stat-val,
+  .kw-w-hi .kw-w-stat-icon { color: #fde68a; }
+  .kw-w-lo .kw-w-stat-val,
+  .kw-w-lo .kw-w-stat-icon { color: #bae6fd; }
+  .kw-w-rain .kw-w-stat-val { color: #93c5fd; }
+  .kw-w-humidity .kw-w-stat-val { color: #5eead4; }
+  .kw-w-wind .kw-w-stat-val { color: #c4b5fd; }
+  .kw-w-sun .kw-w-stat-val { color: #fdba74; }
   .kw-w-feels {
     font-size: clamp(0.8rem, 2cqw, 1.05rem);
     opacity: 0.65;
@@ -430,27 +440,6 @@
   .kw-w-icon[data-scene="thunder"]     { color: #fde047; }
 
   /* Chip row (humidity / wind / sun window), centered */
-  .kw-w-chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: clamp(6px, 1.2cqw, 12px);
-  }
-  .kw-w-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: clamp(4px, 0.8cqh, 8px) clamp(10px, 1.4cqw, 14px);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    font-size: clamp(0.85rem, 2cqw, 1.05rem);
-    font-weight: 600;
-    line-height: 1.2;
-    font-variant-numeric: tabular-nums;
-  }
-  .kw-w-chip-icon { font-size: 0.95em; opacity: 0.9; }
 
   /* Visual forecast for roomy widgets, laid out as day columns + a left hour
      rail. One column-major DOM drives three configurable looks (data-layout):
@@ -718,7 +707,7 @@
      to render it without crowding the daily strip. */
   @container widget (max-width: 480px) or (max-height: 480px) {
     .kw-w-hourly { display: none; }
-    .kw-w-content { grid-template-rows: auto auto auto minmax(0, 1fr); }
+    .kw-w-content { grid-template-rows: auto auto minmax(0, 1fr); }
   }
 
   /* Hide the table where columns would become cramped; tiny layouts keep
@@ -726,12 +715,11 @@
   @container widget (max-width: 520px) or (max-height: 340px) {
     .kw-w-forecast-table,
     .kw-w-daily { display: none; }
-    .kw-w-content { grid-template-rows: auto auto auto; }
+    .kw-w-content { grid-template-rows: auto auto; }
   }
 
-  /* S: drop chips and date. Hero stays. */
+  /* S: drop the date. Hero stays. */
   @container widget (max-width: 320px) or (max-height: 220px) {
-    .kw-w-chips { display: none; }
     .kw-w-sep,
     .kw-w-day,
     .kw-w-feels { display: none; }
