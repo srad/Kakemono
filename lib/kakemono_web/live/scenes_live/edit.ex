@@ -129,27 +129,6 @@ defmodule KakemonoWeb.ScenesLive.Edit do
     end
   end
 
-  @impl true
-  def handle_event("remove_from_canvas", %{"widget_instance_id" => raw_id}, socket) do
-    id = String.to_integer(to_string(raw_id))
-
-    cells =
-      (socket.assigns.scene.layout["cells"] || [])
-      |> Enum.reject(&(&1["widget_instance_id"] == id))
-
-    layout = Map.put(socket.assigns.scene.layout, "cells", cells)
-
-    case Scenes.update(socket.assigns.scene, %{layout: layout}) do
-      {:ok, scene} ->
-        {:noreply,
-         socket
-         |> assign(:scene, scene)
-         |> push_event("grid_remove_widget", %{widget_instance_id: id})}
-
-      {:error, cs} ->
-        {:noreply, put_flash(socket, :error, format_errors(cs))}
-    end
-  end
 
   # ---------------------------------------------------------------------------
   # Config modal events
@@ -706,10 +685,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           </p>
         </section>
 
-        <%!-- Placed instances list --%>
+        <%!-- Widgets list --%>
         <section :if={@scene.mode == "dashboard"} class="flex-1 border-b border-slate-200 p-4">
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Placed Widgets
+            Widgets
           </h2>
           <p :if={MapSet.size(@placed_ids) == 0} class="text-xs text-slate-400">
             None — click Add Widget above.
@@ -732,41 +711,13 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 Config
               </button>
               <button
-                phx-click="remove_from_canvas"
-                phx-value-widget_instance_id={cell["widget_instance_id"]}
+                phx-click="delete_instance"
+                phx-value-id={cell["widget_instance_id"]}
+                data-confirm="Delete this widget permanently?"
                 class="rounded px-1.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
-                title="Remove from canvas"
+                title="Delete widget"
               >
                 <.icon name="hero-x-mark" class="h-4 w-4" />
-              </button>
-            </li>
-          </ul>
-        </section>
-
-        <%!-- All instances (with delete) --%>
-        <section :if={@instances != []} class="border-b border-slate-200 p-4">
-          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            All Instances
-          </h2>
-          <ul class="space-y-1">
-            <li :for={i <- @instances} class="flex items-center gap-1 text-xs text-slate-500">
-              <span class="flex-1 truncate">#{i.id} {type_label(@types, i.widget_type)}</span>
-              <button
-                phx-click="open_config"
-                phx-value-widget_instance_id={i.id}
-                class="rounded px-1 py-0.5 hover:bg-slate-100 hover:text-slate-950"
-                title="Configure"
-              >
-                <.icon name="hero-cog-6-tooth" class="h-4 w-4" />
-              </button>
-              <button
-                phx-click="delete_instance"
-                phx-value-id={i.id}
-                data-confirm="Delete this widget instance permanently?"
-                class="rounded px-1 py-0.5 hover:bg-rose-50 hover:text-rose-600"
-                title="Delete"
-              >
-                <.icon name="hero-trash" class="h-4 w-4" />
               </button>
             </li>
           </ul>

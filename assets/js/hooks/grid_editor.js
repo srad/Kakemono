@@ -101,7 +101,7 @@ function makeCard(cell) {
         <button class="js-config widget-action-btn" data-widget-id="${id}" title="Configure" aria-label="Configure">
           <span class="hero-cog-6-tooth-micro h-4 w-4"></span>
         </button>
-        <button class="js-remove widget-action-btn widget-action-del" data-widget-id="${id}" title="Remove" aria-label="Remove">
+        <button class="js-remove widget-action-btn widget-action-del" data-widget-id="${id}" title="Delete" aria-label="Delete widget">
           <span class="hero-x-mark-micro h-4 w-4"></span>
         </button>
       </div>
@@ -249,9 +249,11 @@ const GridEditor = {
         })
       } else if (removeBtn) {
         e.stopPropagation()
-        this.pushEvent("remove_from_canvas", {
-          widget_instance_id: parseInt(removeBtn.dataset.widgetId),
-        })
+        if (window.confirm("Delete this widget permanently?")) {
+          this.pushEvent("delete_instance", {
+            id: String(removeBtn.dataset.widgetId),
+          })
+        }
       }
     })
 

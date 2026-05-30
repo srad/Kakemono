@@ -231,32 +231,6 @@ defmodule KakemonoWeb.ScenesLiveTest do
     end
   end
 
-  describe "/c/scenes/:id — remove_from_canvas" do
-    test "drops cell but keeps widget instance", %{conn: conn} do
-      {:ok, scene} =
-        Scenes.create(%{name: "Dash", mode: "dashboard", layout: %{"cells" => []}})
-
-      {:ok, clock} = Widgets.create_instance("clock", scene.id, %{})
-
-      {:ok, scene} =
-        Scenes.update(scene, %{
-          layout: %{
-            "cells" => [
-              %{"widget_instance_id" => clock.id, "x" => 0, "y" => 0, "w" => 2, "h" => 2}
-            ]
-          }
-        })
-
-      {:ok, view, _html} = live(conn, "/c/scenes/#{scene.id}")
-
-      render_click(view, "remove_from_canvas", %{
-        "widget_instance_id" => "#{clock.id}"
-      })
-
-      assert Scenes.get!(scene.id).layout["cells"] == []
-      assert Widgets.get_instance(clock.id) != nil
-    end
-  end
 
   describe "/c/scenes/:id — rename_scene" do
     test "updates the scene name", %{conn: conn} do
