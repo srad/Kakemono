@@ -620,11 +620,14 @@
     justify-content: center;
     gap: clamp(2px, 0.6cqh, 7px);
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
   }
   .kw-w-forecast-icon {
-    width: clamp(30px, min(7cqw, 13cqh), 76px);
+    width: clamp(28px, min(7cqw, 13cqh), 76px);
     aspect-ratio: 1;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-height: 0;
   }
   .kw-w-forecast-icon .kw-w-icon {
     width: 100%;
@@ -800,6 +803,36 @@
   }
 
   /* ─── Responsive tiers (largest → smallest, cascading) ──── */
+
+  /* Forecast row tiers: progressively hide hour rows as height shrinks.
+     Tier 1 (6/12/18) always visible; higher tiers need room for large icons. */
+  @container widget (max-height: 1199px) {
+    .kw-w-forecast-hour[data-tier="4"],
+    .kw-w-forecast-cell[data-tier="4"] { display: none; }
+  }
+  @container widget (max-height: 999px) {
+    .kw-w-forecast-hour[data-tier="3"],
+    .kw-w-forecast-cell[data-tier="3"] { display: none; }
+  }
+  @container widget (max-height: 749px) {
+    .kw-w-forecast-hour[data-tier="2"],
+    .kw-w-forecast-cell[data-tier="2"] { display: none; }
+  }
+
+  /* Scale icons/temps so content fits cells at each row count. */
+  @container widget (min-height: 1000px) and (max-height: 1199px) {
+    .kw-w-forecast-icon { width: clamp(26px, 8cqh, 64px); }
+    .kw-w-forecast-temp { font-size: clamp(1rem, 4.5cqh, 2rem); }
+  }
+  @container widget (min-height: 750px) and (max-height: 999px) {
+    .kw-w-forecast-icon { width: clamp(24px, 6cqh, 56px); }
+    .kw-w-forecast-temp { font-size: clamp(1rem, 3.5cqh, 1.8rem); }
+  }
+  /* At 3 rows (≤749px) reduce further for tight cells. */
+  @container widget (max-height: 749px) {
+    .kw-w-forecast-icon { width: clamp(24px, 9cqh, 56px); }
+    .kw-w-forecast-temp { font-size: clamp(1rem, 5cqh, 1.8rem); }
+  }
 
   /* Drop hourly strip when there's not enough width OR vertical room
      to render it without crowding the daily strip. */

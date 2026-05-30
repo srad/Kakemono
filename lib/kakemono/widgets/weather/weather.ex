@@ -183,7 +183,7 @@ defmodule Kakemono.Widgets.Weather do
         today_date: format_today(today["date"]),
         hourly: next_hours(cached, 12),
         daily: next_days(cached, 3),
-        forecast_grid: forecast_grid(cached, 4, [6, 12, 18, 21]),
+        forecast_grid: forecast_grid(cached, 4, [3, 6, 9, 12, 15, 18, 21, 0]),
         forecast_layout: cfg["forecast_layout"] || "cards"
       })
 
@@ -273,8 +273,13 @@ defmodule Kakemono.Widgets.Weather do
         >
           <div class="kw-w-forecast-rail" role="rowgroup">
             <div class="kw-w-forecast-corner"></div>
-            <div :for={hour <- @forecast_grid.hours} class="kw-w-forecast-hour" role="rowheader">
-              {hour}
+            <div
+              :for={hour <- @forecast_grid.hours}
+              class="kw-w-forecast-hour"
+              role="rowheader"
+              data-tier={hour.tier}
+            >
+              {hour.label}
             </div>
           </div>
 
@@ -287,6 +292,7 @@ defmodule Kakemono.Widgets.Weather do
               :for={cell <- col.cells}
               class={["kw-w-forecast-cell", cell.temp == nil && "kw-w-forecast-cell-empty"]}
               data-scene={cell.scene}
+              data-tier={cell.tier}
               role="cell"
             >
               <div :if={cell.temp != nil} class="kw-w-forecast-cell-main">
@@ -652,6 +658,13 @@ defmodule Kakemono.Widgets.Weather do
 
   def next_days(_, _), do: []
 
+  @forecast_hour_tiers %{
+    6 => 1, 12 => 1, 18 => 1,
+    15 => 2, 21 => 2,
+    0 => 3,
+    3 => 4, 9 => 4
+  }
+
   defp forecast_grid(%{"hourly" => %{"time" => times} = hourly} = cached, day_count, hours)
        when is_list(times) do
     points = hourly_points(hourly, hours)
@@ -712,14 +725,20 @@ defmodule Kakemono.Widgets.Weather do
 
   defp build_forecast_grid(dates, hours, points) do
     %{
-      hours: Enum.map(hours, &format_hour_slot/1),
+      hours:
+        Enum.map(hours, fn hour ->
+          %{label: format_hour_slot(hour), tier: Map.get(@forecast_hour_tiers, hour, 4)}
+        end),
       columns:
         Enum.map(dates, fn date ->
           %{
             weekday: format_weekday(date),
             date: format_forecast_date(date),
             cells:
-              Enum.map(hours, fn hour -> Map.get(points, {date, hour}, empty_forecast_cell()) end)
+              Enum.map(hours, fn hour ->
+                Map.get(points, {date, hour}, empty_forecast_cell())
+                |> Map.put(:tier, Map.get(@forecast_hour_tiers, hour, 4))
+              end)
           }
         end)
     }
