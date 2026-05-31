@@ -6,7 +6,7 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Playlists")
+     |> assign(:page_title, gettext("Playlists"))
      |> assign(:active_nav, :playlists)
      |> assign(:playlists, Playlists.list())}
   end
@@ -31,10 +31,10 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
     <div class="space-y-6">
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Playback</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Playlists</h1>
+          <p class="text-sm font-medium text-slate-500">{gettext("Playback")}</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Playlists")}</h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@playlists)} playlists</p>
+        <p class="text-sm text-slate-500">{ngettext("1 playlist", "%{count} playlists", length(@playlists))}</p>
       </div>
 
       <form
@@ -43,11 +43,11 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
       >
         <input
           name="name"
-          placeholder="New playlist name"
+          placeholder={gettext("New playlist name")}
           class="flex-1 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         <button class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
-          Create
+          {gettext("Create")}
         </button>
       </form>
 
@@ -68,10 +68,10 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
           <button
             phx-click="delete"
             phx-value-id={p.id}
-            data-confirm="Delete playlist?"
+            data-confirm={gettext("Delete playlist?")}
             class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
           >
-            delete
+            {gettext("delete")}
           </button>
         </li>
       </ul>
@@ -80,7 +80,7 @@ defmodule KakemonoWeb.PlaylistsLive.Index do
         :if={@playlists == []}
         class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
       >
-        No playlists yet. Create one above.
+        {gettext("No playlists yet. Create one above.")}
       </p>
     </div>
     """

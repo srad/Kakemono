@@ -91,6 +91,7 @@ defmodule Kakemono.Widget do
     quote do
       @behaviour Kakemono.Widget
       use Phoenix.Component
+      use Gettext, backend: KakemonoWeb.Gettext
 
       @doc false
       def __widget__, do: true

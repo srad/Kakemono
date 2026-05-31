@@ -15,18 +15,18 @@ defmodule KakemonoWeb.Layouts do
   def backend_nav(assigns) do
     assigns =
       assign(assigns, :items, [
-        %{label: "Control", path: ~p"/c", icon: "hero-squares-2x2", key: :control},
-        %{label: "Media", path: ~p"/c/media", icon: "hero-photo", key: :media},
-        %{label: "Playlists", path: ~p"/c/playlists", icon: "hero-queue-list", key: :playlists},
+        %{label: gettext("Control"), path: ~p"/c", icon: "hero-squares-2x2", key: :control},
+        %{label: gettext("Media"), path: ~p"/c/media", icon: "hero-photo", key: :media},
+        %{label: gettext("Playlists"), path: ~p"/c/playlists", icon: "hero-queue-list", key: :playlists},
         %{
-          label: "Calendars",
+          label: gettext("Calendars"),
           path: ~p"/c/calendars",
           icon: "hero-calendar-days",
           key: :calendars
         },
-        %{label: "Scenes", path: ~p"/c/scenes", icon: "hero-rectangle-group", key: :scenes},
-        %{label: "Settings", path: ~p"/c/settings", icon: "hero-cog-6-tooth", key: :settings},
-        %{label: "Backups", path: ~p"/c/backups", icon: "hero-archive-box", key: :backups}
+        %{label: gettext("Scenes"), path: ~p"/c/scenes", icon: "hero-rectangle-group", key: :scenes},
+        %{label: gettext("Settings"), path: ~p"/c/settings", icon: "hero-cog-6-tooth", key: :settings},
+        %{label: gettext("Backups"), path: ~p"/c/backups", icon: "hero-archive-box", key: :backups}
       ])
 
     ~H"""
@@ -39,7 +39,7 @@ defmodule KakemonoWeb.Layouts do
             </span>
             <span>
               <span class="block text-sm font-semibold leading-5 text-slate-950">Kakemono</span>
-              <span class="block text-xs leading-4 text-slate-500">Backend</span>
+              <span class="block text-xs leading-4 text-slate-500">{gettext("Backend")}</span>
             </span>
           </.link>
           <.link
@@ -47,7 +47,7 @@ defmodule KakemonoWeb.Layouts do
             method="delete"
             class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 lg:hidden"
           >
-            <.icon name="hero-arrow-left-on-rectangle" class="h-4 w-4" /> Logout
+            <.icon name="hero-arrow-left-on-rectangle" class="h-4 w-4" /> {gettext("Logout")}
           </.link>
         </div>
 
@@ -77,7 +77,7 @@ defmodule KakemonoWeb.Layouts do
           method="delete"
           class="hidden items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 lg:inline-flex"
         >
-          <.icon name="hero-arrow-left-on-rectangle" class="h-4 w-4" /> Logout
+          <.icon name="hero-arrow-left-on-rectangle" class="h-4 w-4" /> {gettext("Logout")}
         </.link>
       </div>
     </header>

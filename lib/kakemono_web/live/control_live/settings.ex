@@ -5,10 +5,12 @@ defmodule KakemonoWeb.ControlLive.Settings do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Settings")
+     |> assign(:page_title, gettext("Settings"))
      |> assign(:active_nav, :settings)
      |> assign(:secret, current_secret())
-     |> assign(:password_set, Kakemono.BackendAuth.configured?())}
+     |> assign(:password_set, Kakemono.BackendAuth.configured?())
+     |> assign(:locale, Kakemono.Locale.get())
+     |> assign(:supported_locales, Kakemono.Locale.supported())}
   end
 
   @impl true
@@ -23,7 +25,7 @@ defmodule KakemonoWeb.ControlLive.Settings do
     end
 
     Application.put_env(:kakemono, :api_secret, secret)
-    {:noreply, socket |> assign(:secret, secret) |> put_flash(:info, "New secret generated")}
+    {:noreply, socket |> assign(:secret, secret) |> put_flash(:info, gettext("New secret generated"))}
   end
 
   @impl true
@@ -33,20 +35,36 @@ defmodule KakemonoWeb.ControlLive.Settings do
         {:noreply,
          socket
          |> assign(:password_set, true)
-         |> put_flash(:info, "Backend password updated")}
+         |> put_flash(:info, gettext("Backend password updated"))}
 
       {:error, :too_short} ->
         {:noreply,
          put_flash(
            socket,
            :error,
-           "Password must be at least #{Kakemono.BackendAuth.min_password_length()} characters"
+           gettext("Password must be at least %{count} characters",
+             count: Kakemono.BackendAuth.min_password_length()
+           )
          )}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update password")}
+        {:noreply, put_flash(socket, :error, gettext("Could not update password"))}
     end
   end
+
+  @impl true
+  def handle_event("set_locale", %{"locale" => locale}, socket) do
+    if Kakemono.Locale.valid?(locale) do
+      Kakemono.Locale.set(locale)
+      {:noreply, push_navigate(socket, to: ~p"/c/settings")}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp locale_label("en"), do: "English"
+  defp locale_label("de"), do: "Deutsch"
+  defp locale_label(other), do: other
 
   defp current_secret, do: Application.get_env(:kakemono, :api_secret, "")
   defp secret_key_path, do: Kakemono.DataDir.secret_file() || "disabled in this environment"
@@ -56,17 +74,36 @@ defmodule KakemonoWeb.ControlLive.Settings do
     ~H"""
     <div class="max-w-3xl space-y-6">
       <div>
-        <p class="text-sm font-medium text-slate-500">Administration</p>
-        <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Settings</h1>
+        <p class="text-sm font-medium text-slate-500">{gettext("Administration")}</p>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Settings")}</h1>
       </div>
 
       <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950">Backend password</h2>
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("Language")}</h2>
           <p class="text-sm text-slate-500">
-            Single password protecting the control panel and landing page. {if @password_set,
-              do: "A password is currently set.",
-              else: "No password is set yet."}
+            {gettext("Language for the backend interface.")}
+          </p>
+        </div>
+        <form phx-change="set_locale" class="max-w-xs">
+          <select
+            name="locale"
+            class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+          >
+            <option :for={loc <- @supported_locales} value={loc} selected={loc == @locale}>
+              {locale_label(loc)}
+            </option>
+          </select>
+        </form>
+      </section>
+
+      <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("Backend password")}</h2>
+          <p class="text-sm text-slate-500">
+            {gettext("Single password protecting the control panel and landing page.")} {if @password_set,
+              do: gettext("A password is currently set."),
+              else: gettext("No password is set yet.")}
           </p>
         </div>
         <form phx-submit="set_password" class="flex flex-col gap-3 sm:flex-row">
@@ -74,23 +111,23 @@ defmodule KakemonoWeb.ControlLive.Settings do
             type="password"
             name="password"
             autocomplete="new-password"
-            placeholder="New password"
+            placeholder={gettext("New password")}
             class="flex-1 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
           />
           <button
             type="submit"
             class="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
-            {if @password_set, do: "Change", else: "Set"}
+            {if @password_set, do: gettext("Change"), else: gettext("Set")}
           </button>
         </form>
       </section>
 
       <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950">API Secret</h2>
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("API Secret")}</h2>
           <p class="text-sm text-slate-500">
-            Used by displays to authenticate heartbeat and scene-change API calls
+            {gettext("Used by displays to authenticate heartbeat and scene-change API calls")}
             (<code class="rounded bg-slate-100 px-1 font-mono text-xs">x-kakemono-secret</code> header).
           </p>
         </div>
@@ -100,10 +137,10 @@ defmodule KakemonoWeb.ControlLive.Settings do
           </code>
           <button
             phx-click="regenerate"
-            data-confirm="Replace the current secret? All displays will need updating."
+            data-confirm={gettext("Replace the current secret? All displays will need updating.")}
             class="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-rose-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
           >
-            Regenerate
+            {gettext("Regenerate")}
           </button>
         </div>
         <p class="mt-3 text-xs text-slate-500">

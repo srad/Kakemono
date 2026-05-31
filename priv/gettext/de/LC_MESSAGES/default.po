@@ -1,0 +1,1139 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/kakemono_web/live/control_live/backups.ex:60
+#, elixir-autogen, elixir-format
+msgid "1 backup file"
+msgid_plural "%{count} backup files"
+msgstr[0] "1 Sicherungsdatei"
+msgstr[1] "%{count} Sicherungsdateien"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:54
+#, elixir-autogen, elixir-format
+msgid "1 calendar"
+msgid_plural "%{count} calendars"
+msgstr[0] "1 Kalender"
+msgstr[1] "%{count} Kalender"
+
+#: lib/kakemono_web/live/control_live/index.ex:127
+#, elixir-autogen, elixir-format
+msgid "1 display"
+msgid_plural "%{count} displays"
+msgstr[0] "1 Display"
+msgstr[1] "%{count} Displays"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:162
+#, elixir-autogen, elixir-format
+msgid "1 entry"
+msgid_plural "%{count} entries"
+msgstr[0] "1 Eintrag"
+msgstr[1] "%{count} Einträge"
+
+#: lib/kakemono_web/live/media_live/index.ex:92
+#, elixir-autogen, elixir-format
+msgid "1 item"
+msgid_plural "%{count} items"
+msgstr[0] "1 Element"
+msgstr[1] "%{count} Elemente"
+
+#: lib/kakemono_web/live/playlists_live/index.ex:37
+#, elixir-autogen, elixir-format
+msgid "1 playlist"
+msgid_plural "%{count} playlists"
+msgstr[0] "1 Wiedergabeliste"
+msgstr[1] "%{count} Wiedergabelisten"
+
+#: lib/kakemono_web/live/control_live/index.ex:127
+#: lib/kakemono_web/live/scenes_live/index.ex:84
+#, elixir-autogen, elixir-format
+msgid "1 scene"
+msgid_plural "%{count} scenes"
+msgstr[0] "1 Szene"
+msgstr[1] "%{count} Szenen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:128
+#, elixir-autogen, elixir-format
+msgid "1 source event"
+msgid_plural "%{count} source events"
+msgstr[0] "1 Quellereignis"
+msgstr[1] "%{count} Quellereignisse"
+
+#: lib/kakemono_web/live/control_live/settings.ex:105
+#, elixir-autogen, elixir-format
+msgid "A password is currently set."
+msgstr "Ein Passwort ist derzeit gesetzt."
+
+#: lib/kakemono_web/live/control_live/settings.ex:128
+#, elixir-autogen, elixir-format
+msgid "API Secret"
+msgstr "API-Schlüssel"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:169
+#, elixir-autogen, elixir-format
+msgid "Accent color"
+msgstr "Akzentfarbe"
+
+#: lib/kakemono_web/components/core_components.ex:482
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "Aktionen"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:636
+#, elixir-autogen, elixir-format
+msgid "Add Widget"
+msgstr "Widget hinzufügen"
+
+#: lib/kakemono_web/live/control_live/index.ex:173
+#, elixir-autogen, elixir-format
+msgid "Add display"
+msgstr "Display hinzufügen"
+
+#: lib/kakemono_web/live/control_live/backups.ex:57
+#: lib/kakemono_web/live/control_live/settings.ex:77
+#, elixir-autogen, elixir-format
+msgid "Administration"
+msgstr "Verwaltung"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:224
+#, elixir-autogen, elixir-format
+msgid "All day"
+msgstr "Ganztägig"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:538
+#, elixir-autogen, elixir-format
+msgid "All scenes"
+msgstr "Alle Szenen"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:625
+#, elixir-autogen, elixir-format
+msgid "Apply"
+msgstr "Anwenden"
+
+#: lib/kakemono_web/live/control_live/backups.ex:72
+#, elixir-autogen, elixir-format
+msgid "Archives the database and uploads into a zip file."
+msgstr "Archiviert die Datenbank und Uploads in eine ZIP-Datei."
+
+#: lib/kakemono_web/live/scenes_live/index.ex:121
+#, elixir-autogen, elixir-format
+msgid "Aspect Ratio"
+msgstr "Seitenverhältnis"
+
+#: lib/kakemono_web/live/media_live/index.ex:89
+#, elixir-autogen, elixir-format
+msgid "Assets"
+msgstr "Medien"
+
+#: lib/kakemono_web/components/core_components.ex:160
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr "Verbindung wird wiederhergestellt"
+
+#: lib/kakemono_web/components/layouts.ex:42
+#: lib/kakemono_web/controllers/session_html/new.html.heex:18
+#: lib/kakemono_web/live/control_live/index.ex:123
+#, elixir-autogen, elixir-format
+msgid "Backend"
+msgstr "Backend"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Backend login"
+msgstr "Backend-Anmeldung"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:52
+#, elixir-autogen, elixir-format
+msgid "Backend not provisioned"
+msgstr "Backend nicht eingerichtet"
+
+#: lib/kakemono_web/live/control_live/settings.ex:102
+#, elixir-autogen, elixir-format
+msgid "Backend password"
+msgstr "Backend-Passwort"
+
+#: lib/kakemono_web/live/control_live/settings.ex:38
+#, elixir-autogen, elixir-format
+msgid "Backend password updated"
+msgstr "Backend-Passwort aktualisiert"
+
+#: lib/kakemono_web/live/control_live/backups.ex:41
+#, elixir-autogen, elixir-format
+msgid "Backup created"
+msgstr "Sicherung erstellt"
+
+#: lib/kakemono_web/live/control_live/backups.ex:26
+#, elixir-autogen, elixir-format
+msgid "Backup deleted"
+msgstr "Sicherung gelöscht"
+
+#: lib/kakemono_web/live/control_live/backups.ex:47
+#, elixir-autogen, elixir-format
+msgid "Backup failed: %{reason}"
+msgstr "Sicherung fehlgeschlagen: %{reason}"
+
+#: lib/kakemono_web/components/layouts.ex:29
+#: lib/kakemono_web/live/control_live/backups.ex:10
+#: lib/kakemono_web/live/control_live/backups.ex:58
+#, elixir-autogen, elixir-format
+msgid "Backups"
+msgstr "Sicherungen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:137
+#, elixir-autogen, elixir-format
+msgid "Calendar settings"
+msgstr "Kalendereinstellungen"
+
+#: lib/kakemono_web/components/layouts.ex:22
+#: lib/kakemono_web/live/calendars_live/edit.ex:122
+#: lib/kakemono_web/live/calendars_live/index.ex:12
+#: lib/kakemono_web/live/calendars_live/index.ex:52
+#, elixir-autogen, elixir-format
+msgid "Calendars"
+msgstr "Kalender"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:201
+#: lib/kakemono_web/live/scenes_live/edit.ex:907
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:573
+#, elixir-autogen, elixir-format
+msgid "Canvas"
+msgstr "Leinwand"
+
+#: lib/kakemono_web/live/control_live/settings.ex:121
+#, elixir-autogen, elixir-format
+msgid "Change"
+msgstr "Ändern"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:796
+#, elixir-autogen, elixir-format
+msgid "Clear"
+msgstr "Löschen"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:684
+#, elixir-autogen, elixir-format
+msgid "Click an \"Add Widget\" button above to create the fullscreen widget."
+msgstr "Klicken Sie oben auf \"Widget hinzufügen\", um das Vollbild-Widget zu erstellen."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:711
+#, elixir-autogen, elixir-format
+msgid "Config"
+msgstr "Konfiguration"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:159
+#, elixir-autogen, elixir-format
+msgid "Config saved"
+msgstr "Konfiguration gespeichert"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:857
+#, elixir-autogen, elixir-format
+msgid "Configure"
+msgstr "Konfigurieren"
+
+#: lib/kakemono_web/components/layouts.ex:18
+#: lib/kakemono_web/live/control_live/index.ex:18
+#, elixir-autogen, elixir-format
+msgid "Control"
+msgstr "Steuerung"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:171
+#, elixir-autogen, elixir-format
+msgid "Control how playlist media fits the display."
+msgstr "Steuern Sie, wie Medien der Wiedergabeliste auf dem Display angezeigt werden."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:275
+#, elixir-autogen, elixir-format
+msgid "Could not clear schedule"
+msgstr "Zeitplan konnte nicht gelöscht werden"
+
+#: lib/kakemono_web/live/control_live/index.ex:88
+#, elixir-autogen, elixir-format
+msgid "Could not create display"
+msgstr "Display konnte nicht erstellt werden"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:66
+#: lib/kakemono_web/live/scenes_live/edit.ex:99
+#, elixir-autogen, elixir-format
+msgid "Could not create: %{reason}"
+msgstr "Konnte nicht erstellt werden: %{reason}"
+
+#: lib/kakemono_web/live/control_live/backups.ex:29
+#, elixir-autogen, elixir-format
+msgid "Could not delete backup"
+msgstr "Sicherung konnte nicht gelöscht werden"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:220
+#, elixir-autogen, elixir-format
+msgid "Could not rename scene"
+msgstr "Szene konnte nicht umbenannt werden"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:228
+#, elixir-autogen, elixir-format
+msgid "Could not update aspect ratio"
+msgstr "Seitenverhältnis konnte nicht aktualisiert werden"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:244
+#, elixir-autogen, elixir-format
+msgid "Could not update canvas settings"
+msgstr "Leinwandeinstellungen konnten nicht aktualisiert werden"
+
+#: lib/kakemono_web/live/control_live/settings.ex:51
+#, elixir-autogen, elixir-format
+msgid "Could not update password"
+msgstr "Passwort konnte nicht aktualisiert werden"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:208
+#, elixir-autogen, elixir-format
+msgid "Could not update scene"
+msgstr "Szene konnte nicht aktualisiert werden"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:82
+#: lib/kakemono_web/live/playlists_live/index.ex:50
+#: lib/kakemono_web/live/scenes_live/index.ex:156
+#, elixir-autogen, elixir-format
+msgid "Create"
+msgstr "Erstellen"
+
+#: lib/kakemono_web/live/control_live/backups.ex:69
+#, elixir-autogen, elixir-format
+msgid "Create backup"
+msgstr "Sicherung erstellen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:189
+#: lib/kakemono_web/live/calendars_live/edit.ex:402
+#, elixir-autogen, elixir-format
+msgid "Create event"
+msgstr "Ereignis erstellen"
+
+#: lib/kakemono_web/live/scenes_live/index.ex:93
+#, elixir-autogen, elixir-format
+msgid "Create scene"
+msgstr "Szene erstellen"
+
+#: lib/kakemono_web/live/control_live/backups.ex:91
+#, elixir-autogen, elixir-format
+msgid "Created"
+msgstr "Erstellt"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:25
+#, elixir-autogen, elixir-format
+msgid "Created %{name}"
+msgstr "%{name} erstellt"
+
+#: lib/kakemono_web/live/control_live/backups.ex:69
+#, elixir-autogen, elixir-format
+msgid "Creating…"
+msgstr "Wird erstellt…"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:566
+#, elixir-autogen, elixir-format
+msgid "Daily"
+msgstr "Täglich"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:230
+#, elixir-autogen, elixir-format
+msgid "Date"
+msgstr "Datum"
+
+#: lib/kakemono_web/live/control_live/backups.ex:115
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "Löschen"
+
+#: lib/kakemono_web/live/control_live/backups.ex:112
+#, elixir-autogen, elixir-format
+msgid "Delete %{filename}?"
+msgstr "%{filename} löschen?"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:109
+#, elixir-autogen, elixir-format
+msgid "Delete calendar?"
+msgstr "Kalender löschen?"
+
+#: lib/kakemono_web/live/control_live/index.ex:298
+#, elixir-autogen, elixir-format
+msgid "Delete display '%{name}'?"
+msgstr "Display '%{name}' löschen?"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:453
+#, elixir-autogen, elixir-format
+msgid "Delete event?"
+msgstr "Ereignis löschen?"
+
+#: lib/kakemono_web/live/playlists_live/index.ex:71
+#, elixir-autogen, elixir-format
+msgid "Delete playlist?"
+msgstr "Wiedergabeliste löschen?"
+
+#: lib/kakemono_web/live/scenes_live/index.ex:193
+#, elixir-autogen, elixir-format
+msgid "Delete scene '%{name}'?"
+msgstr "Szene '%{name}' löschen?"
+
+#: lib/kakemono_web/live/media_live/index.ex:162
+#, elixir-autogen, elixir-format
+msgid "Delete this item?"
+msgstr "Dieses Element löschen?"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:716
+#, elixir-autogen, elixir-format
+msgid "Delete this widget permanently?"
+msgstr "Dieses Widget endgültig löschen?"
+
+#: lib/kakemono_web/live/control_live/index.ex:80
+#, elixir-autogen, elixir-format
+msgid "Display '%{id}' already exists"
+msgstr "Display '%{id}' existiert bereits"
+
+#: lib/kakemono_web/live/control_live/index.ex:85
+#, elixir-autogen, elixir-format
+msgid "Display '%{id}' created"
+msgstr "Display '%{id}' erstellt"
+
+#: lib/kakemono_web/live/control_live/index.ex:63
+#, elixir-autogen, elixir-format
+msgid "Display '%{id}' deleted"
+msgstr "Display '%{id}' gelöscht"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:175
+#, elixir-autogen, elixir-format
+msgid "Display fit"
+msgstr "Display-Anpassung"
+
+#: lib/kakemono_web/live/control_live/index.ex:40
+#: lib/kakemono_web/live/control_live/index.ex:66
+#, elixir-autogen, elixir-format
+msgid "Display not found"
+msgstr "Display nicht gefunden"
+
+#: lib/kakemono_web/live/control_live/index.ex:134
+#, elixir-autogen, elixir-format
+msgid "Displays"
+msgstr "Displays"
+
+#: lib/kakemono_web/live/control_live/backups.ex:107
+#, elixir-autogen, elixir-format
+msgid "Download"
+msgstr "Herunterladen"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:222
+#, elixir-autogen, elixir-format
+msgid "Drag to reorder the playback sequence."
+msgstr "Ziehen, um die Wiedergabereihenfolge zu ändern."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:189
+#, elixir-autogen, elixir-format
+msgid "Edit event"
+msgstr "Ereignis bearbeiten"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:772
+#, elixir-autogen, elixir-format
+msgid "End (UTC)"
+msgstr "Ende (UTC)"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:276
+#, elixir-autogen, elixir-format
+msgid "End date"
+msgstr "Enddatum"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:286
+#, elixir-autogen, elixir-format
+msgid "End time"
+msgstr "Endzeit"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:26
+#, elixir-autogen, elixir-format
+msgid "Enter the password to access the control panel."
+msgstr "Geben Sie das Passwort ein, um auf das Steuerungspanel zuzugreifen."
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:221
+#, elixir-autogen, elixir-format
+msgid "Entries"
+msgstr "Einträge"
+
+#: lib/kakemono_web/components/core_components.ex:151
+#, elixir-autogen, elixir-format
+msgid "Error!"
+msgstr "Fehler!"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:55
+#, elixir-autogen, elixir-format
+msgid "Event saved"
+msgstr "Ereignis gespeichert"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:409
+#, elixir-autogen, elixir-format
+msgid "Events"
+msgstr "Ereignisse"
+
+#: lib/kakemono_web/live/control_live/backups.ex:89
+#, elixir-autogen, elixir-format
+msgid "Filename"
+msgstr "Dateiname"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Fri"
+msgstr "Fr"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:657
+#, elixir-autogen, elixir-format
+msgid "Fullscreen Widget"
+msgstr "Vollbild-Widget"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:205
+#, elixir-autogen, elixir-format
+msgid "Fullscreen widget set"
+msgstr "Vollbild-Widget gesetzt"
+
+#: lib/kakemono_web/components/core_components.ex:172
+#, elixir-autogen, elixir-format
+msgid "Hang in there while we get back on track"
+msgstr "Bitte warten, wir stellen die Verbindung wieder her"
+
+#: lib/kakemono_web/live/control_live/index.ex:148
+#, elixir-autogen, elixir-format
+msgid "ID"
+msgstr "ID"
+
+#: lib/kakemono_web/live/control_live/index.ex:77
+#, elixir-autogen, elixir-format
+msgid "ID must match a-z, 0-9, _ or -"
+msgstr "ID darf nur a-z, 0-9, _ oder - enthalten"
+
+#: lib/kakemono_web/live/media_live/index.ex:104
+#, elixir-autogen, elixir-format
+msgid "Images and videos are added to the library and processed in the background."
+msgstr "Bilder und Videos werden der Bibliothek hinzugefügt und im Hintergrund verarbeitet."
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:126
+#, elixir-autogen, elixir-format
+msgid "Invalid settings: %{msg}"
+msgstr "Ungültige Einstellungen: %{msg}"
+
+#: lib/kakemono_web/live/control_live/index.ex:124
+#, elixir-autogen, elixir-format
+msgid "Kakemono Control"
+msgstr "Kakemono-Steuerung"
+
+#: lib/kakemono_web/live/control_live/index.ex:240
+#: lib/kakemono_web/live/control_live/settings.ex:83
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "Sprache"
+
+#: lib/kakemono_web/live/control_live/settings.ex:85
+#, elixir-autogen, elixir-format
+msgid "Language for the backend interface."
+msgstr "Sprache der Backend-Oberfläche."
+
+#: lib/kakemono_web/live/scenes_live/index.ex:81
+#, elixir-autogen, elixir-format
+msgid "Layouts"
+msgstr "Layouts"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:321
+#, elixir-autogen, elixir-format
+msgid "Location"
+msgstr "Ort"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr "Anmelden"
+
+#: lib/kakemono_web/components/layouts.ex:50
+#: lib/kakemono_web/components/layouts.ex:80
+#, elixir-autogen, elixir-format
+msgid "Logout"
+msgstr "Abmelden"
+
+#: lib/kakemono_web/components/layouts.ex:19
+#: lib/kakemono_web/live/media_live/index.ex:13
+#, elixir-autogen, elixir-format
+msgid "Media"
+msgstr "Medien"
+
+#: lib/kakemono_web/live/media_live/index.ex:90
+#, elixir-autogen, elixir-format
+msgid "Media Library"
+msgstr "Medienbibliothek"
+
+#: lib/kakemono_web/live/scenes_live/index.ex:110
+#, elixir-autogen, elixir-format
+msgid "Mode"
+msgstr "Modus"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Mon"
+msgstr "Mo"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:568
+#, elixir-autogen, elixir-format
+msgid "Monthly"
+msgstr "Monatlich"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:143
+#: lib/kakemono_web/live/control_live/index.ex:160
+#: lib/kakemono_web/live/scenes_live/index.ex:99
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr "Name"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:64
+#, elixir-autogen, elixir-format
+msgid "New calendar name"
+msgstr "Neuer Kalendername"
+
+#: lib/kakemono_web/live/control_live/settings.ex:114
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr "Neues Passwort"
+
+#: lib/kakemono_web/live/playlists_live/index.ex:46
+#, elixir-autogen, elixir-format
+msgid "New playlist name"
+msgstr "Neuer Name der Wiedergabeliste"
+
+#: lib/kakemono_web/live/control_live/settings.ex:28
+#, elixir-autogen, elixir-format
+msgid "New secret generated"
+msgstr "Neuer Schlüssel generiert"
+
+#: lib/kakemono_web/live/control_live/backups.ex:80
+#, elixir-autogen, elixir-format
+msgid "No backups yet — click Create backup above."
+msgstr "Noch keine Sicherungen — klicken Sie oben auf Sicherung erstellen."
+
+#: lib/kakemono_web/live/calendars_live/index.ex:122
+#, elixir-autogen, elixir-format
+msgid "No calendars yet. Create one above."
+msgstr "Noch keine Kalender. Erstellen Sie einen oben."
+
+#: lib/kakemono_web/live/control_live/index.ex:308
+#, elixir-autogen, elixir-format
+msgid "No displays registered yet. Add one above or visit /d/<id>."
+msgstr "Noch keine Displays registriert. Fügen Sie eines oben hinzu oder besuchen Sie /d/<id>."
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:251
+#, elixir-autogen, elixir-format
+msgid "No entries yet — upload below or pick from the library."
+msgstr "Noch keine Einträge — laden Sie unten hoch oder wählen Sie aus der Bibliothek."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:462
+#, elixir-autogen, elixir-format
+msgid "No events yet. Create one on the left."
+msgstr "Noch keine Ereignisse. Erstellen Sie eines links."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:579
+#, elixir-autogen, elixir-format
+msgid "No future occurrence scheduled"
+msgstr "Kein zukünftiges Vorkommen geplant"
+
+#: lib/kakemono_web/live/media_live/index.ex:176
+#, elixir-autogen, elixir-format
+msgid "No media yet — upload something above."
+msgstr "Noch keine Medien — laden Sie etwas oben hoch."
+
+#: lib/kakemono_web/live/control_live/settings.ex:106
+#, elixir-autogen, elixir-format
+msgid "No password is set yet."
+msgstr "Es ist noch kein Passwort gesetzt."
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:27
+#, elixir-autogen, elixir-format
+msgid "No password is set yet. Choose one to protect the backend."
+msgstr "Es ist noch kein Passwort gesetzt. Wählen Sie eines zum Schutz des Backends."
+
+#: lib/kakemono_web/live/playlists_live/index.ex:83
+#, elixir-autogen, elixir-format
+msgid "No playlists yet. Create one above."
+msgstr "Noch keine Wiedergabelisten. Erstellen Sie eine oben."
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:315
+#, elixir-autogen, elixir-format
+msgid "No ready media in the library yet."
+msgstr "Noch keine fertigen Medien in der Bibliothek."
+
+#: lib/kakemono_web/live/scenes_live/index.ex:205
+#, elixir-autogen, elixir-format
+msgid "No scenes yet. Create one above."
+msgstr "Noch keine Szenen. Erstellen Sie eine oben."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:694
+#, elixir-autogen, elixir-format
+msgid "None — click Add Widget above."
+msgstr "Keine — klicken Sie oben auf Widget hinzufügen."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:392
+#, elixir-autogen, elixir-format
+msgid "Notes"
+msgstr "Notizen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:565
+#, elixir-autogen, elixir-format
+msgid "Once"
+msgstr "Einmalig"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:297
+#, elixir-autogen, elixir-format
+msgid "Or add existing media"
+msgstr "Oder vorhandene Medien hinzufügen"
+
+#: lib/kakemono_web/live/control_live/index.ex:176
+#, elixir-autogen, elixir-format
+msgid "Or just visit /d/<id> — the display is auto-registered on first load."
+msgstr "Oder besuchen Sie /d/<id> — das Display wird beim ersten Laden automatisch registriert."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:592
+#: lib/kakemono_web/live/scenes_live/index.ex:132
+#, elixir-autogen, elixir-format
+msgid "Orientation"
+msgstr "Ausrichtung"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr "Passwort"
+
+#: lib/kakemono_web/live/control_live/settings.ex:45
+#, elixir-autogen, elixir-format
+msgid "Password must be at least %{count} characters"
+msgstr "Passwort muss mindestens %{count} Zeichen lang sein"
+
+#: lib/kakemono_web/live/playlists_live/index.ex:34
+#, elixir-autogen, elixir-format
+msgid "Playback"
+msgstr "Wiedergabe"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:170
+#, elixir-autogen, elixir-format
+msgid "Playback settings"
+msgstr "Wiedergabeeinstellungen"
+
+#: lib/kakemono_web/components/layouts.ex:20
+#: lib/kakemono_web/live/playlists_live/edit.ex:156
+#: lib/kakemono_web/live/playlists_live/index.ex:9
+#: lib/kakemono_web/live/playlists_live/index.ex:35
+#, elixir-autogen, elixir-format
+msgid "Playlists"
+msgstr "Wiedergabelisten"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:547
+#, elixir-autogen, elixir-format
+msgid "Preview"
+msgstr "Vorschau"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:577
+#, elixir-autogen, elixir-format
+msgid "Ratio"
+msgstr "Verhältnis"
+
+#: lib/kakemono_web/live/control_live/index.ex:282
+#, elixir-autogen, elixir-format
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+#: lib/kakemono_web/live/control_live/settings.ex:143
+#, elixir-autogen, elixir-format
+msgid "Regenerate"
+msgstr "Neu generieren"
+
+#: lib/kakemono_web/live/control_live/index.ex:136
+#, elixir-autogen, elixir-format
+msgid "Register screens, assign scenes, and control connected kiosks."
+msgstr "Bildschirme registrieren, Szenen zuweisen und verbundene Kiosks steuern."
+
+#: lib/kakemono_web/live/control_live/index.ex:280
+#, elixir-autogen, elixir-format
+msgid "Reload display page"
+msgstr "Display-Seite neu laden"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:332
+#, elixir-autogen, elixir-format
+msgid "Repeat"
+msgstr "Wiederholung"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:350
+#, elixir-autogen, elixir-format
+msgid "Repeat interval"
+msgstr "Wiederholungsintervall"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:362
+#, elixir-autogen, elixir-format
+msgid "Repeat until"
+msgstr "Wiederholen bis"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:192
+#, elixir-autogen, elixir-format
+msgid "Repeating yearly all-day events cover birthdays and anniversaries."
+msgstr "Jährlich wiederkehrende Ganztagesereignisse decken Geburtstage und Jahrestage ab."
+
+#: lib/kakemono_web/live/control_live/settings.ex:140
+#, elixir-autogen, elixir-format
+msgid "Replace the current secret? All displays will need updating."
+msgstr "Aktuellen Schlüssel ersetzen? Alle Displays müssen aktualisiert werden."
+
+#: lib/kakemono_web/live/control_live/index.ex:291
+#, elixir-autogen, elixir-format
+msgid "Restart"
+msgstr "Neustart"
+
+#: lib/kakemono_web/live/control_live/index.ex:289
+#, elixir-autogen, elixir-format
+msgid "Restart Fully Kiosk"
+msgstr "Fully Kiosk neustarten"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Sat"
+msgstr "Sa"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:789
+#: lib/kakemono_web/live/scenes_live/edit.ex:900
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr "Speichern"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:162
+#, elixir-autogen, elixir-format
+msgid "Save failed: %{reason}"
+msgstr "Speichern fehlgeschlagen: %{reason}"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:180
+#, elixir-autogen, elixir-format
+msgid "Save settings"
+msgstr "Einstellungen speichern"
+
+#: lib/kakemono_web/live/control_live/index.ex:216
+#, elixir-autogen, elixir-format
+msgid "Scene"
+msgstr "Szene"
+
+#: lib/kakemono_web/live/scenes_live/index.ex:48
+#, elixir-autogen, elixir-format
+msgid "Scene '%{name}' created"
+msgstr "Szene '%{name}' erstellt"
+
+#: lib/kakemono_web/components/layouts.ex:27
+#: lib/kakemono_web/live/scenes_live/index.ex:11
+#: lib/kakemono_web/live/scenes_live/index.ex:82
+#, elixir-autogen, elixir-format
+msgid "Scenes"
+msgstr "Szenen"
+
+#: lib/kakemono_web/live/scenes_live/index.ex:94
+#, elixir-autogen, elixir-format
+msgid "Scenes define what each display shows."
+msgstr "Szenen definieren, was jedes Display anzeigt."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:729
+#, elixir-autogen, elixir-format
+msgid "Schedule"
+msgstr "Zeitplan"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:272
+#, elixir-autogen, elixir-format
+msgid "Schedule cleared"
+msgstr "Zeitplan gelöscht"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:261
+#, elixir-autogen, elixir-format
+msgid "Schedule saved"
+msgstr "Zeitplan gespeichert"
+
+#: lib/kakemono_web/live/calendars_live/index.ex:51
+#, elixir-autogen, elixir-format
+msgid "Scheduling"
+msgstr "Terminplanung"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:839
+#, elixir-autogen, elixir-format
+msgid "Select a widget instance in the sidebar."
+msgstr "Wählen Sie eine Widget-Instanz in der Seitenleiste."
+
+#: lib/kakemono_web/live/control_live/settings.ex:121
+#: lib/kakemono_web/live/scenes_live/edit.ex:680
+#, elixir-autogen, elixir-format
+msgid "Set"
+msgstr "Setzen"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Set backend password"
+msgstr "Backend-Passwort festlegen"
+
+#: lib/kakemono_web/controllers/session_html/new.html.heex:47
+#, elixir-autogen, elixir-format
+msgid "Set password"
+msgstr "Passwort festlegen"
+
+#: lib/kakemono_web/components/layouts.ex:28
+#: lib/kakemono_web/live/control_live/settings.ex:8
+#: lib/kakemono_web/live/control_live/settings.ex:78
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:30
+#, elixir-autogen, elixir-format
+msgid "Settings saved"
+msgstr "Einstellungen gespeichert"
+
+#: lib/kakemono_web/live/control_live/settings.ex:104
+#, elixir-autogen, elixir-format
+msgid "Single password protecting the control panel and landing page."
+msgstr "Einzelnes Passwort zum Schutz des Steuerungspanels und der Startseite."
+
+#: lib/kakemono_web/live/control_live/backups.ex:90
+#, elixir-autogen, elixir-format
+msgid "Size"
+msgstr "Größe"
+
+#: lib/kakemono_web/live/control_live/index.ex:273
+#, elixir-autogen, elixir-format
+msgid "Sleep"
+msgstr "Ruhezustand"
+
+#: lib/kakemono_web/live/control_live/index.ex:271
+#, elixir-autogen, elixir-format
+msgid "Sleep screen"
+msgstr "Bildschirm in Ruhezustand"
+
+#: lib/kakemono_web/components/core_components.ex:167
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr "Etwas ist schiefgelaufen!"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:411
+#, elixir-autogen, elixir-format
+msgid "Sorted by the next future occurrence in this calendar's timezone."
+msgstr "Sortiert nach dem nächsten zukünftigen Vorkommen in der Zeitzone dieses Kalenders."
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:760
+#, elixir-autogen, elixir-format
+msgid "Start (UTC)"
+msgstr "Start (UTC)"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:230
+#, elixir-autogen, elixir-format
+msgid "Start date"
+msgstr "Startdatum"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:241
+#, elixir-autogen, elixir-format
+msgid "Start time"
+msgstr "Startzeit"
+
+#: lib/kakemono_web/components/core_components.ex:150
+#, elixir-autogen, elixir-format
+msgid "Success!"
+msgstr "Erfolg!"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Sun"
+msgstr "So"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:607
+#: lib/kakemono_web/live/scenes_live/index.ex:143
+#, elixir-autogen, elixir-format
+msgid "Theme"
+msgstr "Design"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:874
+#, elixir-autogen, elixir-format
+msgid "This widget has no configurable options."
+msgstr "Dieses Widget hat keine konfigurierbaren Optionen."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Thu"
+msgstr "Do"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:153
+#, elixir-autogen, elixir-format
+msgid "Timezone"
+msgstr "Zeitzone"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:138
+#, elixir-autogen, elixir-format
+msgid "Timezone controls recurring event expansion."
+msgstr "Zeitzone steuert die Erweiterung wiederkehrender Ereignisse."
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:207
+#, elixir-autogen, elixir-format
+msgid "Title"
+msgstr "Titel"
+
+#: lib/kakemono_web/live/media_live/index.ex:188
+#, elixir-autogen, elixir-format
+msgid "Too large"
+msgstr "Zu groß"
+
+#: lib/kakemono_web/live/media_live/index.ex:190
+#, elixir-autogen, elixir-format
+msgid "Too many files"
+msgstr "Zu viele Dateien"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:193
+#, elixir-autogen, elixir-format
+msgid "Transition (ms)"
+msgstr "Übergang (ms)"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Tue"
+msgstr "Di"
+
+#: lib/kakemono_web/live/media_live/index.ex:189
+#, elixir-autogen, elixir-format
+msgid "Unsupported file type"
+msgstr "Nicht unterstützter Dateityp"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:402
+#, elixir-autogen, elixir-format
+msgid "Update event"
+msgstr "Ereignis aktualisieren"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:263
+#, elixir-autogen, elixir-format
+msgid "Upload & auto-add to this playlist"
+msgstr "Hochladen & automatisch zu dieser Wiedergabeliste hinzufügen"
+
+#: lib/kakemono_web/live/media_live/index.ex:102
+#, elixir-autogen, elixir-format
+msgid "Upload media"
+msgstr "Medien hochladen"
+
+#: lib/kakemono_web/live/media_live/index.ex:54
+#: lib/kakemono_web/live/playlists_live/edit.ex:70
+#, elixir-autogen, elixir-format
+msgid "Uploaded 1 file"
+msgid_plural "Uploaded %{count} files"
+msgstr[0] "1 Datei hochgeladen"
+msgstr[1] "%{count} Dateien hochgeladen"
+
+#: lib/kakemono_web/live/media_live/index.ex:132
+#, elixir-autogen, elixir-format
+msgid "Uploads start automatically when you pick files."
+msgstr "Uploads starten automatisch, wenn Sie Dateien auswählen."
+
+#: lib/kakemono_web/live/control_live/settings.ex:130
+#, elixir-autogen, elixir-format
+msgid "Used by displays to authenticate heartbeat and scene-change API calls"
+msgstr "Wird von Displays zur Authentifizierung von Heartbeat- und Szenenwechsel-API-Aufrufen verwendet"
+
+#: lib/kakemono_web/live/control_live/index.ex:264
+#, elixir-autogen, elixir-format
+msgid "Wake"
+msgstr "Aufwecken"
+
+#: lib/kakemono_web/live/control_live/index.ex:262
+#, elixir-autogen, elixir-format
+msgid "Wake screen"
+msgstr "Bildschirm aufwecken"
+
+#: lib/kakemono_web/components/core_components.ex:155
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr "Keine Internetverbindung gefunden"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:572
+#, elixir-autogen, elixir-format
+msgid "Wed"
+msgstr "Mi"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:373
+#, elixir-autogen, elixir-format
+msgid "Weekdays"
+msgstr "Wochentage"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:567
+#, elixir-autogen, elixir-format
+msgid "Weekly"
+msgstr "Wöchentlich"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:691
+#, elixir-autogen, elixir-format
+msgid "Widgets"
+msgstr "Widgets"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:569
+#, elixir-autogen, elixir-format
+msgid "Yearly"
+msgstr "Jährlich"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:432
+#, elixir-autogen, elixir-format
+msgid "all day"
+msgstr "ganztägig"
+
+#: lib/kakemono_web/live/media_live/index.ex:124
+#, elixir-autogen, elixir-format
+msgid "cancel"
+msgstr "abbrechen"
+
+#: lib/kakemono_web/components/core_components.ex:76
+#: lib/kakemono_web/components/core_components.ex:130
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "schließen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:456
+#: lib/kakemono_web/live/calendars_live/index.ex:112
+#: lib/kakemono_web/live/control_live/index.ex:301
+#: lib/kakemono_web/live/media_live/index.ex:165
+#: lib/kakemono_web/live/playlists_live/index.ex:74
+#: lib/kakemono_web/live/scenes_live/index.ex:196
+#, elixir-autogen, elixir-format
+msgid "delete"
+msgstr "löschen"
+
+#: lib/kakemono_web/live/calendars_live/edit.ex:448
+#, elixir-autogen, elixir-format
+msgid "edit"
+msgstr "bearbeiten"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:830
+#, elixir-autogen, elixir-format
+msgid "fills entire display"
+msgstr "füllt gesamtes Display"
+
+#: lib/kakemono_web/live/playlists_live/edit.ex:247
+#, elixir-autogen, elixir-format
+msgid "remove"
+msgstr "entfernen"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:1001
+#, elixir-autogen, elixir-format
+msgid "— choose calendar —"
+msgstr "— Kalender wählen —"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:666
+#, elixir-autogen, elixir-format
+msgid "— choose instance —"
+msgstr "— Instanz wählen —"
+
+#: lib/kakemono_web/live/scenes_live/edit.ex:988
+#, elixir-autogen, elixir-format
+msgid "— choose playlist —"
+msgstr "— Wiedergabeliste wählen —"
+
+#: lib/kakemono_web/live/control_live/index.ex:223
+#, elixir-autogen, elixir-format
+msgid "— none —"
+msgstr "— keine —"

@@ -15,21 +15,21 @@
             </span>
             <div>
               <div class="text-sm font-semibold leading-5 text-slate-950">Kakemono</div>
-              <div class="text-xs leading-4 text-slate-500">Backend</div>
+              <div class="text-xs leading-4 text-slate-500"><%= gettext("Backend") %></div>
             </div>
           </div>
           <h1 class="text-xl font-semibold text-slate-950">
-            {if @configured, do: "Backend login", else: "Set backend password"}
+            <%= if @configured, do: gettext("Backend login"), else: gettext("Set backend password") %>
           </h1>
           <p class="text-sm text-slate-500">
-            {if @configured,
-              do: "Enter the password to access the control panel.",
-              else: "No password is set yet. Choose one to protect the backend."}
+            <%= if @configured,
+              do: gettext("Enter the password to access the control panel."),
+              else: gettext("No password is set yet. Choose one to protect the backend.") %>
           </p>
         </div>
 
         <div class="space-y-1">
-          <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+          <label for="password" class="block text-sm font-medium text-slate-700"><%= gettext("Password") %></label>
           <input
             type="password"
             name="password"
@@ -44,12 +44,12 @@
           type="submit"
           class="inline-flex h-10 w-full items-center justify-center rounded-md bg-slate-950 px-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
         >
-          {if @configured, do: "Log in", else: "Set password"}
+          <%= if @configured, do: gettext("Log in"), else: gettext("Set password") %>
         </button>
       </form>
     <% else %>
       <div class="w-full space-y-2 rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-        <h1 class="text-xl font-semibold text-slate-950">Backend not provisioned</h1>
+        <h1 class="text-xl font-semibold text-slate-950"><%= gettext("Backend not provisioned") %></h1>
         <p class="text-sm text-slate-500">
           No backend password is configured. Provision one at deploy
           (<code class="font-mono text-xs">KAKEMONO_BACKEND_PASSWORD</code>) and restart.

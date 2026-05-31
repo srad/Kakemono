@@ -15,7 +15,7 @@ defmodule KakemonoWeb.ControlLive.Index do
 
     {:ok,
      socket
-     |> assign(:page_title, "Control")
+     |> assign(:page_title, gettext("Control"))
      |> assign(:active_nav, :control)
      |> assign_state()}
   end
@@ -37,7 +37,18 @@ defmodule KakemonoWeb.ControlLive.Index do
 
     case Displays.set_scene(did, scene_id) do
       {:ok, _} -> {:noreply, assign_state(socket)}
-      :error -> {:noreply, put_flash(socket, :error, "Display not found")}
+      :error -> {:noreply, put_flash(socket, :error, gettext("Display not found"))}
+    end
+  end
+
+  def handle_event("set_locale", %{"display_id" => did, "locale" => locale}, socket) do
+    if Kakemono.Locale.valid?(locale) do
+      case Displays.upsert(%{id: did, locale: locale}) do
+        {:ok, _} -> {:noreply, assign_state(socket)}
+        _ -> {:noreply, socket}
+      end
+    else
+      {:noreply, socket}
     end
   end
 
@@ -49,10 +60,10 @@ defmodule KakemonoWeb.ControlLive.Index do
   def handle_event("delete_display", %{"id" => id}, socket) do
     case Displays.delete(id) do
       {:ok, _} ->
-        {:noreply, socket |> put_flash(:info, "Display '#{id}' deleted") |> assign_state()}
+        {:noreply, socket |> put_flash(:info, gettext("Display '%{id}' deleted", id: id)) |> assign_state()}
 
       :error ->
-        {:noreply, put_flash(socket, :error, "Display not found")}
+        {:noreply, put_flash(socket, :error, gettext("Display not found"))}
     end
   end
 
@@ -63,18 +74,18 @@ defmodule KakemonoWeb.ControlLive.Index do
 
     cond do
       not Regex.match?(@id_regex, id) ->
-        {:noreply, put_flash(socket, :error, "ID must match a-z, 0-9, _ or -")}
+        {:noreply, put_flash(socket, :error, gettext("ID must match a-z, 0-9, _ or -"))}
 
       Displays.get(id) ->
-        {:noreply, put_flash(socket, :error, "Display '#{id}' already exists")}
+        {:noreply, put_flash(socket, :error, gettext("Display '%{id}' already exists", id: id))}
 
       true ->
         case Displays.create(%{id: id, name: name}) do
           {:ok, _d} ->
-            {:noreply, socket |> put_flash(:info, "Display '#{id}' created") |> assign_state()}
+            {:noreply, socket |> put_flash(:info, gettext("Display '%{id}' created", id: id)) |> assign_state()}
 
           {:error, _cs} ->
-            {:noreply, put_flash(socket, :error, "Could not create display")}
+            {:noreply, put_flash(socket, :error, gettext("Could not create display"))}
         end
     end
   end
@@ -91,8 +102,17 @@ defmodule KakemonoWeb.ControlLive.Index do
     displays = Displays.list()
     scenes = Scenes.list()
 
-    assign(socket, displays: displays, presence_ids: presence_ids, scenes: scenes)
+    assign(socket,
+      displays: displays,
+      presence_ids: presence_ids,
+      scenes: scenes,
+      supported_locales: Kakemono.Locale.supported()
+    )
   end
+
+  defp locale_label("en"), do: "English"
+  defp locale_label("de"), do: "Deutsch"
+  defp locale_label(other), do: other
 
   @impl true
   def render(assigns) do
@@ -100,20 +120,20 @@ defmodule KakemonoWeb.ControlLive.Index do
     <div class="space-y-6">
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Backend</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Kakemono Control</h1>
+          <p class="text-sm font-medium text-slate-500">{gettext("Backend")}</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Kakemono Control")}</h1>
         </div>
         <p class="text-sm text-slate-500">
-          {length(@displays)} displays · {length(@scenes)} scenes
+          {ngettext("1 display", "%{count} displays", length(@displays))} · {ngettext("1 scene", "%{count} scenes", length(@scenes))}
         </p>
       </div>
 
       <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
-            <h2 class="text-lg font-semibold text-slate-950">Displays</h2>
+            <h2 class="text-lg font-semibold text-slate-950">{gettext("Displays")}</h2>
             <p class="text-sm text-slate-500">
-              Register screens, assign scenes, and control connected kiosks.
+              {gettext("Register screens, assign scenes, and control connected kiosks.")}
             </p>
           </div>
         </div>
@@ -125,7 +145,7 @@ defmodule KakemonoWeb.ControlLive.Index do
         >
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              ID
+              {gettext("ID")}
             </label>
             <input
               type="text"
@@ -137,7 +157,7 @@ defmodule KakemonoWeb.ControlLive.Index do
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Name
+              {gettext("Name")}
             </label>
             <input
               type="text"
@@ -150,10 +170,10 @@ defmodule KakemonoWeb.ControlLive.Index do
             type="submit"
             class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
-            Add display
+            {gettext("Add display")}
           </button>
           <p class="text-xs text-slate-500 md:col-span-3">
-            Or just visit <code>/d/&lt;id&gt;</code> — the display is auto-registered on first load.
+            {gettext("Or just visit /d/<id> — the display is auto-registered on first load.")}
           </p>
         </form>
 
@@ -193,14 +213,14 @@ defmodule KakemonoWeb.ControlLive.Index do
                 id={"scene-form-#{d.id}"}
               >
                 <input type="hidden" name="display_id" value={d.id} />
-                <label for={"pr-#{d.id}"} class="text-slate-600">Scene</label>
+                <label for={"pr-#{d.id}"} class="text-slate-600">{gettext("Scene")}</label>
                 <select
                   id={"pr-#{d.id}"}
                   name="scene_id"
                   class="min-w-36 rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                   data-display-id={d.id}
                 >
-                  <option value="" selected={is_nil(d.current_scene_id)}>— none —</option>
+                  <option value="" selected={is_nil(d.current_scene_id)}>{gettext("— none —")}</option>
                   <option
                     :for={p <- @scenes}
                     value={p.id}
@@ -211,59 +231,81 @@ defmodule KakemonoWeb.ControlLive.Index do
                 </select>
               </form>
 
+              <form
+                phx-change="set_locale"
+                class="flex min-w-0 items-center gap-2"
+                id={"locale-form-#{d.id}"}
+              >
+                <input type="hidden" name="display_id" value={d.id} />
+                <label for={"locale-#{d.id}"} class="text-slate-600">{gettext("Language")}</label>
+                <select
+                  id={"locale-#{d.id}"}
+                  name="locale"
+                  class="rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
+                >
+                  <option
+                    :for={loc <- @supported_locales}
+                    value={loc}
+                    selected={loc == (d.locale || "en")}
+                  >
+                    {locale_label(loc)}
+                  </option>
+                </select>
+              </form>
+
               <div :if={present?(d, @presence_ids)} class="flex gap-1">
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="screenOn"
                   class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                  title="Wake screen"
+                  title={gettext("Wake screen")}
                 >
-                  Wake
+                  {gettext("Wake")}
                 </button>
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="screenOff"
                   class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                  title="Sleep screen"
+                  title={gettext("Sleep screen")}
                 >
-                  Sleep
+                  {gettext("Sleep")}
                 </button>
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="reloadPage"
                   class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                  title="Reload display page"
+                  title={gettext("Reload display page")}
                 >
-                  Refresh
+                  {gettext("Refresh")}
                 </button>
                 <button
                   phx-click="fk_cmd"
                   phx-value-display_id={d.id}
                   phx-value-cmd="restartApp"
                   class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                  title="Restart Fully Kiosk"
+                  title={gettext("Restart Fully Kiosk")}
                 >
-                  Restart
+                  {gettext("Restart")}
                 </button>
               </div>
 
               <button
                 phx-click="delete_display"
                 phx-value-id={d.id}
-                data-confirm={"Delete display '#{d.name}'?"}
+                data-confirm={gettext("Delete display '%{name}'?", name: d.name)}
                 class="rounded-md px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
               >
-                delete
+                {gettext("delete")}
               </button>
             </div>
           </li>
         </ul>
 
         <p :if={@displays == []} class="px-5 py-8 text-center text-sm text-slate-500">
-          No displays registered yet. Add one above or visit <code>/d/&lt;id&gt;</code>.
+          {gettext("No displays registered yet. Add one above or visit /d/<id>.")}
         </p>
       </section>
     </div>

@@ -16,6 +16,8 @@ defmodule KakemonoWeb.DisplayLive.Index do
           d
       end
 
+    Gettext.put_locale(KakemonoWeb.Gettext, display.locale || "en")
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Kakemono.PubSub, "display:#{id}")
       Phoenix.PubSub.subscribe(Kakemono.PubSub, "widgets")

@@ -67,7 +67,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
     else
       socket
       |> assign(:playlist, Playlists.get_with_items(playlist.id))
-      |> put_flash(:info, "Uploaded #{length(items)} file(s)")
+      |> put_flash(:info, ngettext("Uploaded 1 file", "Uploaded %{count} files", length(items)))
     end
   end
 
@@ -123,7 +123,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
           cs.errors
           |> Enum.map_join("; ", fn {field, {m, _}} -> "#{field} #{m}" end)
 
-        {:noreply, put_flash(socket, :error, "Invalid settings: " <> msg)}
+        {:noreply, put_flash(socket, :error, gettext("Invalid settings: %{msg}", msg: msg))}
     end
   end
 
@@ -153,13 +153,13 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
             navigate={~p"/c/playlists"}
             class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900"
           >
-            <.icon name="hero-arrow-left" class="h-4 w-4" /> Playlists
+            <.icon name="hero-arrow-left" class="h-4 w-4" /> {gettext("Playlists")}
           </.link>
           <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
             {@playlist.name}
           </h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@playlist.entries)} entries</p>
+        <p class="text-sm text-slate-500">{ngettext("1 entry", "%{count} entries", length(@playlist.entries))}</p>
       </div>
 
       <form
@@ -167,12 +167,12 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
         class="rounded-lg border border-slate-200 bg-white p-5 text-sm shadow-sm"
       >
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950">Playback settings</h2>
-          <p class="text-sm text-slate-500">Control how playlist media fits the display.</p>
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("Playback settings")}</h2>
+          <p class="text-sm text-slate-500">{gettext("Control how playlist media fits the display.")}</p>
         </div>
         <div class="flex flex-wrap items-center gap-4">
           <div class="flex items-center gap-2">
-            <label for="fit-mode" class="font-medium text-slate-700">Display fit</label>
+            <label for="fit-mode" class="font-medium text-slate-700">{gettext("Display fit")}</label>
             <select
               id="fit-mode"
               name="fit_mode"
@@ -190,7 +190,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
 
           <div class="flex flex-wrap items-center gap-2">
             <label for="transition-duration" class="font-medium text-slate-700">
-              Transition (ms)
+              {gettext("Transition (ms)")}
             </label>
             <input
               id="transition-duration"
@@ -218,8 +218,8 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div class="border-b border-slate-200 px-5 py-4">
-            <h2 class="font-semibold text-slate-950">Entries</h2>
-            <p class="text-sm text-slate-500">Drag to reorder the playback sequence.</p>
+            <h2 class="font-semibold text-slate-950">{gettext("Entries")}</h2>
+            <p class="text-sm text-slate-500">{gettext("Drag to reorder the playback sequence.")}</p>
           </div>
           <ul id="entries" phx-hook="Sortable" class="divide-y divide-slate-200">
             <li
@@ -244,11 +244,11 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
                 phx-value-entry_id={e.id}
                 class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
               >
-                remove
+                {gettext("remove")}
               </button>
             </li>
             <li :if={@playlist.entries == []} class="px-5 py-8 text-center text-sm text-slate-500">
-              No entries yet — upload below or pick from the library.
+              {gettext("No entries yet — upload below or pick from the library.")}
             </li>
           </ul>
         </section>
@@ -260,7 +260,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
             phx-change="validate"
             class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <h2 class="mb-1 font-semibold text-slate-950">Upload &amp; auto-add to this playlist</h2>
+            <h2 class="mb-1 font-semibold text-slate-950">{gettext("Upload & auto-add to this playlist")}</h2>
             <p class="mb-4 text-sm text-slate-500">
               New files are added here after upload and processing.
             </p>
@@ -294,7 +294,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
           </form>
 
           <section class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 class="mb-3 font-semibold text-slate-950">Or add existing media</h2>
+            <h2 class="mb-3 font-semibold text-slate-950">{gettext("Or add existing media")}</h2>
             <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
               <button
                 :for={m <- @available_media}
@@ -312,7 +312,7 @@ defmodule KakemonoWeb.PlaylistsLive.Edit do
                 </div>
               </button>
               <p :if={@available_media == []} class="col-span-full text-sm text-slate-500">
-                No ready media in the library yet.
+                {gettext("No ready media in the library yet.")}
               </p>
             </div>
           </section>

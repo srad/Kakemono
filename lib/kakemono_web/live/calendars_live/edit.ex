@@ -27,7 +27,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
         {:noreply,
          socket
          |> load(calendar)
-         |> put_flash(:info, "Settings saved")}
+         |> put_flash(:info, gettext("Settings saved"))}
 
       {:error, changeset} ->
         {:noreply, put_flash(socket, :error, format_errors(changeset))}
@@ -52,7 +52,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
          socket
          |> reload()
          |> reset_event_form()
-         |> put_flash(:info, "Event saved")}
+         |> put_flash(:info, gettext("Event saved"))}
 
       {:error, changeset} ->
         {:noreply, put_flash(socket, :error, format_errors(changeset))}
@@ -119,13 +119,13 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
             navigate={~p"/c/calendars"}
             class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-900"
           >
-            <.icon name="hero-arrow-left" class="h-4 w-4" /> Calendars
+            <.icon name="hero-arrow-left" class="h-4 w-4" /> {gettext("Calendars")}
           </.link>
           <h1 class="mt-1 text-2xl font-semibold tracking-tight text-slate-950">
             {@calendar.name}
           </h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@calendar.events)} source events</p>
+        <p class="text-sm text-slate-500">{ngettext("1 source event", "%{count} source events", length(@calendar.events))}</p>
       </div>
 
       <form
@@ -134,13 +134,13 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
         class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
       >
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950">Calendar settings</h2>
-          <p class="text-sm text-slate-500">Timezone controls recurring event expansion.</p>
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("Calendar settings")}</h2>
+          <p class="text-sm text-slate-500">{gettext("Timezone controls recurring event expansion.")}</p>
         </div>
 
         <div class="grid gap-4 md:grid-cols-3">
           <label class="block">
-            <span class="mb-1 block text-sm font-medium text-slate-700">Name</span>
+            <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Name")}</span>
             <input
               type="text"
               name="calendar[name]"
@@ -150,7 +150,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
           </label>
 
           <label class="block">
-            <span class="mb-1 block text-sm font-medium text-slate-700">Timezone</span>
+            <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Timezone")}</span>
             <select
               name="calendar[timezone]"
               class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
@@ -166,7 +166,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
           </label>
 
           <label class="block">
-            <span class="mb-1 block text-sm font-medium text-slate-700">Accent color</span>
+            <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Accent color")}</span>
             <input
               type="color"
               name="calendar[color]"
@@ -177,7 +177,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
         </div>
 
         <button class="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
-          Save settings
+          {gettext("Save settings")}
         </button>
       </form>
 
@@ -186,10 +186,10 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
           <div class="mb-4 flex items-start justify-between gap-4">
             <div>
               <h2 class="text-lg font-semibold text-slate-950">
-                {if @editing_event_id, do: "Edit event", else: "Create event"}
+                {if @editing_event_id, do: gettext("Edit event"), else: gettext("Create event")}
               </h2>
               <p class="text-sm text-slate-500">
-                Repeating yearly all-day events cover birthdays and anniversaries.
+                {gettext("Repeating yearly all-day events cover birthdays and anniversaries.")}
               </p>
             </div>
             <button
@@ -198,13 +198,13 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
               phx-click="cancel_event_edit"
               class="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
 
           <form id="event-form" phx-submit="save_event" phx-change="form_changed" class="space-y-4">
             <label class="block">
-              <span class="mb-1 block text-sm font-medium text-slate-700">Title</span>
+              <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Title")}</span>
               <input
                 type="text"
                 name="event[title]"
@@ -221,13 +221,13 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
                 name="event[all_day]"
                 value="true"
                 checked={truthy?(@event_form["all_day"])}
-              /> All day
+              /> {gettext("All day")}
             </label>
 
             <div class={if truthy?(@event_form["all_day"]), do: "", else: "grid gap-4 sm:grid-cols-2"}>
               <label class="block">
                 <span class="mb-1 block text-sm font-medium text-slate-700">
-                  {if truthy?(@event_form["all_day"]), do: "Date", else: "Start date"}
+                  {if truthy?(@event_form["all_day"]), do: gettext("Date"), else: gettext("Start date")}
                 </span>
                 <input
                   type="date"
@@ -238,7 +238,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
               </label>
 
               <div :if={not truthy?(@event_form["all_day"])} class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">Start time</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Start time")}</span>
                 <div class="flex items-center gap-1">
                   <select
                     name="event[start_hour]"
@@ -273,7 +273,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
 
             <div :if={not truthy?(@event_form["all_day"])} class="grid gap-4 sm:grid-cols-2">
               <label class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">End date</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("End date")}</span>
                 <input
                   type="date"
                   name="event[end_on]"
@@ -283,7 +283,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
               </label>
 
               <div class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">End time</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("End time")}</span>
                 <div class="flex items-center gap-1">
                   <select
                     name="event[end_hour]"
@@ -318,7 +318,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
 
             <div class="grid gap-4 sm:grid-cols-2">
               <label class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">Location</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Location")}</span>
                 <input
                   type="text"
                   name="event[location]"
@@ -329,7 +329,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
               </label>
 
               <label class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">Repeat</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Repeat")}</span>
                 <select
                   name="event[recurrence]"
                   class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
@@ -347,7 +347,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
 
             <div :if={@event_form["recurrence"] != "none"} class="grid gap-4 sm:grid-cols-2">
               <label class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">Repeat interval</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Repeat interval")}</span>
                 <input
                   type="number"
                   name="event[recurrence_interval]"
@@ -359,7 +359,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
               </label>
 
               <label class="block">
-                <span class="mb-1 block text-sm font-medium text-slate-700">Repeat until</span>
+                <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Repeat until")}</span>
                 <input
                   type="date"
                   name="event[recurrence_until_date]"
@@ -370,7 +370,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
             </div>
 
             <div :if={@event_form["recurrence"] == "weekly"}>
-              <span class="mb-1 block text-sm font-medium text-slate-700">Weekdays</span>
+              <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Weekdays")}</span>
               <input type="hidden" name="event[recurrence_weekdays][]" value="" />
               <div class="flex flex-wrap gap-2 text-sm text-slate-600">
                 <label
@@ -389,7 +389,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
             </div>
 
             <label class="block">
-              <span class="mb-1 block text-sm font-medium text-slate-700">Notes</span>
+              <span class="mb-1 block text-sm font-medium text-slate-700">{gettext("Notes")}</span>
               <textarea
                 name="event[notes]"
                 rows="4"
@@ -399,16 +399,16 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
             </label>
 
             <button class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
-              {if @editing_event_id, do: "Update event", else: "Create event"}
+              {if @editing_event_id, do: gettext("Update event"), else: gettext("Create event")}
             </button>
           </form>
         </section>
 
         <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
           <div class="border-b border-slate-200 px-5 py-4">
-            <h2 class="font-semibold text-slate-950">Events</h2>
+            <h2 class="font-semibold text-slate-950">{gettext("Events")}</h2>
             <p class="text-sm text-slate-500">
-              Sorted by the next future occurrence in this calendar's timezone.
+              {gettext("Sorted by the next future occurrence in this calendar's timezone.")}
             </p>
           </div>
 
@@ -429,7 +429,7 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
                     :if={row.event.all_day}
                     class="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600"
                   >
-                    all day
+                    {gettext("all day")}
                   </span>
                 </div>
                 <p class="mt-1 text-sm text-slate-600">{row.recurrence_summary}</p>
@@ -445,21 +445,21 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
                   phx-value-id={row.event.id}
                   class="rounded-md px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
-                  edit
+                  {gettext("edit")}
                 </button>
                 <button
                   phx-click="delete_event"
                   phx-value-id={row.event.id}
-                  data-confirm="Delete event?"
+                  data-confirm={gettext("Delete event?")}
                   class="rounded-md px-3 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
                 >
-                  delete
+                  {gettext("delete")}
                 </button>
               </div>
             </li>
 
             <li :if={@event_rows == []} class="px-5 py-10 text-center text-sm text-slate-500">
-              No events yet. Create one on the left.
+              {gettext("No events yet. Create one on the left.")}
             </li>
           </ul>
         </section>
@@ -562,21 +562,21 @@ defmodule KakemonoWeb.CalendarsLive.Edit do
   end
 
   defp recurrence_values, do: Kakemono.Calendars.Event.recurrence_values()
-  defp recurrence_label("none"), do: "Once"
-  defp recurrence_label("daily"), do: "Daily"
-  defp recurrence_label("weekly"), do: "Weekly"
-  defp recurrence_label("monthly"), do: "Monthly"
-  defp recurrence_label("yearly"), do: "Yearly"
+  defp recurrence_label("none"), do: gettext("Once")
+  defp recurrence_label("daily"), do: gettext("Daily")
+  defp recurrence_label("weekly"), do: gettext("Weekly")
+  defp recurrence_label("monthly"), do: gettext("Monthly")
+  defp recurrence_label("yearly"), do: gettext("Yearly")
 
   defp weekday_options do
-    [{"Mon", 1}, {"Tue", 2}, {"Wed", 3}, {"Thu", 4}, {"Fri", 5}, {"Sat", 6}, {"Sun", 7}]
+    [{gettext("Mon"), 1}, {gettext("Tue"), 2}, {gettext("Wed"), 3}, {gettext("Thu"), 4}, {gettext("Fri"), 5}, {gettext("Sat"), 6}, {gettext("Sun"), 7}]
   end
 
   defp weekday_checked?(event_form, day) do
     Integer.to_string(day) in List.wrap(event_form["recurrence_weekdays"])
   end
 
-  defp next_occurrence_text(nil), do: "No future occurrence scheduled"
+  defp next_occurrence_text(nil), do: gettext("No future occurrence scheduled")
 
   defp next_occurrence_text(occurrence) do
     if occurrence.all_day do

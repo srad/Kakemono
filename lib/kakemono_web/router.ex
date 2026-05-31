@@ -8,6 +8,7 @@ defmodule KakemonoWeb.Router do
     plug :put_root_layout, html: {KakemonoWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :set_backend_locale
   end
 
   pipeline :display do
@@ -48,7 +49,11 @@ defmodule KakemonoWeb.Router do
   scope "/c", KakemonoWeb do
     pipe_through [:browser, :backend_auth]
 
-    live_session :authenticated, on_mount: {KakemonoWeb.BackendAuth, :ensure_authed} do
+    live_session :authenticated,
+                 on_mount: [
+                   {KakemonoWeb.BackendAuth, :ensure_authed},
+                   {KakemonoWeb.LocaleHook, :backend}
+                 ] do
       live "/", ControlLive.Index, :index
       live "/media", MediaLive.Index, :index
       live "/playlists", PlaylistsLive.Index, :index
@@ -75,6 +80,11 @@ defmodule KakemonoWeb.Router do
     post "/displays/:id/heartbeat", DisplayController, :heartbeat
     post "/displays/:id/scene", DisplayController, :set_scene
     get "/displays/:id", DisplayController, :state
+  end
+
+  defp set_backend_locale(conn, _opts) do
+    Gettext.put_locale(KakemonoWeb.Gettext, Kakemono.Locale.get())
+    conn
   end
 
   if Application.compile_env(:kakemono, :dev_routes) do

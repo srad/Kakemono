@@ -7,7 +7,7 @@ defmodule KakemonoWeb.ControlLive.Backups do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(:page_title, "Backups")
+     |> assign(:page_title, gettext("Backups"))
      |> assign(:active_nav, :backups)
      |> assign(:backups, Backup.list())
      |> assign(:creating, false)}
@@ -23,10 +23,10 @@ defmodule KakemonoWeb.ControlLive.Backups do
     case Backup.delete(filename) do
       :ok ->
         {:noreply,
-         socket |> assign(:backups, Backup.list()) |> put_flash(:info, "Backup deleted")}
+         socket |> assign(:backups, Backup.list()) |> put_flash(:info, gettext("Backup deleted"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not delete backup")}
+        {:noreply, put_flash(socket, :error, gettext("Could not delete backup"))}
     end
   end
 
@@ -38,13 +38,13 @@ defmodule KakemonoWeb.ControlLive.Backups do
          socket
          |> assign(:creating, false)
          |> assign(:backups, Backup.list())
-         |> put_flash(:info, "Backup created")}
+         |> put_flash(:info, gettext("Backup created"))}
 
       {:error, reason} ->
         {:noreply,
          socket
          |> assign(:creating, false)
-         |> put_flash(:error, "Backup failed: #{reason}")}
+         |> put_flash(:error, gettext("Backup failed: %{reason}", reason: reason))}
     end
   end
 
@@ -54,10 +54,10 @@ defmodule KakemonoWeb.ControlLive.Backups do
     <div class="max-w-5xl space-y-6">
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Administration</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Backups</h1>
+          <p class="text-sm font-medium text-slate-500">{gettext("Administration")}</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Backups")}</h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@backups)} backup files</p>
+        <p class="text-sm text-slate-500">{ngettext("1 backup file", "%{count} backup files", length(@backups))}</p>
       </div>
 
       <div class="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center">
@@ -66,10 +66,10 @@ defmodule KakemonoWeb.ControlLive.Backups do
           disabled={@creating}
           class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {if @creating, do: "Creating…", else: "Create backup"}
+          {if @creating, do: gettext("Creating…"), else: gettext("Create backup")}
         </button>
         <span class="text-sm text-slate-500">
-          Archives the database and uploads into a zip file.
+          {gettext("Archives the database and uploads into a zip file.")}
         </span>
       </div>
 
@@ -77,7 +77,7 @@ defmodule KakemonoWeb.ControlLive.Backups do
         :if={@backups == [] and not @creating}
         class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
       >
-        No backups yet — click Create backup above.
+        {gettext("No backups yet — click Create backup above.")}
       </p>
 
       <table
@@ -86,9 +86,9 @@ defmodule KakemonoWeb.ControlLive.Backups do
       >
         <thead class="bg-slate-50 text-left text-slate-600">
           <tr>
-            <th class="px-3 py-2 font-medium">Filename</th>
-            <th class="px-3 py-2 font-medium">Size</th>
-            <th class="px-3 py-2 font-medium">Created</th>
+            <th class="px-3 py-2 font-medium">{gettext("Filename")}</th>
+            <th class="px-3 py-2 font-medium">{gettext("Size")}</th>
+            <th class="px-3 py-2 font-medium">{gettext("Created")}</th>
             <th class="px-3 py-2" />
           </tr>
         </thead>
@@ -104,15 +104,15 @@ defmodule KakemonoWeb.ControlLive.Backups do
                   download={b.filename}
                   class="font-medium text-slate-700 hover:text-slate-950"
                 >
-                  Download
+                  {gettext("Download")}
                 </a>
                 <button
                   phx-click="delete"
                   phx-value-filename={b.filename}
-                  data-confirm={"Delete #{b.filename}?"}
+                  data-confirm={gettext("Delete %{filename}?", filename: b.filename)}
                   class="font-medium text-rose-600 hover:text-rose-700"
                 >
-                  Delete
+                  {gettext("Delete")}
                 </button>
               </div>
             </td>

@@ -29,6 +29,8 @@ defmodule Kakemono.DataDir do
     end
   end
 
+  def locale_file, do: path("locale")
+
   defp configured_path(key, fallback) do
     :kakemono
     |> Application.get_env(key)

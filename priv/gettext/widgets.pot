@@ -1,0 +1,222 @@
+## This file is a PO Template file.
+##
+## "msgid"s here are often extracted from source code.
+## Add new messages manually only if they're dynamic
+## messages that can't be statically extracted.
+##
+## Run "mix gettext.extract" to bring this file up to
+## date. Leave "msgstr"s empty as changing them here has no
+## effect: edit them in PO (.po) files instead.
+#
+msgid ""
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:865
+#, elixir-autogen, elixir-format
+msgid "Apr"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:869
+#, elixir-autogen, elixir-format
+msgid "Aug"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:557
+#, elixir-autogen, elixir-format
+msgid "Clear"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:873
+#, elixir-autogen, elixir-format
+msgid "Dec"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:561
+#, elixir-autogen, elixir-format
+msgid "Drizzle"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:439
+#, elixir-autogen, elixir-format
+msgid "Fair"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:863
+#, elixir-autogen, elixir-format
+msgid "Feb"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:231
+#, elixir-autogen, elixir-format
+msgid "Feels like"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:560
+#, elixir-autogen, elixir-format
+msgid "Fog"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:837
+#, elixir-autogen, elixir-format
+msgid "Fri"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:438
+#, elixir-autogen, elixir-format
+msgid "Good"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:443
+#, elixir-autogen, elixir-format
+msgid "Hazardous"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:454
+#: lib/kakemono/widgets/weather/weather.ex:236
+#, elixir-autogen, elixir-format
+msgid "High"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:251
+#, elixir-autogen, elixir-format
+msgid "Humidity"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:862
+#, elixir-autogen, elixir-format
+msgid "Jan"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:868
+#, elixir-autogen, elixir-format
+msgid "Jul"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:867
+#, elixir-autogen, elixir-format
+msgid "Jun"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:452
+#: lib/kakemono/widgets/weather/weather.ex:241
+#, elixir-autogen, elixir-format
+msgid "Low"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:864
+#, elixir-autogen, elixir-format
+msgid "Mar"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:866
+#, elixir-autogen, elixir-format
+msgid "May"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:440
+#: lib/kakemono/widgets/air_quality/air_quality.ex:453
+#, elixir-autogen, elixir-format
+msgid "Moderate"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:833
+#, elixir-autogen, elixir-format
+msgid "Mon"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:558
+#, elixir-autogen, elixir-format
+msgid "Mostly clear"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:872
+#, elixir-autogen, elixir-format
+msgid "Nov"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:871
+#, elixir-autogen, elixir-format
+msgid "Oct"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:559
+#, elixir-autogen, elixir-format
+msgid "Overcast"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:441
+#, elixir-autogen, elixir-format
+msgid "Poor"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:246
+#: lib/kakemono/widgets/weather/weather.ex:562
+#, elixir-autogen, elixir-format
+msgid "Rain"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:838
+#, elixir-autogen, elixir-format
+msgid "Sat"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:870
+#, elixir-autogen, elixir-format
+msgid "Sep"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:564
+#, elixir-autogen, elixir-format
+msgid "Showers"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:563
+#, elixir-autogen, elixir-format
+msgid "Snow"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:565
+#, elixir-autogen, elixir-format
+msgid "Snow showers"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:261
+#: lib/kakemono/widgets/weather/weather.ex:839
+#, elixir-autogen, elixir-format
+msgid "Sun"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:836
+#, elixir-autogen, elixir-format
+msgid "Thu"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:566
+#, elixir-autogen, elixir-format
+msgid "Thunderstorm"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:834
+#, elixir-autogen, elixir-format
+msgid "Tue"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:455
+#, elixir-autogen, elixir-format
+msgid "Very High"
+msgstr ""
+
+#: lib/kakemono/widgets/air_quality/air_quality.ex:442
+#, elixir-autogen, elixir-format
+msgid "Very Poor"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:835
+#, elixir-autogen, elixir-format
+msgid "Wed"
+msgstr ""
+
+#: lib/kakemono/widgets/weather/weather.ex:256
+#, elixir-autogen, elixir-format
+msgid "Wind"
+msgstr ""

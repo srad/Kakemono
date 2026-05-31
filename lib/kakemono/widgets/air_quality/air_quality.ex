@@ -435,12 +435,12 @@ defmodule Kakemono.Widgets.AirQuality do
 
   defp aqi_classification(aqi) when is_number(aqi) do
     cond do
-      aqi <= 20 -> {"good", "Good"}
-      aqi <= 40 -> {"fair", "Fair"}
-      aqi <= 60 -> {"moderate", "Moderate"}
-      aqi <= 80 -> {"poor", "Poor"}
-      aqi <= 100 -> {"very-poor", "Very Poor"}
-      true -> {"hazardous", "Hazardous"}
+      aqi <= 20 -> {"good", dgettext("widgets", "Good")}
+      aqi <= 40 -> {"fair", dgettext("widgets", "Fair")}
+      aqi <= 60 -> {"moderate", dgettext("widgets", "Moderate")}
+      aqi <= 80 -> {"poor", dgettext("widgets", "Poor")}
+      aqi <= 100 -> {"very-poor", dgettext("widgets", "Very Poor")}
+      true -> {"hazardous", dgettext("widgets", "Hazardous")}
     end
   end
 
@@ -449,10 +449,10 @@ defmodule Kakemono.Widgets.AirQuality do
   defp pollen_level(value) when is_number(value) and value > 0 do
     {level, label} =
       cond do
-        value < 10 -> {"low", "Low"}
-        value < 50 -> {"moderate", "Moderate"}
-        value < 100 -> {"high", "High"}
-        true -> {"very-high", "Very High"}
+        value < 10 -> {"low", dgettext("widgets", "Low")}
+        value < 50 -> {"moderate", dgettext("widgets", "Moderate")}
+        value < 100 -> {"high", dgettext("widgets", "High")}
+        true -> {"very-high", dgettext("widgets", "Very High")}
       end
 
     %{level: level, label: label, value: value}

@@ -228,37 +228,37 @@ defmodule Kakemono.Widgets.Weather do
           <div class="kw-w-hero-text">
             <div class="kw-w-temp">{@temp}</div>
             <div class="kw-w-cond">{@condition}</div>
-            <div :if={@feels_like != "—°"} class="kw-w-feels">Feels like {@feels_like}</div>
+            <div :if={@feels_like != "—°"} class="kw-w-feels">{dgettext("widgets", "Feels like")} {@feels_like}</div>
           </div>
           <div class="kw-w-stats">
             <div :if={@hi != "—°"} class="kw-w-stat kw-w-hi">
               <span class="kw-w-stat-icon" aria-hidden="true">↑</span>
-              <span class="kw-w-stat-label">High</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "High")}</span>
               <span class="kw-w-stat-val">{@hi}</span>
             </div>
             <div :if={@lo != "—°"} class="kw-w-stat kw-w-lo">
               <span class="kw-w-stat-icon" aria-hidden="true">↓</span>
-              <span class="kw-w-stat-label">Low</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "Low")}</span>
               <span class="kw-w-stat-val">{@lo}</span>
             </div>
             <div :if={@rain != nil} class="kw-w-stat kw-w-rain">
               <span class="kw-w-stat-icon" aria-hidden="true">🌧</span>
-              <span class="kw-w-stat-label">Rain</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "Rain")}</span>
               <span class="kw-w-stat-val">{@rain}</span>
             </div>
             <div :if={is_number(@humidity)} class="kw-w-stat kw-w-humidity">
               <span class="kw-w-stat-icon" aria-hidden="true">🌫</span>
-              <span class="kw-w-stat-label">Humidity</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "Humidity")}</span>
               <span class="kw-w-stat-val">{round(@humidity)}%</span>
             </div>
             <div :if={@wind != nil} class="kw-w-stat kw-w-wind">
               <span class="kw-w-stat-icon" aria-hidden="true">🌬</span>
-              <span class="kw-w-stat-label">Wind</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "Wind")}</span>
               <span class="kw-w-stat-val">{@wind}</span>
             </div>
             <div :if={@sun_window != nil} class="kw-w-stat kw-w-sun">
               <span class="kw-w-stat-icon" aria-hidden="true">🌅</span>
-              <span class="kw-w-stat-label">Sun</span>
+              <span class="kw-w-stat-label">{dgettext("widgets", "Sun")}</span>
               <span class="kw-w-stat-val">{@sun_window}</span>
             </div>
           </div>
@@ -554,16 +554,16 @@ defmodule Kakemono.Widgets.Weather do
 
   defp weather_condition(code) when is_integer(code) do
     cond do
-      code == 0 -> "Clear"
-      code in 1..2 -> "Mostly clear"
-      code == 3 -> "Overcast"
-      code in 45..48 -> "Fog"
-      code in 51..57 -> "Drizzle"
-      code in 61..67 -> "Rain"
-      code in 71..77 -> "Snow"
-      code in 80..82 -> "Showers"
-      code in 85..86 -> "Snow showers"
-      code in 95..99 -> "Thunderstorm"
+      code == 0 -> dgettext("widgets", "Clear")
+      code in 1..2 -> dgettext("widgets", "Mostly clear")
+      code == 3 -> dgettext("widgets", "Overcast")
+      code in 45..48 -> dgettext("widgets", "Fog")
+      code in 51..57 -> dgettext("widgets", "Drizzle")
+      code in 61..67 -> dgettext("widgets", "Rain")
+      code in 71..77 -> dgettext("widgets", "Snow")
+      code in 80..82 -> dgettext("widgets", "Showers")
+      code in 85..86 -> dgettext("widgets", "Snow showers")
+      code in 95..99 -> dgettext("widgets", "Thunderstorm")
       true -> "—"
     end
   end
@@ -830,14 +830,20 @@ defmodule Kakemono.Widgets.Weather do
     end
   end
 
-  @weekdays {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+  defp weekday_name(1), do: dgettext("widgets", "Mon")
+  defp weekday_name(2), do: dgettext("widgets", "Tue")
+  defp weekday_name(3), do: dgettext("widgets", "Wed")
+  defp weekday_name(4), do: dgettext("widgets", "Thu")
+  defp weekday_name(5), do: dgettext("widgets", "Fri")
+  defp weekday_name(6), do: dgettext("widgets", "Sat")
+  defp weekday_name(7), do: dgettext("widgets", "Sun")
 
   defp format_weekday(<<y::binary-size(4), "-", m::binary-size(2), "-", d::binary-size(2)>>) do
     with {yi, ""} <- Integer.parse(y),
          {mi, ""} <- Integer.parse(m),
          {di, ""} <- Integer.parse(d),
          {:ok, date} <- Date.new(yi, mi, di) do
-      elem(@weekdays, Date.day_of_week(date) - 1)
+      weekday_name(Date.day_of_week(date))
     else
       _ -> ""
     end
@@ -853,14 +859,25 @@ defmodule Kakemono.Widgets.Weather do
 
   defp format_forecast_date(_), do: ""
 
-  @months {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+  defp month_name(1), do: dgettext("widgets", "Jan")
+  defp month_name(2), do: dgettext("widgets", "Feb")
+  defp month_name(3), do: dgettext("widgets", "Mar")
+  defp month_name(4), do: dgettext("widgets", "Apr")
+  defp month_name(5), do: dgettext("widgets", "May")
+  defp month_name(6), do: dgettext("widgets", "Jun")
+  defp month_name(7), do: dgettext("widgets", "Jul")
+  defp month_name(8), do: dgettext("widgets", "Aug")
+  defp month_name(9), do: dgettext("widgets", "Sep")
+  defp month_name(10), do: dgettext("widgets", "Oct")
+  defp month_name(11), do: dgettext("widgets", "Nov")
+  defp month_name(12), do: dgettext("widgets", "Dec")
 
   defp format_today(<<y::binary-size(4), "-", m::binary-size(2), "-", d::binary-size(2)>>) do
     with {yi, ""} <- Integer.parse(y),
          {mi, ""} <- Integer.parse(m),
          {di, ""} <- Integer.parse(d),
          {:ok, date} <- Date.new(yi, mi, di) do
-      "#{elem(@weekdays, Date.day_of_week(date) - 1)}, #{elem(@months, mi - 1)} #{di}"
+      "#{weekday_name(Date.day_of_week(date))}, #{month_name(mi)} #{di}"
     else
       _ -> ""
     end

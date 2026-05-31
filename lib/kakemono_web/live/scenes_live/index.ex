@@ -8,7 +8,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
-       page_title: "Scenes",
+       page_title: gettext("Scenes"),
        active_nav: :scenes,
        scenes: Scenes.list(),
        modes: @modes,
@@ -45,7 +45,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
       {:ok, p} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Scene '#{p.name}' created")
+         |> put_flash(:info, gettext("Scene '%{name}' created", name: p.name))
          |> assign(:scenes, Scenes.list())
          |> assign(:form_error, nil)}
 
@@ -78,10 +78,10 @@ defmodule KakemonoWeb.ScenesLive.Index do
     <div class="space-y-6">
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Layouts</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Scenes</h1>
+          <p class="text-sm font-medium text-slate-500">{gettext("Layouts")}</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Scenes")}</h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@scenes)} scenes</p>
+        <p class="text-sm text-slate-500">{ngettext("1 scene", "%{count} scenes", length(@scenes))}</p>
       </div>
 
       <form
@@ -90,13 +90,13 @@ defmodule KakemonoWeb.ScenesLive.Index do
         class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
       >
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-slate-950">Create scene</h2>
-          <p class="text-sm text-slate-500">Scenes define what each display shows.</p>
+          <h2 class="text-lg font-semibold text-slate-950">{gettext("Create scene")}</h2>
+          <p class="text-sm text-slate-500">{gettext("Scenes define what each display shows.")}</p>
         </div>
         <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(14rem,1fr)_repeat(4,minmax(9rem,11rem))_auto]">
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Name
+              {gettext("Name")}
             </label>
             <input
               type="text"
@@ -107,7 +107,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Mode
+              {gettext("Mode")}
             </label>
             <select
               name="scene[mode]"
@@ -118,7 +118,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Aspect Ratio
+              {gettext("Aspect Ratio")}
             </label>
             <select
               name="scene[aspect_ratio]"
@@ -129,7 +129,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Orientation
+              {gettext("Orientation")}
             </label>
             <select
               name="scene[orientation]"
@@ -140,7 +140,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
           </div>
           <div>
             <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500">
-              Theme
+              {gettext("Theme")}
             </label>
             <select
               name="scene[color_scheme]"
@@ -153,7 +153,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
             type="submit"
             class="inline-flex h-10 items-center justify-center self-end rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
           >
-            Create
+            {gettext("Create")}
           </button>
         </div>
         <p :if={@form_error} class="mt-3 text-sm text-rose-600">{@form_error}</p>
@@ -190,10 +190,10 @@ defmodule KakemonoWeb.ScenesLive.Index do
           <button
             phx-click="delete_scene"
             phx-value-id={p.id}
-            data-confirm={"Delete scene '#{p.name}'?"}
+            data-confirm={gettext("Delete scene '%{name}'?", name: p.name)}
             class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
           >
-            delete
+            {gettext("delete")}
           </button>
         </li>
       </ul>
@@ -202,7 +202,7 @@ defmodule KakemonoWeb.ScenesLive.Index do
         :if={@scenes == []}
         class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
       >
-        No scenes yet. Create one above.
+        {gettext("No scenes yet. Create one above.")}
       </p>
     </div>
     """

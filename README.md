@@ -23,6 +23,8 @@ laptop. Built with Phoenix LiveView, SQLite, Oban, and Tailwind CSS.
 - Scene override with `?scene=NAME` on any display URL.
 - Non-persistent weather preview override on `/d/preview` for visual inspection.
 - Kiosk Browser controls (wake, sleep, reload, restart) and built-in DB + media backups.
+- Multi-language support (English and German). Backend language is set globally in
+  Settings; each display can have its own locale for widget text.
 
 ## Requirements
 
@@ -318,3 +320,54 @@ lib/kakemono/widgets/<name>/
    on a cadence. See the `weather` or `rss` widgets.
 
 Run `mix compile && mix assets.build`; the widget appears in the scene editor's picker.
+
+## Translations
+
+The app uses [Gettext](https://hexdocs.pm/gettext) with two domains:
+
+- **`default`** — backend admin UI (nav labels, buttons, flash messages, form labels).
+- **`widgets`** — display-facing widget text (weather conditions, stat labels, weekday
+  and month names, air-quality levels).
+
+Translation files live under `priv/gettext/`. The backend language is set globally in
+Settings (`/c/settings`); each display has its own locale selector in the Control panel.
+
+### Using translations in code
+
+Backend UI (LiveViews, controllers, templates):
+
+```elixir
+gettext("Save")
+ngettext("1 item", "%{count} items", count)
+```
+
+Widget render functions (display-facing text):
+
+```elixir
+dgettext("widgets", "Feels like")
+dgettext("widgets", "Rain")
+```
+
+All LiveViews and widgets already have Gettext imported — `use KakemonoWeb, :live_view`
+and `use Kakemono.Widget` set it up.
+
+### Adding a new language
+
+```bash
+mix gettext.merge priv/gettext --locale fr
+```
+
+This creates `priv/gettext/fr/LC_MESSAGES/{default,widgets,errors}.po`. Fill in the
+`msgstr` entries in each file, then add `"fr"` to the `@supported` list in
+`lib/kakemono/locale.ex`.
+
+### Updating translations after code changes
+
+After adding or changing `gettext()`/`dgettext()` calls:
+
+```bash
+mix gettext.extract --merge
+```
+
+This updates the `.pot` templates and merges new strings into all existing `.po` files.
+Translate the new empty `msgstr` entries in each locale's `.po` files.

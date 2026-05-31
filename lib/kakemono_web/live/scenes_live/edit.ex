@@ -63,7 +63,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         {:noreply, put_flash(socket, :error, format_errors(cs))}
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Could not create: #{format_error(reason)}")}
+        {:noreply, put_flash(socket, :error, gettext("Could not create: %{reason}", reason: format_error(reason)))}
     end
   end
 
@@ -96,7 +96,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         end
 
       {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Could not create: #{format_error(reason)}")}
+        {:noreply, put_flash(socket, :error, gettext("Could not create: %{reason}", reason: format_error(reason)))}
     end
   end
 
@@ -156,10 +156,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
              socket
              |> assign(:instances, Widgets.list_instances_for(socket.assigns.scene.id))
              |> assign(:editing_id, nil)
-             |> put_flash(:info, "Config saved")}
+             |> put_flash(:info, gettext("Config saved"))}
 
           {:error, reason} ->
-            {:noreply, put_flash(socket, :error, "Save failed: #{format_error(reason)}")}
+            {:noreply, put_flash(socket, :error, gettext("Save failed: %{reason}", reason: format_error(reason)))}
         end
 
       {:error, msg} ->
@@ -202,10 +202,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
 
     case Scenes.update(socket.assigns.scene, %{layout: layout}) do
       {:ok, scene} ->
-        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, "Fullscreen widget set")}
+        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, gettext("Fullscreen widget set"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not update scene")}
+        {:noreply, put_flash(socket, :error, gettext("Could not update scene"))}
     end
   end
 
@@ -217,7 +217,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
   def handle_event("rename_scene", %{"name" => name}, socket) do
     case Scenes.update(socket.assigns.scene, %{name: String.trim(name)}) do
       {:ok, scene} -> {:noreply, assign(socket, :scene, scene)}
-      {:error, _} -> {:noreply, put_flash(socket, :error, "Could not rename scene")}
+      {:error, _} -> {:noreply, put_flash(socket, :error, gettext("Could not rename scene"))}
     end
   end
 
@@ -225,7 +225,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
   def handle_event("set_aspect_ratio", %{"aspect_ratio" => ratio}, socket) do
     case Scenes.update(socket.assigns.scene, %{aspect_ratio: ratio}) do
       {:ok, scene} -> {:noreply, assign(socket, :scene, scene)}
-      {:error, _} -> {:noreply, put_flash(socket, :error, "Could not update aspect ratio")}
+      {:error, _} -> {:noreply, put_flash(socket, :error, gettext("Could not update aspect ratio"))}
     end
   end
 
@@ -241,7 +241,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
            color_scheme: color_scheme
          }) do
       {:ok, scene} -> {:noreply, assign(socket, :scene, scene)}
-      {:error, _} -> {:noreply, put_flash(socket, :error, "Could not update canvas settings")}
+      {:error, _} -> {:noreply, put_flash(socket, :error, gettext("Could not update canvas settings"))}
     end
   end
 
@@ -258,7 +258,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
 
     case Scenes.update(socket.assigns.scene, %{schedule: schedule}) do
       {:ok, scene} ->
-        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, "Schedule saved")}
+        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, gettext("Schedule saved"))}
 
       {:error, cs} ->
         {:noreply, put_flash(socket, :error, format_errors(cs))}
@@ -269,10 +269,10 @@ defmodule KakemonoWeb.ScenesLive.Edit do
   def handle_event("clear_schedule", _params, socket) do
     case Scenes.update(socket.assigns.scene, %{schedule: nil}) do
       {:ok, scene} ->
-        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, "Schedule cleared")}
+        {:noreply, socket |> assign(:scene, scene) |> put_flash(:info, gettext("Schedule cleared"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Could not clear schedule")}
+        {:noreply, put_flash(socket, :error, gettext("Could not clear schedule"))}
     end
   end
 
@@ -535,7 +535,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               navigate={~p"/c/scenes"}
               class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-950"
             >
-              <.icon name="hero-arrow-left" class="h-4 w-4" /> All scenes
+              <.icon name="hero-arrow-left" class="h-4 w-4" /> {gettext("All scenes")}
             </.link>
             <a
               href={~p"/d/preview?scene=#{@scene.name}"}
@@ -544,7 +544,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               title="Open this scene in the display viewer in a new tab"
               class="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
             >
-              <.icon name="hero-arrow-top-right-on-square" class="h-3.5 w-3.5" /> Preview
+              <.icon name="hero-arrow-top-right-on-square" class="h-3.5 w-3.5" /> {gettext("Preview")}
             </a>
           </div>
           <form phx-submit="rename_scene" class="flex items-center gap-1">
@@ -570,11 +570,11 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         <%!-- Canvas settings — dashboard mode only --%>
         <section :if={@scene.mode == "dashboard"} class="border-b border-slate-200 p-4">
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Canvas
+            {gettext("Canvas")}
           </h2>
           <form phx-submit="set_canvas_settings" class="space-y-2">
             <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Ratio</span>
+              <span class="mb-1 block text-xs text-slate-500">{gettext("Ratio")}</span>
               <select
                 name="aspect_ratio"
                 class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
@@ -589,7 +589,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               </select>
             </label>
             <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Orientation</span>
+              <span class="mb-1 block text-xs text-slate-500">{gettext("Orientation")}</span>
               <select
                 name="orientation"
                 class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
@@ -604,7 +604,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               </select>
             </label>
             <label class="block">
-              <span class="mb-1 block text-xs text-slate-500">Theme</span>
+              <span class="mb-1 block text-xs text-slate-500">{gettext("Theme")}</span>
               <select
                 name="color_scheme"
                 class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
@@ -622,7 +622,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               type="submit"
               class="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
             >
-              Apply
+              {gettext("Apply")}
             </button>
           </form>
         </section>
@@ -633,7 +633,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           class="border-b border-slate-200 p-4"
         >
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Add Widget
+            {gettext("Add Widget")}
           </h2>
           <div class="grid grid-cols-2 gap-2">
             <button
@@ -654,7 +654,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           class="space-y-2 border-b border-slate-200 p-4"
         >
           <h2 class="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Fullscreen Widget
+            {gettext("Fullscreen Widget")}
           </h2>
           <form phx-submit="set_fullscreen_widget" class="flex gap-2 items-end">
             <div class="flex-1">
@@ -663,7 +663,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
                 required
               >
-                <option value="">— choose instance —</option>
+                <option value="">{gettext("— choose instance —")}</option>
                 <option
                   :for={i <- @instances}
                   value={i.id}
@@ -677,21 +677,21 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               type="submit"
               class="rounded-md bg-slate-950 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
             >
-              Set
+              {gettext("Set")}
             </button>
           </form>
           <p :if={@instances == []} class="text-xs text-slate-400">
-            Click an "Add Widget" button above to create the fullscreen widget.
+            {gettext("Click an \"Add Widget\" button above to create the fullscreen widget.")}
           </p>
         </section>
 
         <%!-- Widgets list --%>
         <section :if={@scene.mode == "dashboard"} class="flex-1 border-b border-slate-200 p-4">
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Widgets
+            {gettext("Widgets")}
           </h2>
           <p :if={MapSet.size(@placed_ids) == 0} class="text-xs text-slate-400">
-            None — click Add Widget above.
+            {gettext("None — click Add Widget above.")}
           </p>
           <ul class="space-y-1">
             <li
@@ -708,12 +708,12 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 phx-value-widget_instance_id={cell["widget_instance_id"]}
                 class="rounded px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
               >
-                Config
+                {gettext("Config")}
               </button>
               <button
                 phx-click="delete_instance"
                 phx-value-id={cell["widget_instance_id"]}
-                data-confirm="Delete this widget permanently?"
+                data-confirm={gettext("Delete this widget permanently?")}
                 class="rounded px-1.5 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                 title="Delete widget"
               >
@@ -726,7 +726,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         <%!-- Schedule --%>
         <section class="p-4">
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Schedule
+            {gettext("Schedule")}
           </h2>
           <form phx-submit="save_schedule" class="space-y-3">
             <div>
@@ -757,7 +757,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             </div>
             <div class="flex gap-2 text-xs">
               <div>
-                <label class="block text-slate-400">Start (UTC)</label>
+                <label class="block text-slate-400">{gettext("Start (UTC)")}</label>
                 <input
                   type="number"
                   name="schedule[start_hour]"
@@ -769,7 +769,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 />
               </div>
               <div>
-                <label class="block text-slate-400">End (UTC)</label>
+                <label class="block text-slate-400">{gettext("End (UTC)")}</label>
                 <input
                   type="number"
                   name="schedule[end_hour]"
@@ -786,14 +786,14 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 type="submit"
                 class="rounded-md bg-slate-950 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800"
               >
-                Save
+                {gettext("Save")}
               </button>
               <button
                 type="button"
                 phx-click="clear_schedule"
                 class="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
               >
-                Clear
+                {gettext("Clear")}
               </button>
             </div>
           </form>
@@ -827,7 +827,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
             </p>
             <p class="text-slate-600">
               {type_label(@types, inst_type(@instances, @scene.layout["widget_instance_id"]))}
-              <span class="text-sm text-slate-400">fills entire display</span>
+              <span class="text-sm text-slate-400">{gettext("fills entire display")}</span>
             </p>
             <p
               :if={
@@ -836,7 +836,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               }
               class="text-sm text-slate-400"
             >
-              Select a widget instance in the sidebar.
+              {gettext("Select a widget instance in the sidebar.")}
             </p>
           </div>
         </div>
@@ -854,7 +854,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
         <div class="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <h2 class="font-semibold">
-              Configure {type_label(@types, inst_type(@instances, @editing_id))}
+              {gettext("Configure")} {type_label(@types, inst_type(@instances, @editing_id))}
               <span class="text-sm font-normal text-slate-400">#{@editing_id}</span>
             </h2>
             <button
@@ -871,7 +871,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
               :if={config_fields_for(inst_type(@instances, @editing_id)) == []}
               class="text-sm text-slate-500"
             >
-              This widget has no configurable options.
+              {gettext("This widget has no configurable options.")}
             </p>
             <%= for field <- config_fields_for(inst_type(@instances, @editing_id)) do %>
               <%= if field[:hidden] do %>
@@ -897,14 +897,14 @@ defmodule KakemonoWeb.ScenesLive.Edit do
                 type="submit"
                 class="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
               >
-                Save
+                {gettext("Save")}
               </button>
               <button
                 type="button"
                 phx-click="cancel_edit"
                 class="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
-                Cancel
+                {gettext("Cancel")}
               </button>
             </div>
           </form>
@@ -985,7 +985,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           name={"config[#{@field.key}]"}
           class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         >
-          <option value="">— choose playlist —</option>
+          <option value="">{gettext("— choose playlist —")}</option>
           <option :for={pl <- @playlists} value={pl.id} selected={@current == pl.id}>{pl.name}</option>
         </select>
         """
@@ -998,7 +998,7 @@ defmodule KakemonoWeb.ScenesLive.Edit do
           name={"config[#{@field.key}]"}
           class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         >
-          <option value="">— choose calendar —</option>
+          <option value="">{gettext("— choose calendar —")}</option>
           <option
             :for={calendar <- @calendars}
             value={calendar.id}

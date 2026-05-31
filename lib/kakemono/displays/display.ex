@@ -6,13 +6,14 @@ defmodule Kakemono.Displays.Display do
   schema "displays" do
     field :name, :string
     field :current_scene_id, :integer
+    field :locale, :string, default: "en"
     field :last_heartbeat_at, :utc_datetime
     timestamps()
   end
 
   def changeset(d, attrs) do
     d
-    |> cast(attrs, [:id, :name, :current_scene_id, :last_heartbeat_at])
+    |> cast(attrs, [:id, :name, :current_scene_id, :locale, :last_heartbeat_at])
     |> validate_required([:id, :name])
   end
 end

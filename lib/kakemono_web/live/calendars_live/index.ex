@@ -9,7 +9,7 @@ defmodule KakemonoWeb.CalendarsLive.Index do
 
     {:ok,
      socket
-     |> assign(:page_title, "Calendars")
+     |> assign(:page_title, gettext("Calendars"))
      |> assign(:active_nav, :calendars)
      |> assign(:timezones, Kakemono.TimeZones.list())
      |> load()}
@@ -22,7 +22,7 @@ defmodule KakemonoWeb.CalendarsLive.Index do
         {:noreply,
          socket
          |> load()
-         |> put_flash(:info, "Created #{calendar.name}")}
+         |> put_flash(:info, gettext("Created %{name}", name: calendar.name))}
 
       {:error, changeset} ->
         {:noreply, put_flash(socket, :error, format_errors(changeset))}
@@ -48,10 +48,10 @@ defmodule KakemonoWeb.CalendarsLive.Index do
     <div class="space-y-6">
       <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p class="text-sm font-medium text-slate-500">Scheduling</p>
-          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">Calendars</h1>
+          <p class="text-sm font-medium text-slate-500">{gettext("Scheduling")}</p>
+          <h1 class="text-2xl font-semibold tracking-tight text-slate-950">{gettext("Calendars")}</h1>
         </div>
-        <p class="text-sm text-slate-500">{length(@calendars)} calendars</p>
+        <p class="text-sm text-slate-500">{ngettext("1 calendar", "%{count} calendars", length(@calendars))}</p>
       </div>
 
       <form
@@ -61,7 +61,7 @@ defmodule KakemonoWeb.CalendarsLive.Index do
       >
         <input
           name="calendar[name]"
-          placeholder="New calendar name"
+          placeholder={gettext("New calendar name")}
           class="rounded-md border-slate-300 text-sm shadow-sm focus:border-slate-500 focus:ring-slate-500"
         />
         <select
@@ -79,7 +79,7 @@ defmodule KakemonoWeb.CalendarsLive.Index do
           class="h-10 w-full rounded-md border border-slate-300 bg-white p-1"
         />
         <button class="inline-flex h-10 items-center justify-center rounded-md bg-slate-950 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800">
-          Create
+          {gettext("Create")}
         </button>
       </form>
 
@@ -106,10 +106,10 @@ defmodule KakemonoWeb.CalendarsLive.Index do
             <button
               phx-click="delete"
               phx-value-id={calendar.id}
-              data-confirm="Delete calendar?"
+              data-confirm={gettext("Delete calendar?")}
               class="rounded-md px-2.5 py-1.5 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
             >
-              delete
+              {gettext("delete")}
             </button>
           </div>
         </li>
@@ -119,7 +119,7 @@ defmodule KakemonoWeb.CalendarsLive.Index do
         :if={@calendars == []}
         class="rounded-lg border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-500"
       >
-        No calendars yet. Create one above.
+        {gettext("No calendars yet. Create one above.")}
       </p>
     </div>
     """
